@@ -1,4 +1,6 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.Extensions.Caching.Distributed;
+using MongoDB.Driver;
+using USER.API.Helpers;
 using USER.API.Models;
 
 namespace USER.API.Repositories
@@ -6,14 +8,34 @@ namespace USER.API.Repositories
     public class UserRepositories : IRepositories
     {
         private readonly DatabaseContext _dbContext;
-        public UserRepositories(DatabaseContext dbContext)
+        private readonly IDistributedCache _cache;
+        public UserRepositories(DatabaseContext dbContext, IDistributedCache cache)
         {
             _dbContext = dbContext;
+            _cache = cache;
         }
 
-        public async Task AddUserAsync(User user)
+        public async Task<int> AddUserAsync(User user)
         {
+            
+            var userExistEmail = await _dbContext.Users.Find(u => u.UserEmail == user.UserEmail).FirstOrDefaultAsync();
+
+            if (userExistEmail != null)
+            {
+                return 1;
+            }
+
+            var userExistPhone = await _dbContext.Users.Find(u => u.Phone == user.Phone).FirstOrDefaultAsync();
+                        
+            if (userExistPhone != null)
+            {
+                 return 2;
+            }
+            
+            user.Password = PasswordBcrypt.HashPassword(user.Password);
             await _dbContext.Users.InsertOneAsync(user);
+            return 0;
+
         }
 
         public async Task DeleteUserAsync(string id)

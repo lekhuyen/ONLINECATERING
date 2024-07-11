@@ -7,7 +7,7 @@ namespace USER.API.Repositories
         Task<IEnumerable<User>> GetAllUserAsync();
         Task<User> GetByIdAsync(string id);
         Task<User> GetByIdRefeshToken(string id);
-        Task AddUserAsync(User user);
+        Task<int> AddUserAsync(User user);
         Task UpdateUserAsync(string id,User user);
         Task DeleteUserAsync(string id);
     }

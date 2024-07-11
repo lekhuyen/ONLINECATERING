@@ -1,6 +1,7 @@
 ﻿
 using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +11,7 @@ using MongoDB.Driver;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using USER.API.DTOs;
 using USER.API.Models;
 using USER.API.Repositories;
 
@@ -35,7 +37,7 @@ namespace USER.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllUser()
         {
             try
@@ -66,23 +68,51 @@ namespace USER.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddUser(User user)
         {
-            if(ModelState.IsValid)
+            try
             {
-                await _repository.AddUserAsync(user);
-                //await _databaseContext.Users.InsertOneAsync(user);
-                return Created("success",new ApiResponse
+                if (ModelState.IsValid)
                 {
-                    Success = true,
-                    Status = 0,
-                    Message = "Create Users Successfully"
+                    var userRes = await _repository.AddUserAsync(user);
+                    //await _databaseContext.Users.InsertOneAsync(user);
+                    if (userRes == 1)
+                    {
+                        return BadRequest(new ApiResponse
+                        {
+                            Success = false,
+                            Status = 1,
+                            Message = "Email da ton tai"
+                        });
+                    }
+                    else if (userRes == 2)
+                    {
+                        return BadRequest(new ApiResponse
+                        {
+                            Success = false,
+                            Status = 1,
+                            Message = "Phone da ton tai"
+                        });
+                    }
+                    return Created("success", new ApiResponse
+                    {
+                        Success = true,
+                        Status = 0,
+                        Message = "User added successfully"
+                    });
+                }
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Create Users failed"
+                });
+            }catch(Exception ex) {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Create Users failed"
                 });
             }
-            return BadRequest(new ApiResponse
-            {
-                Success = false,
-                Status = 1,
-                Message = "Create Users failed"
-            });
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
@@ -209,13 +239,22 @@ namespace USER.API.Controllers
              _dbContext.Users.UpdateOne(u => u.Id == userLogin.Id, r);
              _dbContext.Users.UpdateOne(u => u.Id == userLogin.Id, e);
 
+            var userDTO = new UserDTO
+            {
+                UserEmail = userLogin.UserEmail,
+                UserName = userLogin.UserName,
+                Phone = userLogin.Phone,
+                Role = userLogin.Role,
+            };
+
             return Ok(new ApiResponse
             {
                 Success = true,
                 Status = 0,
                 Message = "Logged in successfully",
                 AccessToken = token,
-                RefreshToken = refeshToken
+                RefreshToken = refeshToken,
+                Data = userDTO
             });
 
         }
