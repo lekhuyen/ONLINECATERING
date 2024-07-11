@@ -1,0 +1,6 @@
+@GETWAYAPI_HostAddress = http://localhost:5246
+
+GET {{GETWAYAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

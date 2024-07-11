@@ -1,0 +1,6 @@
+@ONLINECATERING_HostAddress = http://localhost:5194
+
+GET {{ONLINECATERING_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
