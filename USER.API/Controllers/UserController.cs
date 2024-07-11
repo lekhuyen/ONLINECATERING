@@ -250,7 +250,12 @@ namespace USER.API.Controllers
             var user = await _repository.GetByIdRefeshToken(tokenRefresh);
             if(user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
-                return Unauthorized();
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Login timeout, please log in again",
+                });
             }
             var tokenString = GenerateToken(user);
 
