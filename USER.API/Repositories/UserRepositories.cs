@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-using MongoDB.Driver;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text;
+using System.Text.Json;
 using USER.API.Helpers;
 using USER.API.Models;
 
@@ -8,24 +10,21 @@ namespace USER.API.Repositories
     public class UserRepositories : IRepositories
     {
         private readonly DatabaseContext _dbContext;
-        private readonly IDistributedCache _cache;
-        public UserRepositories(DatabaseContext dbContext, IDistributedCache cache)
+        public UserRepositories(DatabaseContext dbContext)
         {
             _dbContext = dbContext;
-            _cache = cache;
         }
 
         public async Task<int> AddUserAsync(User user)
         {
-            
-            var userExistEmail = await _dbContext.Users.Find(u => u.UserEmail == user.UserEmail).FirstOrDefaultAsync();
+            var userExistEmail = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserEmail == user.UserEmail);
 
             if (userExistEmail != null)
             {
                 return 1;
             }
 
-            var userExistPhone = await _dbContext.Users.Find(u => u.Phone == user.Phone).FirstOrDefaultAsync();
+            var userExistPhone = await _dbContext.Users.FirstOrDefaultAsync(u => u.Phone == user.Phone);
                         
             if (userExistPhone != null)
             {
@@ -33,37 +32,67 @@ namespace USER.API.Repositories
             }
             
             user.Password = PasswordBcrypt.HashPassword(user.Password);
-            await _dbContext.Users.InsertOneAsync(user);
+            await _dbContext.Users.AddAsync(user);
+            await _dbContext.SaveChangesAsync();
             return 0;
-
         }
 
-        public async Task DeleteUserAsync(string id)
+        public async Task DeleteUserAsync(int id)
         {
-            await _dbContext.Users.DeleteOneAsync(u => u.Id == id);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if(user != null)
+            {
+                 _dbContext.Users.Remove(user);
+                await _dbContext.SaveChangesAsync();
+            }
         }
 
         public async Task<IEnumerable<User>> GetAllUserAsync()
         {
-            var users = await _dbContext.Users.Find(u => true).ToListAsync();
+
+            var users = await _dbContext.Users
+                .Include(u => u.Grade)
+                .Include(u => u.FavoriteLists)
+                .ToListAsync();
             return users;
         }
 
-        public async Task<User> GetByIdAsync(string id)
+        public async Task<User> GetByIdAsync(int id)
         {
-            var user = await _dbContext.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
+            var user = await _dbContext.Users
+                .Include(u=> u.Grade)
+                .Include(u => u.FavoriteLists)
+                .FirstOrDefaultAsync(u => u.Id == id);
             return user;
         }
 
         public async Task<User> GetByIdRefeshToken(string refeshToken)
         {
-            var user = await _dbContext.Users.Find(u => u.RefeshToken == refeshToken).FirstOrDefaultAsync();
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.RefeshToken == refeshToken);
             return user;
         }
 
-        public async Task UpdateUserAsync(string id, User user)
+        public async Task<int> UpdateUserAsync(User user)
         {
-            await _dbContext.Users.ReplaceOneAsync(u => u.Id == id, user);
+            var userExistEmail = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserEmail == user.UserEmail);
+
+            if (userExistEmail != null)
+            {
+                return 1;
+            }
+
+            var userExistPhone = await _dbContext.Users.FirstOrDefaultAsync(u => u.Phone == user.Phone);
+
+            if (userExistPhone != null)
+            {
+                return 2;
+            }
+
+            //user.Password = PasswordBcrypt.HashPassword(user.Password);
+
+            _dbContext.Users.Update(user);
+            await _dbContext.SaveChangesAsync();
+            return 0;
         }
     }
 }
