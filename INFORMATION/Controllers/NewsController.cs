@@ -334,6 +334,18 @@ namespace INFORMATIONAPI.Controllers
                         Message = "News Type not found",
                     });
                 }
+
+                if (newType.Id != id)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Mismatched ID in news type object and parameter",
+                        Data = null
+                    });
+                }
+
                 return Ok(new ApiResponse
                 {
                     Success = true,
