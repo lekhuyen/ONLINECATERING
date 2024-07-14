@@ -26,12 +26,27 @@ namespace INFORMATIONAPI.Controllers
             try
             {
                 var newsContent = await _newsRepositories.GetAllAsync();
+
+                // Retrieve all news types to map ids to names
+                var newsTypes = await _newsRepositories.GetAllNewTypesAsync();
+                var newsTypeMap = newsTypes.ToDictionary(nt => nt.Id, nt => nt.NewsTypeName);
+
+                // Map news type names to news objects
+                var formattedNews = newsContent.Select(news => new
+                {
+                    id = news.Id,
+                    title = news.Title,
+                    content = news.Content,
+                    newsTypeName = newsTypeMap.ContainsKey(news.NewsTypeId) ? newsTypeMap[news.NewsTypeId] : "",
+                    imagePath = news.ImagePath ?? "" // Ensure imagePath is not null
+                });
+
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
                     Message = "Get News Successfully",
-                    Data = newsContent
+                    Data = formattedNews.ToList() // Convert to list if necessary
                 });
             }
             catch (Exception ex)
@@ -61,12 +76,26 @@ namespace INFORMATIONAPI.Controllers
                         Message = "News not found",
                     });
                 }
+
+                // Retrieve the news type name for the current news object
+                var newsType = await _newsRepositories.GetNewTypeByIdAsync(news.NewsTypeId);
+                string newsTypeName = newsType != null ? newsType.NewsTypeName : "";
+
+                var formattedNews = new
+                {
+                    id = news.Id,
+                    title = news.Title,
+                    content = news.Content,
+                    newsTypeName = newsTypeName,
+                    imagePath = news.ImagePath ?? "" // Ensure imagePath is not null
+                };
+
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Update News Successfully",
-                    Data = news
+                    Message = "Get News Successfully",
+                    Data = formattedNews
                 });
             }
             catch (Exception ex)
@@ -80,6 +109,7 @@ namespace INFORMATIONAPI.Controllers
                 });
             }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateContent([FromForm] News news, IFormFile? imageFile)
@@ -187,6 +217,162 @@ namespace INFORMATIONAPI.Controllers
                     Success = true,
                     Status = 0,
                     Message = "Delete News Successfully",
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from service",
+                    Data = null
+                });
+            }
+        }
+
+
+        // NewType
+        [HttpGet("newtypes")]
+        public async Task<IActionResult> GetAllNewTypes()
+        {
+            try
+            {
+                var newTypes = await _newsRepositories.GetAllNewTypesAsync();
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Get All News Types Successfully",
+                    Data = newTypes
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from service",
+                    Data = null
+                });
+            }
+        }
+
+        [HttpGet("newtypes/{id}")]
+        public async Task<IActionResult> GetNewTypeById(string id)
+        {
+            try
+            {
+                var newType = await _newsRepositories.GetNewTypeByIdAsync(id);
+                if (newType == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "News Type not found",
+                    });
+                }
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Get News Type Successfully",
+                    Data = newType
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from service",
+                    Data = null
+                });
+            }
+        }
+
+        [HttpPost("newtypes")]
+        public async Task<IActionResult> CreateNewType([FromBody] NewsType newType)
+        {
+            try
+            {
+                await _newsRepositories.CreateNewTypeAsync(newType);
+                return Created("success", new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Add News Type Successfully",
+                    Data = newType
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Create News Type failed"
+                });
+            }
+        }
+
+        [HttpPut("newtypes/{id}")]
+        public async Task<IActionResult> EditNewType(string id, [FromBody] NewsType newType)
+        {
+            try
+            {
+                var updated = await _newsRepositories.UpdateNewTypeAsync(id, newType);
+                if (!updated)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "News Type not found",
+                    });
+                }
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Update News Type Successfully",
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from service",
+                    Data = null
+                });
+            }
+        }
+
+        [HttpDelete("newtypes/{id}")]
+        public async Task<IActionResult> DeleteNewType(string id)
+        {
+            try
+            {
+                var deleted = await _newsRepositories.DeleteNewTypeAsync(id);
+                if (!deleted)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "News Type not found",
+                    });
+                }
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Delete News Type Successfully",
                 });
             }
             catch (Exception ex)
