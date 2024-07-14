@@ -1,7 +1,9 @@
 
+using INFORMATION.API.Services;
 using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
 using INFORMATIONAPI.Service;
+using INFORMATIONAPI.Services;
 using Microsoft.OpenApi.Models;
 
 namespace INFORMATION
@@ -16,10 +18,11 @@ namespace INFORMATION
 			builder.Services.AddScoped<DatabaseContext>();
 			builder.Services.AddScoped<IAboutRepositories, AboutService>();
 			builder.Services.AddScoped<INewsRepositories, NewsService>();
+            builder.Services.AddScoped<IContactRepositories, ContactService>();
+            builder.Services.AddSingleton<EmailService>();
+            // Add services to the container.
 
-			// Add services to the container.
-
-			builder.Services.AddControllers();
+            builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen(c =>
