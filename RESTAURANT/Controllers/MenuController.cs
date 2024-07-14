@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RESTAURANT.API.DTOs;
+using RESTAURANT.API.Helpers;
 using RESTAURANT.API.Repositories;
 
 namespace RESTAURANT.API.Controllers
@@ -51,12 +52,18 @@ namespace RESTAURANT.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddMenu(CreateMenuDTO menuDTO)
+        public async Task<IActionResult> AddMenu([FromForm] CreateMenuDTO menuDTO, IFormFile formFile)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
+                    if(formFile != null)
+                    {
+                        var imagePath = await FileUpload.SaveImage("images", formFile);
+                        menuDTO.MenuImage = imagePath;
+                    }
+                    
                     await _menu.AddMenu(menuDTO);
                     return Ok(new ApiResponse
                     {
@@ -85,7 +92,7 @@ namespace RESTAURANT.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMenu(int id, CreateMenuDTO menuDTO)
+        public async Task<IActionResult> UpdateMenu( int id, [FromForm] CreateMenuDTO menuDTO, IFormFile formFile)
         {
             try
             {
@@ -94,6 +101,17 @@ namespace RESTAURANT.API.Controllers
                     var menu = await _menu.GetMenuById(id);
                     if (menu != null)
                     {
+                        if (formFile != null)
+                        {
+                            var imagePath = await FileUpload.SaveImage("images", formFile);
+                            if(menu.MenuImage != null)
+                            {
+                                FileUpload.DeleteImage(menu.MenuImage);
+                            }
+
+                            menu.MenuImage = imagePath;
+                        }
+
                         menu.MenuName = menuDTO.MenuName;
                         menu.RestaurantId = menuDTO.RestaurantId;
                         menu.Price = menuDTO.Price;

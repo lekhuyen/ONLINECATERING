@@ -19,6 +19,7 @@ namespace RESTAURANT.API.Repositories
                 Price = menuDTO.Price,
                 Ingredient = menuDTO.Ingredient,
                 RestaurantId = menuDTO.RestaurantId,
+                MenuImage = menuDTO.MenuImage,
             };
             await _databaseContext.AddAsync(menu);
             await _databaseContext.SaveChangesAsync();
