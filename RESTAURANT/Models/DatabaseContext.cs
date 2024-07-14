@@ -41,10 +41,10 @@ namespace RESTAURANT.API.Models
                 .WithOne(r => r.Restaurant)
                 .HasForeignKey(r => r.RestaurantId);
 
-            modelBuilder.Entity<Menu>()
-                .HasMany(m => m.MenuImages)
-                .WithOne( m => m.Menu)
-                .HasForeignKey( m => m.MenuId); 
+            //modelBuilder.Entity<Menu>()
+            //    .HasMany(m => m.MenuImages)
+            //    .WithOne( m => m.Menu)
+            //    .HasForeignKey( m => m.MenuId); 
 
 
             modelBuilder.Entity<Comment>()
