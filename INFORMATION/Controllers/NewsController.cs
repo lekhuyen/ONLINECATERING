@@ -101,7 +101,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Create content failed"
+                    Message = "Create news failed"
                 });
             }
         }
