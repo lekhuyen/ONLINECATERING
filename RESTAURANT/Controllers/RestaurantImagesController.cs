@@ -101,12 +101,13 @@ namespace RESTAURANT.API.Controllers
             try
             {
                 var image = await _databaseContext.RestaurantImages.FirstOrDefaultAsync(r => r.Id == id);
-                if (image != null)
+                if (image == null)
                 {
-                    FileUpload.DeleteImage(image.ImagesUrl);
-                    _databaseContext.Remove(image);
-                    await _databaseContext.SaveChangesAsync();
+                    return NotFound();
                 }
+                FileUpload.DeleteImage(image.ImagesUrl);
+                _databaseContext.Remove(image);
+                await _databaseContext.SaveChangesAsync();
                 return Ok(new ApiResponse
                 {
                     Success = false,

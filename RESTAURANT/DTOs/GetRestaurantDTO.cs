@@ -22,6 +22,7 @@ namespace RESTAURANT.API.DTOs
 
         public CategoryDTO? Category { get; set; }
         public List<RatingDTO>? Rating { get; set; }
+        public List<GetMenuDTO>? Menus { get; set; }
 
         public List<CommentDTO>? Comment { get; set; }
         public List<RestaurantImagesDTO>? RestaurantImages { get; set; }
