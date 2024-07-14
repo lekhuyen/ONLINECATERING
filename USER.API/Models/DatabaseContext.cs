@@ -1,17 +1,27 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace USER.API.Models
 {
-    public class DatabaseContext
+    public class DatabaseContext:DbContext
     {
-        private readonly IMongoDatabase _mongoDatabase;
-        public DatabaseContext(IConfiguration config)
-        {
-            var client = new MongoClient(config.GetConnectionString("MongoDb"));
+        
+        public DatabaseContext(DbContextOptions options) : base(options) { }
 
-            _mongoDatabase = client.GetDatabase("OnlineCatering");
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.FavoriteLists)
+                .WithOne(u => u.User)
+                .HasForeignKey(u => u.UserId);
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Grade)
+                .WithOne(u => u.User)
+                .HasForeignKey<Grade>(u => u.UserId);
         }
-        public IMongoCollection<User> Users => _mongoDatabase.GetCollection<User>("Users");
-        //abc
+        public DbSet<User> Users { get; set; }
+        public DbSet<Grade> Grades { get; set; }
+        public DbSet<FavoriteList> FavoriteLists { get; set; }
+
     }
 }

@@ -1,15 +1,16 @@
 ﻿
 using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using USER.API.DTOs;
+using USER.API.Helpers;
 using USER.API.Models;
 using USER.API.Repositories;
 
@@ -22,31 +23,50 @@ namespace USER.API.Controllers
         private readonly IRepositories _repository;
         private IConfiguration _configuration;
         private readonly IAuthUser _authUser;
-        private readonly DatabaseContext _dbContext;
 
 
 
-        public UserController(IAuthUser authUser,IRepositories repositories, IConfiguration configuration, DatabaseContext dbContext)
+        public UserController(IAuthUser authUser,IRepositories repositories, IConfiguration configuration)
         {
             _repository = repositories;
             _configuration = configuration;
             _authUser = authUser;
-            _dbContext = dbContext;
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllUser()
         {
             try
             {
                 var users = await _repository.GetAllUserAsync();
+                var userDto = users.Select(u => new UserDTO
+                {
+                    Id = u.Id,
+                    UserEmail = u.UserEmail,
+                    UserName = u.UserName,
+                    Phone = u.Phone,
+                    Role = u.Role,
+                    Password = u.Password,
+                    Grade = u.Grade != null ? new GradeDTO
+                    {
+                        Point = u.Grade.Point
+                    } : null,
+                    FavoriteList = u.FavoriteLists != null ? u.FavoriteLists.Select(f => new FavoriteListDTO
+                    {
+                        RestaurantName = f.RestaurantName,
+                        Image = f.Image,
+                        Address = f.Address,
+                        Rating = f.Rating,
+                    }).ToList() : null,
+
+                }).ToList();
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
                     Message = "Get Users Successfully",
-                    Data = users
+                    Data = userDto
                 });
             }
             catch (Exception ex)
@@ -66,31 +86,60 @@ namespace USER.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddUser(User user)
         {
-            if(ModelState.IsValid)
+            try
             {
-                await _repository.AddUserAsync(user);
-                //await _databaseContext.Users.InsertOneAsync(user);
-                return Created("success",new ApiResponse
+                if (ModelState.IsValid)
                 {
-                    Success = true,
-                    Status = 0,
-                    Message = "Create Users Successfully"
+                    var userRes = await _repository.AddUserAsync(user);
+                    //await _databaseContext.Users.InsertOneAsync(user);
+                    if (userRes == 1)
+                    {
+                        return BadRequest(new ApiResponse
+                        {
+                            Success = false,
+                            Status = 1,
+                            Message = "Email da ton tai"
+                        });
+                    }
+                    else if (userRes == 2)
+                    {
+                        return BadRequest(new ApiResponse
+                        {
+                            Success = false,
+                            Status = 1,
+                            Message = "Phone da ton tai"
+                        });
+                    }
+                    return Created("success", new ApiResponse
+                    {
+                        Success = true,
+                        Status = 0,
+                        Message = "User added successfully"
+                    });
+                }
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Create Users failed"
+                });
+            }catch(Exception ex) {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Create Users failed"
                 });
             }
-            return BadRequest(new ApiResponse
-            {
-                Success = false,
-                Status = 1,
-                Message = "Create Users failed"
-            });
         }
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(string id)
+        public async Task<IActionResult> GetById(int id)
         {
             var user = await _repository.GetByIdAsync(id);
             //var user = await _databaseContext.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
             if(user == null)
             {
+                
                 return NotFound(new ApiResponse
                 {
                     Success = false,
@@ -98,39 +147,93 @@ namespace USER.API.Controllers
                     Message = "Get Users failed"
                 });
             }
+            var userDTO = new UserDTO
+            {
+                UserEmail = user.UserEmail,
+                UserName = user.UserName,
+                Phone = user.Phone,
+                Grade = new GradeDTO
+                {
+                    Point = user.Grade != null ? user.Grade.Point : null
+                },
+                FavoriteList = user.FavoriteLists != null ? user.FavoriteLists.Select(f => new FavoriteListDTO
+                {
+                    RestaurantName = f.RestaurantName,
+                    Image = f.Image,
+                    Address = f.Address,
+                    Rating = f.Rating,
+                }).ToList() : null,
+
+            };
             return Ok(new ApiResponse
             {
                 Success = true,
                 Status = 0,
                 Message = "Get Users Successfully",
-                Data = user
+                Data = userDTO
             });
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(string id, User user)
+        public async Task<IActionResult> UpdateUser(int id, User user)
         {
+            if (id != user.Id)
+            {
+                return BadRequest("Id khong trung nhau");
+            }
+
             try
             {
                 var userExisted = await _repository.GetByIdAsync(id);
-                if( userExisted is null)
+                if (userExisted != null)
                 {
-                    return NotFound(new ApiResponse
+                    if (ModelState.IsValid)
                     {
-                        Success = false,
-                        Status = 1,
-                        Message = "User notfound"
-                    });
-                }
-                await _repository.UpdateUserAsync(id, userExisted);
-                return Ok(new ApiResponse
-                {
-                    Success = true,
-                    Status = 0,
-                    Message = "Update Users Successfully",
-                    Data = user
-                });
+                        userExisted.UserEmail = user.UserEmail;
+                        userExisted.UserName = user.UserName;
+                        userExisted.Phone = user.Phone;
+                        userExisted.Role = user.Role;
+                        userExisted.Status = user.Status;
+                        userExisted.Password = PasswordBcrypt.HashPassword(user.Password);
 
+                        var userRes = await _repository.UpdateUserAsync(userExisted);
+
+                        if (userRes == 1)
+                        {
+                            return BadRequest(new ApiResponse
+                            {
+                                Success = false,
+                                Status = 1,
+                                Message = "Email da ton tai"
+                            });
+                        }
+                        else if (userRes == 2)
+                        {
+                            return BadRequest(new ApiResponse
+                            {
+                                Success = false,
+                                Status = 1,
+                                Message = "Phone da ton tai"
+                            });
+                        }
+                        return Ok(new ApiResponse
+                        {
+                            Success = true,
+                            Status = 0,
+                            Message = "Update Users Successfully",
+                            Data = user
+                        });
+
+                    }
+                    
+                }
+
+                return NotFound(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "User not found",
+                });
             }
             catch(Exception ex)
             {
@@ -145,7 +248,7 @@ namespace USER.API.Controllers
         }
 
         [HttpDelete("id")]
-        public async Task<IActionResult> DeleteUser(string id)
+        public async Task<IActionResult> DeleteUser(int id)
         {
             try
             {
@@ -200,14 +303,18 @@ namespace USER.API.Controllers
             var refeshToken = Guid.NewGuid().ToString();
             var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
 
-            var r = Builders<User>.Update
-                .Set(u => u.RefeshToken, refeshToken);
 
-            var e = Builders<User>.Update
-                .Set(u => u.RefreshTokenExpiryTime, refreshTokenExpiryTime);
+            userLogin.RefeshToken = refeshToken;
+            userLogin.RefreshTokenExpiryTime = refreshTokenExpiryTime;
+            await _repository.UpdateUserAsync(userLogin);
 
-             _dbContext.Users.UpdateOne(u => u.Id == userLogin.Id, r);
-             _dbContext.Users.UpdateOne(u => u.Id == userLogin.Id, e);
+            var userDTO = new UserDTO
+            {
+                UserEmail = userLogin.UserEmail,
+                UserName = userLogin.UserName,
+                Phone = userLogin.Phone,
+                Role = userLogin.Role,
+            };
 
             return Ok(new ApiResponse
             {
@@ -215,7 +322,8 @@ namespace USER.API.Controllers
                 Status = 0,
                 Message = "Logged in successfully",
                 AccessToken = token,
-                RefreshToken = refeshToken
+                RefreshToken = refeshToken,
+                Data = userDTO
             });
 
         }
@@ -262,14 +370,9 @@ namespace USER.API.Controllers
             var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
             var refeshToken = Guid.NewGuid().ToString();
 
-            var r = Builders<User>.Update
-                .Set(u => u.RefeshToken, refeshToken);
-
-            var e = Builders<User>.Update
-                .Set(u => u.RefreshTokenExpiryTime, refreshTokenExpiryTime);
-
-            _dbContext.Users.UpdateOne(u => u.Id == user.Id, r);
-            _dbContext.Users.UpdateOne(u => u.Id == user.Id, e);
+            user.RefeshToken = refeshToken;
+            user.RefreshTokenExpiryTime = refreshTokenExpiryTime;
+            await _repository.UpdateUserAsync(user);
 
             return Ok(new ApiResponse
             {
