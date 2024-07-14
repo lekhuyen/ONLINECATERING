@@ -78,6 +78,7 @@ namespace RESTAURANT.API.Repositories
                     MenuName = m.MenuName,
                     Price = m.Price,
                     Ingredient = m.Ingredient,
+                    MenuImage = m.MenuImage,
                 }).ToList(),
                 RestaurantImages = restaurant.RestaurantImages.Select(m => new RestaurantImagesDTO
                 {
@@ -143,6 +144,7 @@ namespace RESTAURANT.API.Repositories
                     MenuName = m.MenuName,
                     Price = m.Price,
                     Ingredient = m.Ingredient,
+                    MenuImage = m.MenuImage,
                 }).ToList(),
                 RestaurantImages = r.RestaurantImages.Select(m => new RestaurantImagesDTO
                 {

@@ -10,6 +10,6 @@ namespace RESTAURANT.API.Models
         public int Id { get; set; }
         public string? ImagesUrl { get; set; }
         public int MenuId { get; set; }
-        public Menu? Menu { get; set; }
+        //public Menu? Menu { get; set; }
     }
 }
