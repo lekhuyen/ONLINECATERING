@@ -48,7 +48,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Contact had been send Successfully",
+                    Message = "A message has been sent Successfully",
                 });
             }
             catch (Exception ex)
@@ -77,7 +77,7 @@ namespace INFORMATIONAPI.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "Contact not found",
+                        Message = "The message is not found",
                     });
                 }
 
@@ -88,7 +88,7 @@ namespace INFORMATIONAPI.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "Contact not found",
+                        Message = "The message is not found",
                     });
                 }
 
@@ -99,7 +99,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Respond To Send Message Successfully",
+                    Message = "Respond To The Message Successfully",
                 });
             }
             catch (Exception ex)
@@ -154,7 +154,7 @@ namespace INFORMATIONAPI.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "Contact not found",
+                        Message = "The contact is not found",
                     });
                 }
 
@@ -178,52 +178,52 @@ namespace INFORMATIONAPI.Controllers
             }
         }
 
-        // PUT: api/contact/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateContact(string id, [FromBody] Contact contact)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "Update Contact failed"
-                    });
-                }
+        // update client's contact
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateContact(string id, [FromBody] Contact contact)
+        //{
+        //    try
+        //    {
+        //        if (!ModelState.IsValid)
+        //        {
+        //            return BadRequest(new ApiResponse
+        //            {
+        //                Success = false,
+        //                Status = 1,
+        //                Message = "Update Contact failed"
+        //            });
+        //        }
 
-                bool result = await _contactRepositories.UpdateContact(id, contact);
+        //        bool result = await _contactRepositories.UpdateContact(id, contact);
 
-                if (!result)
-                {
-                    return NotFound(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "Contact not found",
-                    });
-                }
+        //        if (!result)
+        //        {
+        //            return NotFound(new ApiResponse
+        //            {
+        //                Success = false,
+        //                Status = 1,
+        //                Message = "Contact not found",
+        //            });
+        //        }
 
-                return Ok(new ApiResponse
-                {
-                    Success = true,
-                    Status = 0,
-                    Message = "Update Contact Successfully",
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Error from service",
-                    Data = null
-                });
-            }
-        }
+        //        return Ok(new ApiResponse
+        //        {
+        //            Success = true,
+        //            Status = 0,
+        //            Message = "Update Contact Successfully",
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new ApiResponse
+        //        {
+        //            Success = false,
+        //            Status = 1,
+        //            Message = "Error from service",
+        //            Data = null
+        //        });
+        //    }
+        //}
 
         // DELETE: api/contact/{id}
         [HttpDelete("{id}")]
