@@ -1,5 +1,6 @@
 ﻿
-using MongoDB.Driver;
+using Microsoft.EntityFrameworkCore;
+using USER.API.Helpers;
 using USER.API.Models;
 
 namespace USER.API.Repositories
@@ -15,14 +16,19 @@ namespace USER.API.Repositories
 
         public async Task<User> Login(string email, string password)
         {
+            
 
-            var filter = Builders<User>.Filter.Eq(u => u.UserEmail, email) & Builders<User>.Filter.Eq(u =>u.Password, password);
-            var user = await _dbContext.Users.Find(filter).FirstOrDefaultAsync();
-            if (user == null)
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserEmail == email);
+            
+            if (user != null)
             {
-                return null;
+                bool veriPass = PasswordBcrypt.VerifyPassword(password, user.Password);
+                if(veriPass)
+                {
+                    return user;
+                }
             }
-            return user;
+            return null;
         }
 
         
