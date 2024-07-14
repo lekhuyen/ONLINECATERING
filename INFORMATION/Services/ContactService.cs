@@ -31,11 +31,11 @@ namespace INFORMATIONAPI.Services
             await _contacts.InsertOneAsync(contact);
         }
 
-        public async Task<bool> UpdateContact(string id, Contact contact)
-        {
-            var result = await _contacts.ReplaceOneAsync(c => c.Id == id, contact);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
-        }
+        //public async Task<bool> UpdateContact(string id, Contact contact)
+        //{
+        //    var result = await _contacts.ReplaceOneAsync(c => c.Id == id, contact);
+        //    return result.IsAcknowledged && result.ModifiedCount > 0;
+        //}
 
         public async Task<bool> DeleteContact(string id)
         {

@@ -34,7 +34,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Get aboutContent Successfully",
+                    Message = "Get About Content Successfully",
                     Data = aboutContent
                 });
             }
@@ -62,7 +62,7 @@ namespace INFORMATIONAPI.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "About not found",
+                        Message = "About Content not found",
                         Data = about
                     });
                 }
@@ -70,7 +70,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Update About Successfully",
+                    Message = "About Content founded Successfully",
                     Data = about
                 });  // Ensure 'Id' property is correctly populated in 'about'
             }
@@ -96,7 +96,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Add About Us Successfully",
+                    Message = "Add About Content Successfully",
                     Data = abt
                 });
             }
@@ -106,7 +106,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Create content failed"
+                    Message = "Create About Content failed"
                 });
             }
         }
@@ -136,7 +136,7 @@ namespace INFORMATIONAPI.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "About Us not found",
+                        Message = "About Content not found",
                     });
                 }
 
@@ -156,7 +156,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Update restaurant Successfully",
+                    Message = "Update About Content Successfully",
                 });
             }
             catch (Exception ex)
@@ -183,14 +183,14 @@ namespace INFORMATIONAPI.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "About Us is not found",
+                        Message = "About Content is not found",
                     });
                 }
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Delete about us successfully",
+                    Message = "Delete about content successfully",
                 });
             }
             catch (Exception ex)

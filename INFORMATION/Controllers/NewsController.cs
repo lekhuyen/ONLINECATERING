@@ -30,7 +30,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Get aboutContent Successfully",
+                    Message = "Get News Successfully",
                     Data = newsContent
                 });
             }
@@ -101,7 +101,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Create content failed"
+                    Message = "Create news failed"
                 });
             }
         }
