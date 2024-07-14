@@ -30,7 +30,7 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Get aboutContent Successfully",
+                    Message = "Get News Successfully",
                     Data = newsContent
                 });
             }
