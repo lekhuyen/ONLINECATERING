@@ -126,6 +126,7 @@ namespace INFORMATIONAPI.Controllers
                     Success = true,
                     Status = 0,
                     Message = "Get All Contact Successfully",
+                    Data = contacts
                 });
             }
             catch (Exception ex)
@@ -162,6 +163,7 @@ namespace INFORMATIONAPI.Controllers
                     Success = true,
                     Status = 0,
                     Message = "Get Contact Successfully",
+                    Data = contact
                 });
             }
             catch (Exception ex)

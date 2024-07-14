@@ -63,6 +63,7 @@ namespace INFORMATIONAPI.Controllers
                         Success = false,
                         Status = 1,
                         Message = "About not found",
+                        Data = about
                     });
                 }
                 return Ok(new ApiResponse
@@ -70,6 +71,7 @@ namespace INFORMATIONAPI.Controllers
                     Success = true,
                     Status = 0,
                     Message = "Update About Successfully",
+                    Data = about
                 });  // Ensure 'Id' property is correctly populated in 'about'
             }
             catch (Exception ex)
