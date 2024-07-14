@@ -56,6 +56,7 @@ namespace RESTAURANT.API.Repositories
                 .Include(r => r.Comment)
                 .ThenInclude(r => r.CommentChildren)
                 .Include(r => r.RestaurantImages)
+                .Include(r => r.Menus)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             var restaurantDTO = new GetRestaurantDTO
@@ -71,6 +72,13 @@ namespace RESTAURANT.API.Repositories
                 Status = restaurant.Status,
                 Warning = (int)restaurant.Warning,
                 TotalRating = restaurant.TotalRating,
+                Menus = restaurant.Menus.Select(m => new GetMenuDTO
+                {
+                    Id = m.Id,
+                    MenuName = m.MenuName,
+                    Price = m.Price,
+                    Ingredient = m.Ingredient,
+                }).ToList(),
                 RestaurantImages = restaurant.RestaurantImages.Select(m => new RestaurantImagesDTO
                 {
                     Id = m.Id,
@@ -113,6 +121,7 @@ namespace RESTAURANT.API.Repositories
                 .Include(r => r.Rating)
                 .Include(r => r.Comment)
                 .ThenInclude(r => r.CommentChildren)
+                .Include(r => r.Menus)
                 .Include(r => r.RestaurantImages)
                 .ToListAsync();
             var restaurantDTO = restaurants.Select(r => new GetRestaurantDTO
@@ -128,6 +137,13 @@ namespace RESTAURANT.API.Repositories
                 Status = r.Status,
                 Warning = (int)r.Warning,
                 TotalRating = r.TotalRating,
+                Menus = r.Menus.Select(m => new GetMenuDTO
+                {
+                    Id = m.Id,
+                    MenuName = m.MenuName,
+                    Price = m.Price,
+                    Ingredient = m.Ingredient,
+                }).ToList(),
                 RestaurantImages = r.RestaurantImages.Select(m => new RestaurantImagesDTO
                 {
                     Id = m.Id,

@@ -26,6 +26,7 @@ namespace RESTAURANT
             builder.Services.AddScoped<ICategory, CategoryRepositories>();
             builder.Services.AddScoped<IComment, CommentRepositories>();
             builder.Services.AddScoped<ICommentChild, CommentChildRepositories>();
+            builder.Services.AddScoped<IMenu, MenuRespositories>();
 
             var app = builder.Build();
 

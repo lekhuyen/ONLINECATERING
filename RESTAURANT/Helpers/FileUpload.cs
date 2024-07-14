@@ -3,7 +3,7 @@
     public class FileUpload
     {
         static readonly string baseFolder = "Uploads";
-        static readonly string rootUrl = "http://localhost:5265";
+        static readonly string rootUrl = "http://localhost:5265/";
 
         public static async Task<string> SaveImage(string subFolder, IFormFile formFile)
         {
