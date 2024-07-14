@@ -164,79 +164,78 @@ namespace INFORMATIONAPI.Service
             }
         }
 
+        // NewTypes
+        public async Task<IEnumerable<NewsType>> GetAllNewTypesAsync()
+        {
+            try
+            {
+                return await _dbContext.NewsType.Find(_ => true).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while retrieving all NewTypes: {ex.Message}");
+            }
+        }
 
-		public async Task<IEnumerable<NewsType>> GetAllNewTypesAsync()
-		{
-			try
-			{
-				return await _dbContext.NewsType.Find(_ => true).ToListAsync();
-			}
-			catch (Exception ex)
-			{
-				throw new Exception($"Error while retrieving all NewTypes: {ex.Message}");
-			}
-		}
+        public async Task<NewsType> GetNewTypeByIdAsync(string id)
+        {
+            try
+            {
+                return await _dbContext.NewsType.Find(nt => nt.Id == id).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while retrieving NewType by Id: {ex.Message}");
+            }
+        }
 
-		public async Task<NewsType> GetNewTypeByIdAsync(string id)
-		{
-			try
-			{
-				return await _dbContext.NewsType.Find(nt => nt.Id == id).FirstOrDefaultAsync();
-			}
-			catch (Exception ex)
-			{
-				throw new Exception($"Error while retrieving NewType by Id: {ex.Message}");
-			}
-		}
+        public async Task CreateNewTypeAsync(NewsType newType)
+        {
+            try
+            {
+                await _dbContext.NewsType.InsertOneAsync(newType);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while creating NewType: {ex.Message}");
+            }
+        }
 
-		public async Task CreateNewTypeAsync(NewsType newType)
-		{
-			try
-			{
-				await _dbContext.NewsType.InsertOneAsync(newType);
-			}
-			catch (Exception ex)
-			{
-				throw new Exception($"Error while creating NewType: {ex.Message}");
-			}
-		}
+        public async Task<bool> UpdateNewTypeAsync(string id, NewsType newType)
+        {
+            try
+            {
+                var existingNewType = await _dbContext.NewsType.Find(nt => nt.Id == id).FirstOrDefaultAsync();
 
-		public async Task<bool> UpdateNewTypeAsync(string id, NewsType newType)
-		{
-			try
-			{
-				var existingNewType = await _dbContext.NewsType.Find(nt => nt.Id == id).FirstOrDefaultAsync();
+                if (existingNewType == null)
+                {
+                    return false;
+                }
 
-				if (existingNewType == null)
-				{
-					return false;
-				}
+                existingNewType.NewsTypeName = newType.NewsTypeName;
 
-				existingNewType.NewsTypeName = newType.NewsTypeName;
+                ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
+                await _dbContext.NewsType.ReplaceOneAsync(nt => nt.Id == id, existingNewType, options);
 
-				ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
-				await _dbContext.NewsType.ReplaceOneAsync(nt => nt.Id == id, existingNewType, options);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while updating NewType: {ex.Message}");
+            }
+        }
 
-				return true;
-			}
-			catch (Exception ex)
-			{
-				throw new Exception($"Error while updating NewType: {ex.Message}");
-			}
-		}
-
-		public async Task<bool> DeleteNewTypeAsync(string id)
-		{
-			try
-			{
-				var result = await _dbContext.NewsType.DeleteOneAsync(nt => nt.Id == id);
-				return result.DeletedCount > 0;
-			}
-			catch (Exception ex)
-			{
-				throw new Exception($"Error while deleting NewType: {ex.Message}");
-			}
-		}
-
-	}
+        public async Task<bool> DeleteNewTypeAsync(string id)
+        {
+            try
+            {
+                var result = await _dbContext.NewsType.DeleteOneAsync(nt => nt.Id == id);
+                return result.DeletedCount > 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while deleting NewType: {ex.Message}");
+            }
+        }
+    }
 }
