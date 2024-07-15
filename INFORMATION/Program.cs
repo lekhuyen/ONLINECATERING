@@ -31,7 +31,20 @@ namespace INFORMATION
 				c.EnableAnnotations();
 			});
 
-			var app = builder.Build();
+            // Configure CORS policy
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin",
+                    builder => builder
+                        .WithOrigins("http://localhost:3000") // Allow requests from this origin
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials());
+            });
+
+
+
+            var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -43,7 +56,10 @@ namespace INFORMATION
 				});
 			}
 
-			app.UseStaticFiles();
+            // Use CORS middleware
+            app.UseCors("AllowSpecificOrigin");
+
+            app.UseStaticFiles();
 
 			app.UseAuthorization();
 
