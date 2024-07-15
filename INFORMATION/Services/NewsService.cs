@@ -189,6 +189,18 @@ namespace INFORMATIONAPI.Service
             }
         }
 
+        public async Task<NewsType> GetNewsTypeByNameAsync(string name)
+        {
+            try
+            {
+                return await _dbContext.NewsType.Find(nt => nt.NewsTypeName == name).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while retrieving NewType by name: {ex.Message}");
+            }
+        }
+
         public async Task CreateNewTypeAsync(NewsType newType)
         {
             try

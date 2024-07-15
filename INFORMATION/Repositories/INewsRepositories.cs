@@ -17,5 +17,7 @@ namespace INFORMATIONAPI.Repositories
         Task CreateNewTypeAsync(NewsType newType);
         Task<bool> UpdateNewTypeAsync(string id, NewsType newType);
         Task<bool> DeleteNewTypeAsync(string id);
+        Task<NewsType> GetNewsTypeByNameAsync(string newsTypeName);
+
     }
 }
