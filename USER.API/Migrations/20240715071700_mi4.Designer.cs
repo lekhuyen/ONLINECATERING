@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using USER.API.Models;
 
@@ -11,9 +12,11 @@ using USER.API.Models;
 namespace USER.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20240715071700_mi4")]
+    partial class mi4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,51 +24,6 @@ namespace USER.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("USER.API.Models.Booking", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DayArrive")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Hour")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Member")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MenuId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Pont")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RestaurantId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("Total")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserBooking");
-                });
 
             modelBuilder.Entity("USER.API.Models.FavoriteList", b =>
                 {
@@ -124,50 +82,6 @@ namespace USER.API.Migrations
                     b.ToTable("Grades");
                 });
 
-            modelBuilder.Entity("USER.API.Models.Menu", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Ingredient")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MenuImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MenuName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("RestaurantId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Menus");
-                });
-
-            modelBuilder.Entity("USER.API.Models.MenuBooking", b =>
-                {
-                    b.Property<int>("MenuId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.HasKey("MenuId", "BookingId");
-
-                    b.HasIndex("BookingId");
-
-                    b.ToTable("MenuBookings");
-                });
-
             modelBuilder.Entity("USER.API.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -213,17 +127,6 @@ namespace USER.API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("USER.API.Models.Booking", b =>
-                {
-                    b.HasOne("USER.API.Models.User", "User")
-                        .WithMany("UserBookings")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("USER.API.Models.FavoriteList", b =>
                 {
                     b.HasOne("USER.API.Models.User", "User")
@@ -246,42 +149,11 @@ namespace USER.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("USER.API.Models.MenuBooking", b =>
-                {
-                    b.HasOne("USER.API.Models.Booking", "Booking")
-                        .WithMany("MenuBookings")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("USER.API.Models.Menu", "Menu")
-                        .WithMany("MenuBookings")
-                        .HasForeignKey("MenuId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Menu");
-                });
-
-            modelBuilder.Entity("USER.API.Models.Booking", b =>
-                {
-                    b.Navigation("MenuBookings");
-                });
-
-            modelBuilder.Entity("USER.API.Models.Menu", b =>
-                {
-                    b.Navigation("MenuBookings");
-                });
-
             modelBuilder.Entity("USER.API.Models.User", b =>
                 {
                     b.Navigation("FavoriteLists");
 
                     b.Navigation("Grade");
-
-                    b.Navigation("UserBookings");
                 });
 #pragma warning restore 612, 618
         }
