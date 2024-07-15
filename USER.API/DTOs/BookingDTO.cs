@@ -1,15 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-
-namespace BOOKING.API.Models
+﻿namespace USER.API.DTOs
 {
-    public class Booking
+    public class BookingDTO
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public int RestaurantId { get; set; }
+        public int? Id { get; set; }
+        public int? UserId { get; set; }
+        public int? RestaurantId { get; set; }
         public int Member { get; set; }
         public DateTime DayArrive { get; set; }
         public DateTime Hour { get; set; }
@@ -18,6 +13,5 @@ namespace BOOKING.API.Models
         public int? Pont { get; set; }
         public decimal Total { get; set; }
         public string? Description { get; set; }
-        
     }
 }

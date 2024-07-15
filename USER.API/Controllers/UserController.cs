@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using REDISCLIENT;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -23,14 +25,16 @@ namespace USER.API.Controllers
         private readonly IRepositories _repository;
         private IConfiguration _configuration;
         private readonly IAuthUser _authUser;
+        private readonly RedisClient _redisClient;
 
 
 
-        public UserController(IAuthUser authUser,IRepositories repositories, IConfiguration configuration)
+        public UserController(IAuthUser authUser,IRepositories repositories, IConfiguration configuration, RedisClient redisClient)
         {
             _repository = repositories;
             _configuration = configuration;
             _authUser = authUser;
+            _redisClient = redisClient;
         }
 
         [HttpGet]
@@ -59,8 +63,22 @@ namespace USER.API.Controllers
                         Address = f.Address,
                         Rating = f.Rating,
                     }).ToList() : null,
-
+                    Booking = u.UserBookings != null ? u.UserBookings.Select(u => new BookingDTO
+                    {
+                        Id = u.Id,
+                        UserId = u.UserId,
+                        RestaurantId = u.RestaurantId,
+                        MenuId = u.MenuId,
+                        Member = u.Member,
+                        DayArrive = u.DayArrive,
+                        Hour = u.Hour,
+                        Status = u.Status,
+                        Pont = u.Pont,
+                        Total = u.Total,
+                        Description = u.Description,
+                    }).ToList() : null,
                 }).ToList();
+
                 return Ok(new ApiResponse
                 {
                     Success = true,
@@ -79,8 +97,6 @@ namespace USER.API.Controllers
                     Data = null
                 });
             }
-            //var users = await _databaseContext.Users.Find(u => true).ToListAsync();
-            
             
         }
         [HttpPost]
@@ -110,6 +126,20 @@ namespace USER.API.Controllers
                             Message = "Phone da ton tai"
                         });
                     }
+
+
+                    //----------redis------------
+                    var userDTO = new UserDTO
+                    {
+                        Id = user.Id,
+                        UserName = user.UserName,
+                        UserEmail = user.UserEmail,
+                        Phone = user.Phone,
+                    };
+                    var userJson = JsonConvert.SerializeObject(userDTO);
+                    _redisClient.Publish("user_created", userJson);
+
+
                     return Created("success", new ApiResponse
                     {
                         Success = true,
@@ -128,7 +158,7 @@ namespace USER.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Create Users failed"
+                    Message = "Server something wrong"
                 });
             }
         }
@@ -136,7 +166,7 @@ namespace USER.API.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var user = await _repository.GetByIdAsync(id);
-            //var user = await _databaseContext.Users.Find(u => u.Id == id).FirstOrDefaultAsync();
+            
             if(user == null)
             {
                 
@@ -147,30 +177,13 @@ namespace USER.API.Controllers
                     Message = "Get Users failed"
                 });
             }
-            var userDTO = new UserDTO
-            {
-                UserEmail = user.UserEmail,
-                UserName = user.UserName,
-                Phone = user.Phone,
-                Grade = new GradeDTO
-                {
-                    Point = user.Grade != null ? user.Grade.Point : null
-                },
-                FavoriteList = user.FavoriteLists != null ? user.FavoriteLists.Select(f => new FavoriteListDTO
-                {
-                    RestaurantName = f.RestaurantName,
-                    Image = f.Image,
-                    Address = f.Address,
-                    Rating = f.Rating,
-                }).ToList() : null,
 
-            };
             return Ok(new ApiResponse
             {
                 Success = true,
                 Status = 0,
                 Message = "Get Users Successfully",
-                Data = userDTO
+                Data = user
             });
         }
 
@@ -184,7 +197,7 @@ namespace USER.API.Controllers
 
             try
             {
-                var userExisted = await _repository.GetByIdAsync(id);
+                var userExisted = await _repository.GetOneByIdAsync(id);
                 if (userExisted != null)
                 {
                     if (ModelState.IsValid)
@@ -382,6 +395,8 @@ namespace USER.API.Controllers
             });
 
         }
+
+
         
     }
 }

@@ -12,6 +12,7 @@
 
         public GradeDTO? Grade { get; set; }
         public List<FavoriteListDTO>? FavoriteList { get; set; }
+        public List<BookingDTO>? Booking { get; set; }
 
     }
 }

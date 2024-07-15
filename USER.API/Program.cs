@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using REDISCLIENT;
 using System.Text;
 using USER.API.Models;
 using USER.API.Repositories;
+using USER.API.Service;
 
 namespace USER
 {
@@ -21,25 +23,34 @@ namespace USER
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            //builder.Services.Configure<DatabaseContext>(
-            //    builder.Configuration.GetSection(nameof(DatabaseContext))    
-            //);
-            //builder.Services.AddSingleton<DatabaseContext>();
-
-
+           
             //connect db
             builder.Services.AddDbContext<DatabaseContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectDB"));
             });
+            
+            
+
+            //redis
+            builder.Services.AddSingleton<RedisClient>(sp =>
+                new RedisClient(builder.Configuration.GetValue<string>("Redis:ConnectionStrings")!));
+
+            builder.Services.AddHostedService<RedisSubcribeService>(sp =>
+            {
+                var scopeFatory = sp.GetRequiredService<IServiceScopeFactory>();
+                var redisClient = sp.GetRequiredService<RedisClient>();
+                var dbContext = scopeFatory.CreateScope().ServiceProvider.GetRequiredService<DatabaseContext>();
+                return new RedisSubcribeService(redisClient, dbContext);
+            });
 
             //repositories
+
             builder.Services.AddScoped<IRepositories, UserRepositories>();
             builder.Services.AddScoped<IAuthUser, AuthUserRepositories>();
             builder.Services.AddScoped<IFavoriteList, FavoriteRespositories>();
-
             //jwt
-            var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("Jwt")["Key"]);
+            var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("Jwt")["Key"]!);
 
             builder.Services.AddAuthentication
             (

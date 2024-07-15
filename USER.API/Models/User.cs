@@ -19,7 +19,7 @@ namespace USER.API.Models
         public ICollection<FavoriteList>? FavoriteLists { get; set; }
         public int GradeId { get; set; }
         public Grade? Grade { get; set; }
-
+        public ICollection<Booking>? UserBookings { get; set; }
     }
     
 }
