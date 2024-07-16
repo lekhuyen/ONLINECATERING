@@ -22,6 +22,53 @@ namespace RESTAURANT.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("RESTAURANT.API.Models.Booking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DayArrive")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Hour")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Member")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MenuId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Pont")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RestaurantId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RestaurantId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Booking");
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -131,6 +178,9 @@ namespace RESTAURANT.API.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.Property<int>("RestaurantId")
                         .HasColumnType("int");
@@ -263,6 +313,53 @@ namespace RESTAURANT.API.Migrations
                     b.ToTable("RestaurantImages");
                 });
 
+            modelBuilder.Entity("RESTAURANT.API.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("User");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Booking", b =>
+                {
+                    b.HasOne("RESTAURANT.API.Models.Restaurant", "Restaurant")
+                        .WithMany("Bookings")
+                        .HasForeignKey("RestaurantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RESTAURANT.API.Models.User", "User")
+                        .WithMany("Booking")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Restaurant");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Comment", b =>
                 {
                     b.HasOne("RESTAURANT.API.Models.Restaurant", "Restaurant")
@@ -352,6 +449,8 @@ namespace RESTAURANT.API.Migrations
 
             modelBuilder.Entity("RESTAURANT.API.Models.Restaurant", b =>
                 {
+                    b.Navigation("Bookings");
+
                     b.Navigation("Comment");
 
                     b.Navigation("Descriptions");
@@ -361,6 +460,11 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("Rating");
 
                     b.Navigation("RestaurantImages");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.User", b =>
+                {
+                    b.Navigation("Booking");
                 });
 #pragma warning restore 612, 618
         }

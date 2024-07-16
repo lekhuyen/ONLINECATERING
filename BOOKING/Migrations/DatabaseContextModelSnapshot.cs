@@ -42,8 +42,8 @@ namespace BOOKING.API.Migrations
                     b.Property<int>("Member")
                         .HasColumnType("int");
 
-                    b.Property<int>("MenuId")
-                        .HasColumnType("int");
+                    b.Property<string>("MenuId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Pont")
                         .HasColumnType("int");

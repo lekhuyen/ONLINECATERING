@@ -10,5 +10,6 @@ namespace RESTAURANT.API.Repositories
         Task UpdateMenu( Menu menu);
         Task<Menu> GetMenuById(int id);
         Task<GetMenuDTO> GetOneMenuById(int id);
+        Task<IEnumerable<Menu>> GetAllMenu();
     }
 }

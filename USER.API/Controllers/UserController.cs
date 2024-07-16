@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -44,47 +45,13 @@ namespace USER.API.Controllers
             try
             {
                 var users = await _repository.GetAllUserAsync();
-                var userDto = users.Select(u => new UserDTO
-                {
-                    Id = u.Id,
-                    UserEmail = u.UserEmail,
-                    UserName = u.UserName,
-                    Phone = u.Phone,
-                    Role = u.Role,
-                    Password = u.Password,
-                    Grade = u.Grade != null ? new GradeDTO
-                    {
-                        Point = u.Grade.Point
-                    } : null,
-                    FavoriteList = u.FavoriteLists != null ? u.FavoriteLists.Select(f => new FavoriteListDTO
-                    {
-                        RestaurantName = f.RestaurantName,
-                        Image = f.Image,
-                        Address = f.Address,
-                        Rating = f.Rating,
-                    }).ToList() : null,
-                    Booking = u.UserBookings != null ? u.UserBookings.Select(u => new BookingDTO
-                    {
-                        Id = u.Id,
-                        UserId = u.UserId,
-                        RestaurantId = u.RestaurantId,
-                        MenuId = u.MenuId,
-                        Member = u.Member,
-                        DayArrive = u.DayArrive,
-                        Hour = u.Hour,
-                        Status = u.Status,
-                        Pont = u.Pont,
-                        Total = u.Total,
-                        Description = u.Description,
-                    }).ToList() : null,
-                }).ToList();
 
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
                     Message = "Get Users Successfully",
-                    Data = userDto
+                    Data = users
                 });
             }
             catch (Exception ex)
@@ -127,18 +94,15 @@ namespace USER.API.Controllers
                         });
                     }
 
-
-                    //----------redis------------
+                    //reids
                     var userDTO = new UserDTO
                     {
-                        Id = user.Id,
                         UserName = user.UserName,
                         UserEmail = user.UserEmail,
                         Phone = user.Phone,
                     };
                     var userJson = JsonConvert.SerializeObject(userDTO);
                     _redisClient.Publish("user_created", userJson);
-
 
                     return Created("success", new ApiResponse
                     {
@@ -229,6 +193,18 @@ namespace USER.API.Controllers
                                 Message = "Phone da ton tai"
                             });
                         }
+
+                        //reids
+                        var userDTO = new UserDTO
+                        {
+                            Id = id,
+                            UserName = user.UserName,
+                            UserEmail = user.UserEmail,
+                            Phone = user.Phone,
+                        };
+                        var userJson = JsonConvert.SerializeObject(userDTO);
+                        _redisClient.Publish("user_update", userJson);
+
                         return Ok(new ApiResponse
                         {
                             Success = true,

@@ -9,7 +9,7 @@
         public DateTime DayArrive { get; set; }
         public DateTime Hour { get; set; }
         public bool Status { get; set; } = false;
-        public int MenuId { get; set; }
+        public List<string>? MenuId { get; set; }
         public int? Pont { get; set; }
         public decimal Total { get; set; }
         public string? Description { get; set; }
