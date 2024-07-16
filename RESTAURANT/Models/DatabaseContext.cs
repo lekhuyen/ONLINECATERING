@@ -41,6 +41,11 @@ namespace RESTAURANT.API.Models
                 .WithOne(r => r.Restaurant)
                 .HasForeignKey(r => r.RestaurantId);
 
+            modelBuilder.Entity<Restaurant>()
+                .HasMany(r => r.Bookings)
+                .WithOne(r => r.Restaurant)
+                .HasForeignKey(r => r.RestaurantId);
+
             //modelBuilder.Entity<Menu>()
             //    .HasMany(m => m.MenuImages)
             //    .WithOne( m => m.Menu)
@@ -52,6 +57,10 @@ namespace RESTAURANT.API.Models
                 .WithOne(m => m.Comment)
                 .HasForeignKey(m => m.CommentId);
 
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.User)
+                .WithMany(b => b.Booking)
+                .HasForeignKey(b => b.UserId);
 
 
         }
@@ -62,7 +71,9 @@ namespace RESTAURANT.API.Models
         public DbSet<Menu> Menus { get; set;}
         public DbSet<Rating> Ratings { get; set;}
         public DbSet<Comment> Comments { get; set;}
+        public DbSet<Booking> Booking { get; set;}
         public DbSet<MenuImages> MenuImages { get; set;}
+        public DbSet<User> User { get; set;}
         public DbSet<CommentChild> CommentChildren { get; set;}
         public DbSet<RestaurantImages> RestaurantImages { get; set;}
     }

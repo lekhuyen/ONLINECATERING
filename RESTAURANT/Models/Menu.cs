@@ -11,6 +11,7 @@ namespace RESTAURANT.API.Models
         public string MenuName { get; set; }
         public string? Ingredient { get; set; }
         public decimal Price { get; set; }
+        public int Quantity { get; set; }
         public int RestaurantId { get; set; }
         public string? MenuImage { get; set; }
         public Restaurant? Restaurant { get; set; }

@@ -20,6 +20,7 @@ namespace BOOKING.API.Controllers
             _dbContext = dbContext;
             _redisClient = redisClient;
         }
+       
         [HttpPost]
         public async Task<IActionResult> AddBooking(Booking booking)
         {
@@ -30,7 +31,7 @@ namespace BOOKING.API.Controllers
                     var booked = await _dbContext.Bookings
                             .FirstOrDefaultAsync(u => u.UserId == booking.UserId && u.RestaurantId == booking.RestaurantId);
 
-                    if(booked != null)
+                    if (booked != null)
                     {
                         return BadRequest(new ApiResponse
                         {
@@ -39,7 +40,6 @@ namespace BOOKING.API.Controllers
                             Message = "You were booked",
                         });
                     }
-
                     await _dbContext.Bookings.AddAsync(booking);
                     await _dbContext.SaveChangesAsync();
 
@@ -130,8 +130,8 @@ namespace BOOKING.API.Controllers
                         Message = "Booking not found"
                     });
                 }
-                //UserId = bookingEdit.UserId,
-                //RestaurantId = bookingEdit.RestaurantId,
+                //UserId = bookingEdit.UserId;
+                //RestaurantId = bookingEdit.RestaurantId;
                 booking.MenuId = bookingEdit.MenuId;
                 booking.DayArrive = bookingEdit.DayArrive;
                 booking.Hour = bookingEdit.Hour;
