@@ -32,6 +32,7 @@ namespace INFORMATIONAPI.Models
         public bool IsAdminResponse { get; set; } 
 
         [BsonIgnoreIfNull]
+        [DefaultValue("")]
         public string? ResponseMessage { get; set; } 
 
         public DateTime? ResponseDate { get; set; } 
