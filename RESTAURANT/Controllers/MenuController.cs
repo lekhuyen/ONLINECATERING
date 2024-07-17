@@ -1,6 +1,9 @@
 ﻿using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using REDISCLIENT;
 using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Helpers;
 using RESTAURANT.API.Repositories;
@@ -12,10 +15,20 @@ namespace RESTAURANT.API.Controllers
     public class MenuController : ControllerBase
     {
         private readonly IMenu _menu;
-        public MenuController(IMenu menu)
+        private readonly RedisClient _redisClient;
+        public MenuController(IMenu menu, RedisClient redisClient)
         {
             _menu = menu;
+            _redisClient = redisClient;
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllMenu()
+        {
+            var menus = await _menu.GetAllMenu();
+            return Ok(menus);
+        }
+        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOneMenu(int id)
         {
@@ -65,6 +78,13 @@ namespace RESTAURANT.API.Controllers
                     }
                     
                     await _menu.AddMenu(menuDTO);
+                   
+
+
+                    //reids
+                    var menuJson = JsonConvert.SerializeObject(menuDTO);
+                    _redisClient.Publish("created_menu", menuJson);
+
                     return Ok(new ApiResponse
                     {
                         Success = true,
@@ -92,7 +112,7 @@ namespace RESTAURANT.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMenu( int id, [FromForm] CreateMenuDTO menuDTO, IFormFile formFile)
+        public async Task<IActionResult> UpdateMenu( int id, [FromForm] EditMenuDTO menuDTO, IFormFile formFile)
         {
             try
             {
@@ -118,6 +138,11 @@ namespace RESTAURANT.API.Controllers
                         menu.Ingredient = menuDTO.Ingredient;
 
                         await  _menu.UpdateMenu(menu);
+
+                        //reids
+                        menuDTO.Id = id;
+                        var menuJson = JsonConvert.SerializeObject(menuDTO);
+                        _redisClient.Publish("update_menu", menuJson);
 
                         return Ok(new ApiResponse
                         {

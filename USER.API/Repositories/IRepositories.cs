@@ -5,7 +5,7 @@ namespace USER.API.Repositories
 {
     public interface IRepositories
     {
-        Task<IEnumerable<User>> GetAllUserAsync();
+        Task<IEnumerable<UserDTO>> GetAllUserAsync();
         Task<UserDTO> GetByIdAsync(int id);
         Task<User> GetOneByIdAsync(int id);
         Task<User> GetByIdRefeshToken(string id);
