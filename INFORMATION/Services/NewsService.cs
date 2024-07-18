@@ -120,13 +120,14 @@ namespace INFORMATIONAPI.Service
                 existingNews.Content = news.Content;
                 existingNews.NewsTypeId = news.NewsTypeId;
 
-                await HandleImageUpload(existingNews, imageFiles);
+                await HandleImageUpdate(existingNews, imageFiles);
 
+                // Replace the entire document in MongoDB
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
                 await _dbContext.News.ReplaceOneAsync(a => a.Id == id, existingNews, options);
 
                 // Delete the old image files if the image paths were updated and previously existed
-                if (existingImagePaths != null && existingImagePaths.Any())
+                if (existingImagePaths != null)
                 {
                     foreach (var imagePath in existingImagePaths)
                     {
@@ -148,19 +149,90 @@ namespace INFORMATIONAPI.Service
 
         private async Task HandleImageUpload(News news, List<IFormFile>? imageFiles)
         {
+            int maxImageCount = 5;  // Maximum number of images allowed
+
+            // Ensure ImagePaths is initialized
+            if (news.ImagePaths == null)
+            {
+                news.ImagePaths = new List<string>();
+            }
+
+            int existingImageCount = news.ImagePaths.Count;
+            int remainingImageSlots = maxImageCount - existingImageCount;
+
             if (imageFiles != null && imageFiles.Count > 0)
             {
-                if (imageFiles.Count > 5)
-                {
-                    throw new Exception("Cannot upload more than 5 images");
-                }
-
                 var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
+                foreach (var imageFile in imageFiles)
+                {
+                    if (remainingImageSlots <= 0)
+                    {
+                        throw new Exception($"Cannot add more than {maxImageCount} images. You can only add {remainingImageSlots + existingImageCount} more.");
+                    }
+
+                    var validFileTypes = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var fileExtension = Path.GetExtension(imageFile.FileName).ToLower();
+
+                    if (!validFileTypes.Contains(fileExtension))
+                    {
+                        throw new Exception($"Invalid file type: {fileExtension}. Only the following types are allowed: {string.Join(", ", validFileTypes)}.");
+                    }
+
+                    try
+                    {
+                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(stream);
+                        }
+
+                        news.ImagePaths.Add("/uploads/" + uniqueFileName);
+                        remainingImageSlots--;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Error uploading file {imageFile.FileName}: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private async Task HandleImageUpdate(News news, List<IFormFile>? imageFiles)
+        {
+            // Ensure ImagePaths is initialized
+            if (news.ImagePaths == null)
+            {
+                news.ImagePaths = new List<string>();
+            }
+
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            // Delete existing images from the filesystem
+            foreach (var existingImagePath in news.ImagePaths)
+            {
+                var oldFilePath = Path.Combine(uploadsFolder, existingImagePath.TrimStart('/'));
+                if (File.Exists(oldFilePath))
+                {
+                    File.Delete(oldFilePath);
+                }
+            }
+
+            // Clear existing image paths
+            news.ImagePaths.Clear();
+
+            if (imageFiles != null && imageFiles.Count > 0)
+            {
                 foreach (var imageFile in imageFiles)
                 {
                     var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
@@ -171,14 +243,9 @@ namespace INFORMATIONAPI.Service
                         await imageFile.CopyToAsync(stream);
                     }
 
+                    // Add new image path
                     news.ImagePaths.Add("/uploads/" + uniqueFileName);
                 }
-            }
-
-            // Ensure ImagePaths is not null when inserting or updating into MongoDB
-            if (news.ImagePaths == null)
-            {
-                news.ImagePaths = new List<string>();
             }
         }
 
@@ -239,21 +306,38 @@ namespace INFORMATIONAPI.Service
 
                 if (existingNewType == null)
                 {
-                    return false;
+                    return false; // Return false if the news type with the given ID is not found
                 }
 
+                // Ensure the Id in the existingNewType matches the id parameter
+                if (existingNewType.Id != id)
+                {
+                    throw new Exception("Mismatched ID in existingNewType and parameter");
+                }
+
+                // Update the NewsTypeName with the new value
                 existingNewType.NewsTypeName = newType.NewsTypeName;
 
+                // Define options for the ReplaceOneAsync operation
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
-                await _dbContext.NewsType.ReplaceOneAsync(nt => nt.Id == id, existingNewType, options);
 
-                return true;
+                // Perform the update operation using ReplaceOneAsync
+                var result = await _dbContext.NewsType.ReplaceOneAsync(nt => nt.Id == id, existingNewType, options);
+
+                // Check if the update was successful
+                if (result.ModifiedCount == 0 && result.MatchedCount == 0)
+                {
+                    return false; // Return false if no documents were modified
+                }
+
+                return true; // Return true indicating successful update
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error while updating NewType: {ex.Message}");
             }
         }
+
 
         public async Task<bool> DeleteNewTypeAsync(string id)
         {

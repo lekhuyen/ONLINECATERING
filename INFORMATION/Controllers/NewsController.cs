@@ -43,7 +43,7 @@ namespace INFORMATIONAPI.Controllers
                     title = news.Title,
                     content = news.Content,
                     newsTypeName = newsTypeMap.ContainsKey(news.NewsTypeId) ? newsTypeMap[news.NewsTypeId] : "",
-                    imagePath = news.ImagePaths != null && news.ImagePaths.Count > 0 ? news.ImagePaths[0] : "" // Use first image path if available
+                    imagePaths = news.ImagePaths != null && news.ImagePaths.Count > 0 ? news.ImagePaths : new List<string>()
                 });
 
                 return Ok(new ApiResponse
@@ -90,7 +90,7 @@ namespace INFORMATIONAPI.Controllers
                 string newsTypeName = newsType != null ? newsType.NewsTypeName : "";
 
                 // Ensure imagePath is not null
-                string imagePath = news.ImagePaths != null && news.ImagePaths.Count > 0 ? news.ImagePaths[0] : "";
+                var imagePaths = news.ImagePaths != null && news.ImagePaths.Count > 0 ? news.ImagePaths : new List<string>();
 
                 var formattedNews = new
                 {
@@ -98,7 +98,7 @@ namespace INFORMATIONAPI.Controllers
                     title = news.Title,
                     content = news.Content,
                     newsTypeName = newsTypeName,
-                    imagePath = imagePath
+                    imagePaths = news.ImagePaths != null && news.ImagePaths.Count > 0 ? news.ImagePaths : new List<string>()
                 };
 
                 return Ok(new ApiResponse
@@ -182,8 +182,6 @@ namespace INFORMATIONAPI.Controllers
                 var newsType = await _newsRepositories.GetNewTypeByIdAsync(updatedNews.NewsTypeId);
                 string newsTypeName = newsType != null ? newsType.NewsTypeName : "";
 
-                // Ensure imagePath is not null
-                string imagePath = updatedNews.ImagePaths != null && updatedNews.ImagePaths.Count > 0 ? updatedNews.ImagePaths[0] : "";
 
                 var response = new
                 {
@@ -191,7 +189,7 @@ namespace INFORMATIONAPI.Controllers
                     title = updatedNews.Title,
                     content = updatedNews.Content,
                     newsTypeName = newsTypeName,
-                    imagePath = imagePath
+                    imagePaths = updatedNews.ImagePaths ?? new List<string>()
                 };
 
                 return Ok(new ApiResponse
@@ -356,9 +354,20 @@ namespace INFORMATIONAPI.Controllers
         {
             try
             {
-                var existingType = await _newsRepositories.GetNewsTypeByNameAsync(newType.NewsTypeName);
+                // Ensure the Id in the news type object matches the id parameter
+                if (newType.Id != id)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Mismatched ID in news type object and parameter",
+                        Data = null
+                    });
+                }
 
-                // Check if the name already exists (excluding the current type being updated)
+                // Check if a NewsType with the same name already exists (excluding the current type being updated)
+                var existingType = await _newsRepositories.GetNewsTypeByNameAsync(newType.NewsTypeName);
                 if (existingType != null && existingType.Id != id)
                 {
                     return BadRequest(new ApiResponse
@@ -370,6 +379,7 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
+                // Update the news type
                 var updated = await _newsRepositories.UpdateNewTypeAsync(id, newType);
                 if (!updated)
                 {
@@ -398,11 +408,12 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
+                    Message = $"Error from service: {ex.Message}",
                     Data = null
                 });
             }
         }
+
 
         [HttpDelete("newtypes/{id}")]
         public async Task<IActionResult> DeleteNewType(string id)
