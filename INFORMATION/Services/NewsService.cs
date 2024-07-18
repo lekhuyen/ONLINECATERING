@@ -1,6 +1,10 @@
 ﻿using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
 using MongoDB.Driver;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace INFORMATIONAPI.Service
 {
@@ -15,12 +19,11 @@ namespace INFORMATIONAPI.Service
             _env = env;
         }
 
-        public async Task CreateAsync(News news, IFormFile? imageFile)
+        public async Task CreateAsync(News news, List<IFormFile>? imageFiles)
         {
             try
             {
-                await HandleImageUpload(news, imageFile);
-
+                await HandleImageUpload(news, imageFiles);
                 await _dbContext.News.InsertOneAsync(news);
             }
             catch (Exception ex)
@@ -39,8 +42,8 @@ namespace INFORMATIONAPI.Service
                     return false;
                 }
 
-                // Store the image path to delete if it exists
-                string imagePathToDelete = newsToDelete.ImagePath;
+                // Store the image paths to delete if they exist
+                var imagePathsToDelete = newsToDelete.ImagePaths;
 
                 var result = await _dbContext.News.DeleteOneAsync(a => a.Id == id);
                 if (result.DeletedCount == 0)
@@ -48,13 +51,16 @@ namespace INFORMATIONAPI.Service
                     return false;
                 }
 
-                // Delete the image file if it exists
-                if (!string.IsNullOrEmpty(imagePathToDelete))
+                // Delete the image files if they exist
+                if (imagePathsToDelete != null && imagePathsToDelete.Any())
                 {
-                    var filePath = Path.Combine(_env.WebRootPath, imagePathToDelete.TrimStart('/'));
-                    if (File.Exists(filePath))
+                    foreach (var imagePath in imagePathsToDelete)
                     {
-                        File.Delete(filePath);
+                        var filePath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
+                        if (File.Exists(filePath))
+                        {
+                            File.Delete(filePath);
+                        }
                     }
                 }
 
@@ -90,7 +96,7 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-        public async Task<bool> UpdateAsync(string id, News news, IFormFile? imageFile)
+        public async Task<bool> UpdateAsync(string id, News news, List<IFormFile>? imageFiles)
         {
             try
             {
@@ -107,24 +113,29 @@ namespace INFORMATIONAPI.Service
                     throw new Exception("Mismatched ID in about object and parameter");
                 }
 
-                // Store the existing image path to delete if necessary
-                string existingImagePath = existingNews.ImagePath;
+                // Store the existing image paths to delete if necessary
+                var existingImagePaths = existingNews.ImagePaths;
 
                 existingNews.Title = news.Title;
                 existingNews.Content = news.Content;
+                existingNews.NewsTypeId = news.NewsTypeId;
 
-                await HandleImageUpload(existingNews, imageFile);
+                await HandleImageUpdate(existingNews, imageFiles);
 
+                // Replace the entire document in MongoDB
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
                 await _dbContext.News.ReplaceOneAsync(a => a.Id == id, existingNews, options);
 
-                // Delete the old image file if the image path was updated and previously existed
-                if (!string.IsNullOrEmpty(existingImagePath) && existingImagePath != existingNews.ImagePath)
+                // Delete the old image files if the image paths were updated and previously existed
+                if (existingImagePaths != null)
                 {
-                    var oldFilePath = Path.Combine(_env.WebRootPath, existingImagePath.TrimStart('/'));
-                    if (File.Exists(oldFilePath))
+                    foreach (var imagePath in existingImagePaths)
                     {
-                        File.Delete(oldFilePath);
+                        var oldFilePath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
+                        if (File.Exists(oldFilePath))
+                        {
+                            File.Delete(oldFilePath);
+                        }
                     }
                 }
 
@@ -136,9 +147,20 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-        private async Task HandleImageUpload(News news, IFormFile? imageFile)
+        private async Task HandleImageUpload(News news, List<IFormFile>? imageFiles)
         {
-            if (imageFile != null && imageFile.Length > 0)
+            int maxImageCount = 5;  // Maximum number of images allowed
+
+            // Ensure ImagePaths is initialized
+            if (news.ImagePaths == null)
+            {
+                news.ImagePaths = new List<string>();
+            }
+
+            int existingImageCount = news.ImagePaths.Count;
+            int remainingImageSlots = maxImageCount - existingImageCount;
+
+            if (imageFiles != null && imageFiles.Count > 0)
             {
                 var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
                 if (!Directory.Exists(uploadsFolder))
@@ -146,21 +168,84 @@ namespace INFORMATIONAPI.Service
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                foreach (var imageFile in imageFiles)
                 {
-                    await imageFile.CopyToAsync(stream);
-                }
+                    if (remainingImageSlots <= 0)
+                    {
+                        throw new Exception($"Cannot add more than {maxImageCount} images. You can only add {remainingImageSlots + existingImageCount} more.");
+                    }
 
-                news.ImagePath = "/uploads/" + uniqueFileName;
+                    var validFileTypes = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var fileExtension = Path.GetExtension(imageFile.FileName).ToLower();
+
+                    if (!validFileTypes.Contains(fileExtension))
+                    {
+                        throw new Exception($"Invalid file type: {fileExtension}. Only the following types are allowed: {string.Join(", ", validFileTypes)}.");
+                    }
+
+                    try
+                    {
+                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(stream);
+                        }
+
+                        news.ImagePaths.Add("/uploads/" + uniqueFileName);
+                        remainingImageSlots--;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Error uploading file {imageFile.FileName}: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private async Task HandleImageUpdate(News news, List<IFormFile>? imageFiles)
+        {
+            // Ensure ImagePaths is initialized
+            if (news.ImagePaths == null)
+            {
+                news.ImagePaths = new List<string>();
             }
 
-            // Ensure ImagePath is not null when inserting or updating into MongoDB
-            if (news.ImagePath == null)
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsFolder))
             {
-                news.ImagePath = string.Empty; // or null if desired
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            // Delete existing images from the filesystem
+            foreach (var existingImagePath in news.ImagePaths)
+            {
+                var oldFilePath = Path.Combine(uploadsFolder, existingImagePath.TrimStart('/'));
+                if (File.Exists(oldFilePath))
+                {
+                    File.Delete(oldFilePath);
+                }
+            }
+
+            // Clear existing image paths
+            news.ImagePaths.Clear();
+
+            if (imageFiles != null && imageFiles.Count > 0)
+            {
+                foreach (var imageFile in imageFiles)
+                {
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+
+                    // Add new image path
+                    news.ImagePaths.Add("/uploads/" + uniqueFileName);
+                }
             }
         }
 
@@ -221,21 +306,38 @@ namespace INFORMATIONAPI.Service
 
                 if (existingNewType == null)
                 {
-                    return false;
+                    return false; // Return false if the news type with the given ID is not found
                 }
 
+                // Ensure the Id in the existingNewType matches the id parameter
+                if (existingNewType.Id != id)
+                {
+                    throw new Exception("Mismatched ID in existingNewType and parameter");
+                }
+
+                // Update the NewsTypeName with the new value
                 existingNewType.NewsTypeName = newType.NewsTypeName;
 
+                // Define options for the ReplaceOneAsync operation
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
-                await _dbContext.NewsType.ReplaceOneAsync(nt => nt.Id == id, existingNewType, options);
 
-                return true;
+                // Perform the update operation using ReplaceOneAsync
+                var result = await _dbContext.NewsType.ReplaceOneAsync(nt => nt.Id == id, existingNewType, options);
+
+                // Check if the update was successful
+                if (result.ModifiedCount == 0 && result.MatchedCount == 0)
+                {
+                    return false; // Return false if no documents were modified
+                }
+
+                return true; // Return true indicating successful update
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error while updating NewType: {ex.Message}");
             }
         }
+
 
         public async Task<bool> DeleteNewTypeAsync(string id)
         {
