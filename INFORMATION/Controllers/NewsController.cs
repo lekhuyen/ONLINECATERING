@@ -175,6 +175,16 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
+                if (imageFiles != null && imageFiles.Count > 5)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "You can upload up to 5 images."
+                    });
+                }
+
                 // Retrieve the updated News object after update
                 var updatedNews = await _newsRepositories.GetByIdAsync(id);
 

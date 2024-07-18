@@ -114,7 +114,7 @@ namespace INFORMATIONAPI.Service
                 }
 
                 // Store the existing image paths to delete if necessary
-                var existingImagePaths = existingNews.ImagePaths;
+                var existingImagePaths = existingNews.ImagePaths ?? new List<string>();
 
                 existingNews.Title = news.Title;
                 existingNews.Content = news.Content;
@@ -131,10 +131,13 @@ namespace INFORMATIONAPI.Service
                 {
                     foreach (var imagePath in existingImagePaths)
                     {
-                        var oldFilePath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
-                        if (File.Exists(oldFilePath))
+                        if (!existingNews.ImagePaths.Contains(imagePath))
                         {
-                            File.Delete(oldFilePath);
+                            var oldFilePath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
+                            if (File.Exists(oldFilePath))
+                            {
+                                File.Delete(oldFilePath);
+                            }
                         }
                     }
                 }
@@ -157,7 +160,10 @@ namespace INFORMATIONAPI.Service
                 news.ImagePaths = new List<string>();
             }
 
+            // Count existing images
             int existingImageCount = news.ImagePaths.Count;
+
+            // Calculate how many more images can be added
             int remainingImageSlots = maxImageCount - existingImageCount;
 
             if (imageFiles != null && imageFiles.Count > 0)
@@ -170,20 +176,7 @@ namespace INFORMATIONAPI.Service
 
                 foreach (var imageFile in imageFiles)
                 {
-                    if (remainingImageSlots <= 0)
-                    {
-                        throw new Exception($"Cannot add more than {maxImageCount} images. You can only add {remainingImageSlots + existingImageCount} more.");
-                    }
-
-                    var validFileTypes = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                    var fileExtension = Path.GetExtension(imageFile.FileName).ToLower();
-
-                    if (!validFileTypes.Contains(fileExtension))
-                    {
-                        throw new Exception($"Invalid file type: {fileExtension}. Only the following types are allowed: {string.Join(", ", validFileTypes)}.");
-                    }
-
-                    try
+                    if (remainingImageSlots > 0)
                     {
                         var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
                         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
@@ -196,9 +189,10 @@ namespace INFORMATIONAPI.Service
                         news.ImagePaths.Add("/uploads/" + uniqueFileName);
                         remainingImageSlots--;
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        throw new Exception($"Error uploading file {imageFile.FileName}: {ex.Message}");
+                        // Handle case where maximum image count is exceeded
+                        throw new Exception($"Cannot add more than {maxImageCount} images.");
                     }
                 }
             }
@@ -206,33 +200,18 @@ namespace INFORMATIONAPI.Service
 
         private async Task HandleImageUpdate(News news, List<IFormFile>? imageFiles)
         {
-            // Ensure ImagePaths is initialized
-            if (news.ImagePaths == null)
-            {
-                news.ImagePaths = new List<string>();
-            }
-
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
-            }
-
-            // Delete existing images from the filesystem
-            foreach (var existingImagePath in news.ImagePaths)
-            {
-                var oldFilePath = Path.Combine(uploadsFolder, existingImagePath.TrimStart('/'));
-                if (File.Exists(oldFilePath))
-                {
-                    File.Delete(oldFilePath);
-                }
-            }
-
-            // Clear existing image paths
-            news.ImagePaths.Clear();
-
+            
             if (imageFiles != null && imageFiles.Count > 0)
             {
+
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                news.ImagePaths.Clear();
+
                 foreach (var imageFile in imageFiles)
                 {
                     var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
