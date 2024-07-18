@@ -22,16 +22,17 @@ namespace RESTAURANT.API.Models
         public int? Warning { get; set; } = 0;
         public int CategoryId { get; set; }
         public decimal? TotalRating { get; set; }
-
-        public Category? Category { get; set; }
-
+        public int? Menu { get; set; }
+        //UserId => user created restaurant
         public int? UserId { get; set; }
 
+        public Category? Category { get; set; }
         //public int? RatingId { get; set; }
+       
         public ICollection<Rating>? Rating { get; set; }
-        public int? Menu { get; set; }
         public ICollection<Menu>? Menus { get; set; }
         public ICollection<Comment>? Comment { get; set; }
+        public ICollection<Booking>? Bookings { get; set; }
         public ICollection<Description>? Descriptions { get; set; }
 
         public ICollection<RestaurantImages>? RestaurantImages { get; set; }

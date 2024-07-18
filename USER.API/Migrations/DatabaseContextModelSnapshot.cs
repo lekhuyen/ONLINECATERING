@@ -22,6 +22,51 @@ namespace USER.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("USER.API.Models.Booking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DayArrive")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Hour")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Member")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MenuId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Pont")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RestaurantId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserBooking");
+                });
+
             modelBuilder.Entity("USER.API.Models.FavoriteList", b =>
                 {
                     b.Property<int>("Id")
@@ -79,6 +124,83 @@ namespace USER.API.Migrations
                     b.ToTable("Grades");
                 });
 
+            modelBuilder.Entity("USER.API.Models.Menu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Ingredient")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MenuImage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MenuName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Quatity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RestaurantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Menus");
+                });
+
+            modelBuilder.Entity("USER.API.Models.Restaurant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Close")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("Open")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RestaurantName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("Restaurants");
+                });
+
             modelBuilder.Entity("USER.API.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -124,6 +246,17 @@ namespace USER.API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("USER.API.Models.Booking", b =>
+                {
+                    b.HasOne("USER.API.Models.User", "User")
+                        .WithMany("UserBookings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("USER.API.Models.FavoriteList", b =>
                 {
                     b.HasOne("USER.API.Models.User", "User")
@@ -146,11 +279,27 @@ namespace USER.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("USER.API.Models.Restaurant", b =>
+                {
+                    b.HasOne("USER.API.Models.Booking", "Booking")
+                        .WithMany("Restaurant")
+                        .HasForeignKey("BookingId");
+
+                    b.Navigation("Booking");
+                });
+
+            modelBuilder.Entity("USER.API.Models.Booking", b =>
+                {
+                    b.Navigation("Restaurant");
+                });
+
             modelBuilder.Entity("USER.API.Models.User", b =>
                 {
                     b.Navigation("FavoriteLists");
 
                     b.Navigation("Grade");
+
+                    b.Navigation("UserBookings");
                 });
 #pragma warning restore 612, 618
         }

@@ -299,6 +299,19 @@ namespace INFORMATIONAPI.Controllers
         {
             try
             {
+                // Check if a NewsType with the same name already exists
+                var existingType = await _newsRepositories.GetNewsTypeByNameAsync(newType.NewsTypeName);
+                if (existingType != null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "A NewsType with the same name already exists",
+                        Data = null
+                    });
+                }
+
                 await _newsRepositories.CreateNewTypeAsync(newType);
                 return Created("success", new ApiResponse
                 {
@@ -314,16 +327,33 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Create News Type failed"
+                    Message = "Create News Type failed",
+                    Data = null
                 });
             }
         }
+
 
         [HttpPut("newtypes/{id}")]
         public async Task<IActionResult> EditNewType(string id, [FromBody] NewsType newType)
         {
             try
             {
+
+                var existingType = await _newsRepositories.GetNewsTypeByNameAsync(newType.NewsTypeName);
+
+                // Check if the name already exists (excluding the current type being updated)
+                if (existingType != null && existingType.Id != id)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "A NewsType with the same name already exists",
+                        Data = null
+                    });
+                }
+
                 var updated = await _newsRepositories.UpdateNewTypeAsync(id, newType);
                 if (!updated)
                 {

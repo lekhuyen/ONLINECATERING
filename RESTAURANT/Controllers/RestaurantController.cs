@@ -1,6 +1,8 @@
 ﻿using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using REDISCLIENT;
 using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
 using RESTAURANT.API.Repositories;
@@ -14,9 +16,11 @@ namespace RESTAURANT.API.Controllers
     public class RestaurantController : ControllerBase
     {
         private readonly IRestaurant _irestaurannt;
-        public RestaurantController(IRestaurant irestaurannt)
+        private readonly RedisClient _redisClient;
+        public RestaurantController(IRestaurant irestaurannt, RedisClient redisClient)
         {
             _irestaurannt = irestaurannt;
+            _redisClient = redisClient;
         }
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -24,6 +28,7 @@ namespace RESTAURANT.API.Controllers
             try
             {
                 var restaurants = await _irestaurannt.GetRestaurantsAsync();
+
                 return Ok(new ApiResponse
                 {
                     Success = true,
@@ -51,6 +56,7 @@ namespace RESTAURANT.API.Controllers
                 if(ModelState.IsValid)
                 {
                     var res = await _irestaurannt.AddRestaurantAsync(restaurant);
+
                     return Created("success", new ApiResponse
                     {
                         Success = true,
