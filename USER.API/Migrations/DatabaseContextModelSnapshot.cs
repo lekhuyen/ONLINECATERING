@@ -42,8 +42,8 @@ namespace USER.API.Migrations
                     b.Property<int>("Member")
                         .HasColumnType("int");
 
-                    b.Property<int>("MenuId")
-                        .HasColumnType("int");
+                    b.Property<string>("MenuId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Pont")
                         .HasColumnType("int");
@@ -132,6 +132,9 @@ namespace USER.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Ingredient")
                         .HasColumnType("nvarchar(max)");
 
@@ -145,6 +148,9 @@ namespace USER.API.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("Quatity")
+                        .HasColumnType("int");
+
                     b.Property<int>("RestaurantId")
                         .HasColumnType("int");
 
@@ -153,19 +159,46 @@ namespace USER.API.Migrations
                     b.ToTable("Menus");
                 });
 
-            modelBuilder.Entity("USER.API.Models.MenuBooking", b =>
+            modelBuilder.Entity("USER.API.Models.Restaurant", b =>
                 {
-                    b.Property<int>("MenuId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("BookingId")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("BookingId")
                         .HasColumnType("int");
 
-                    b.HasKey("MenuId", "BookingId");
+                    b.Property<int?>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Close")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("Open")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RestaurantName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("MenuBookings");
+                    b.ToTable("Restaurants");
                 });
 
             modelBuilder.Entity("USER.API.Models.User", b =>
@@ -246,33 +279,18 @@ namespace USER.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("USER.API.Models.MenuBooking", b =>
+            modelBuilder.Entity("USER.API.Models.Restaurant", b =>
                 {
                     b.HasOne("USER.API.Models.Booking", "Booking")
-                        .WithMany("MenuBookings")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("USER.API.Models.Menu", "Menu")
-                        .WithMany("MenuBookings")
-                        .HasForeignKey("MenuId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Restaurant")
+                        .HasForeignKey("BookingId");
 
                     b.Navigation("Booking");
-
-                    b.Navigation("Menu");
                 });
 
             modelBuilder.Entity("USER.API.Models.Booking", b =>
                 {
-                    b.Navigation("MenuBookings");
-                });
-
-            modelBuilder.Entity("USER.API.Models.Menu", b =>
-                {
-                    b.Navigation("MenuBookings");
+                    b.Navigation("Restaurant");
                 });
 
             modelBuilder.Entity("USER.API.Models.User", b =>

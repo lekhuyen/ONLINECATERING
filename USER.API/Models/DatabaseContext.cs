@@ -23,25 +23,36 @@ namespace USER.API.Models
                 .WithOne(u => u.User)
                 .HasForeignKey(u => u.UserId);
 
+            //modelBuilder.Entity<User>()
+            //    .HasMany(u => u.Restaurants)
+            //    .WithOne(u => u.User)
+            //    .HasForeignKey(u => u.UserId);
 
-            modelBuilder.Entity<MenuBooking>()
-                .HasKey(m => new { m.MenuId, m.BookingId });
-            modelBuilder.Entity<MenuBooking>()
-                .HasOne(m => m.Booking)
-                .WithMany(m => m.MenuBookings)
-                .HasForeignKey(m => m.BookingId);
 
-            modelBuilder.Entity<MenuBooking>()
-                .HasOne(m => m.Menu)
-                .WithMany(m => m.MenuBookings)
-                .HasForeignKey(m => m.MenuId);
+            //modelBuilder.Entity<MenuBooking>()
+            //    .HasKey(m => new { m.MenuId, m.BookingId });
+            //modelBuilder.Entity<MenuBooking>()
+            //    .HasOne(m => m.Booking)
+            //    .WithMany(m => m.MenuBookings)
+            //    .HasForeignKey(m => m.BookingId);
+
+            //modelBuilder.Entity<MenuBooking>()
+            //    .HasOne(m => m.Menu)
+            //    .WithMany(m => m.MenuBookings)
+            //    .HasForeignKey(m => m.MenuId);
+
+            modelBuilder.Entity<Booking>()
+                .HasMany(b => b.Restaurant)
+                .WithOne(b => b.Booking)
+                .HasForeignKey(b => b.BookingId);
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Grade> Grades { get; set; }
         public DbSet<FavoriteList> FavoriteLists { get; set; }
         public DbSet<Booking> UserBooking { get; set; }
         public DbSet<Menu> Menus { get; set; }
-        public DbSet<MenuBooking> MenuBookings { get; set; }
+        //public DbSet<MenuBooking> MenuBookings { get; set; }
+        public DbSet<Restaurant> Restaurants { get; set; }
 
 
 

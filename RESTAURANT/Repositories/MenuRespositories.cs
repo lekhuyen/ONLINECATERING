@@ -1,4 +1,5 @@
-﻿using RESTAURANT.API.DTOs;
+﻿using Microsoft.EntityFrameworkCore;
+using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
 
 namespace RESTAURANT.API.Repositories
@@ -20,6 +21,7 @@ namespace RESTAURANT.API.Repositories
                 Ingredient = menuDTO.Ingredient,
                 RestaurantId = menuDTO.RestaurantId,
                 MenuImage = menuDTO.MenuImage,
+                Quantity = menuDTO.Quatity,
             };
             await _databaseContext.AddAsync(menu);
             await _databaseContext.SaveChangesAsync();
@@ -33,6 +35,12 @@ namespace RESTAURANT.API.Repositories
                  _databaseContext.Menus.Remove(menu);
                 await _databaseContext.SaveChangesAsync();
             }
+        }
+
+        public async Task<IEnumerable<Menu>> GetAllMenu()
+        {
+            var menus = await _databaseContext.Menus.ToListAsync();
+            return menus;   
         }
 
         public async Task<Menu> GetMenuById(int id)
@@ -56,6 +64,7 @@ namespace RESTAURANT.API.Repositories
                     MenuName = menu.MenuName,
                     Price = menu.Price,
                     Ingredient = menu.Ingredient,
+                    MenuImage = menu.MenuImage,
                 };
                 return menuDTO;
             }
