@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace INFORMATIONAPI.Controllers
@@ -16,7 +17,7 @@ namespace INFORMATIONAPI.Controllers
     public class AboutController : ControllerBase
     {
         private readonly IAboutRepositories _aboutRepository;
-        private readonly IWebHostEnvironment _env; // For file handling
+        private readonly IWebHostEnvironment _env;
 
         public AboutController(IAboutRepositories aboutRepository, IWebHostEnvironment env)
         {
@@ -72,7 +73,7 @@ namespace INFORMATIONAPI.Controllers
                     Status = 0,
                     Message = "About Content founded Successfully",
                     Data = about
-                });  // Ensure 'Id' property is correctly populated in 'about'
+                });
             }
             catch (Exception ex)
             {
@@ -87,11 +88,21 @@ namespace INFORMATIONAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateContent([FromForm] About abt, IFormFile? imageFile)
+        public async Task<IActionResult> CreateContent([FromForm] About abt, [FromForm] List<IFormFile>? imageFiles)
         {
             try
             {
-                await _aboutRepository.CreateAsync(abt, imageFile);
+                if (imageFiles != null && imageFiles.Count > 5)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "You can upload up to 5 images."
+                    });
+                }
+
+                await _aboutRepository.CreateAsync(abt, imageFiles);
                 return Created("success", new ApiResponse
                 {
                     Success = true,
@@ -112,11 +123,10 @@ namespace INFORMATIONAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Edit(string id, [FromForm] About abt, IFormFile? imageFile)
+        public async Task<IActionResult> Edit(string id, [FromForm] About abt, List<IFormFile>? imageFiles)
         {
             try
             {
-                // Ensure the Id in the about object matches the id parameter
                 if (abt.Id != id)
                 {
                     return BadRequest(new ApiResponse
@@ -126,10 +136,21 @@ namespace INFORMATIONAPI.Controllers
                         Message = "Mismatched ID in about object and parameter",
                         Data = null
                     });
-
                 }
 
-                var updated = await _aboutRepository.UpdateAsync(id, abt, imageFile);
+                // Check if imageFiles contains more than 5 files
+                if (imageFiles != null && imageFiles.Count > 5)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "You can upload up to 5 images."
+                    });
+                }
+
+                // Update with new data and image files
+                var updated = await _aboutRepository.UpdateAsync(id, abt, imageFiles);
                 if (!updated)
                 {
                     return NotFound(new ApiResponse
@@ -143,13 +164,13 @@ namespace INFORMATIONAPI.Controllers
                 // Retrieve the updated About object after update
                 var updatedAbout = await _aboutRepository.GetByIdAsync(id);
 
-                // Ensure the response format meets your requirements
+                // Prepare response data
                 var response = new
                 {
                     id = updatedAbout.Id,
                     title = updatedAbout.Title,
                     content = updatedAbout.Content,
-                    imagePath = updatedAbout.ImagePath ?? ""  // Ensure imagePath is not null
+                    imagePaths = updatedAbout.ImagePaths ?? new List<string>()
                 };
 
                 return Ok(new ApiResponse
@@ -157,6 +178,7 @@ namespace INFORMATIONAPI.Controllers
                     Success = true,
                     Status = 0,
                     Message = "Update About Content Successfully",
+                    Data = response
                 });
             }
             catch (Exception ex)
@@ -170,6 +192,10 @@ namespace INFORMATIONAPI.Controllers
                 });
             }
         }
+
+
+
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
