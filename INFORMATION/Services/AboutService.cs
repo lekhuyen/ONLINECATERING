@@ -6,7 +6,6 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace INFORMATIONAPI.Service
@@ -46,11 +45,11 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-        public async Task CreateAsync(About about, IFormFile? imageFile)
+        public async Task CreateAsync(About about, List<IFormFile>? imageFiles)
         {
             try
             {
-                await HandleImageUpload(about, imageFile);
+                await HandleImageUpload(about, imageFiles);
 
                 await _dbContext.About.InsertOneAsync(about);
             }
@@ -60,7 +59,7 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-        public async Task<bool> UpdateAsync(string id, About about, IFormFile? imageFile)
+        public async Task<bool> UpdateAsync(string id, About about, List<IFormFile>? imageFiles)
         {
             try
             {
@@ -71,32 +70,41 @@ namespace INFORMATIONAPI.Service
                     return false;
                 }
 
-                // Ensure the Id in the about object matches the id parameter
                 if (about.Id != id)
                 {
                     throw new Exception("Mismatched ID in about object and parameter");
                 }
 
-                // Store the existing image path to delete if necessary
-                string existingImagePath = existingAbout.ImagePath;
+                var existingImagePaths = existingAbout.ImagePaths ?? new List<string>();
 
                 existingAbout.Title = about.Title;
                 existingAbout.Content = about.Content;
 
-                await HandleImageUpload(existingAbout, imageFile);
+                // Handle image update
+                await HandleImageUpdate(existingAbout, imageFiles);
 
+                // Replace the entire document in MongoDB
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
                 await _dbContext.About.ReplaceOneAsync(a => a.Id == id, existingAbout, options);
 
-                // Delete the old image file if the image path was updated and previously existed
-                if (!string.IsNullOrEmpty(existingImagePath) && existingImagePath != existingAbout.ImagePath)
+                // Clean up old image files (if needed)
+                if (existingImagePaths != null)
                 {
-                    var oldFilePath = Path.Combine(_env.WebRootPath, existingImagePath.TrimStart('/'));
-                    if (File.Exists(oldFilePath))
+                    foreach (var path in existingImagePaths)
                     {
-                        File.Delete(oldFilePath);
+                        if (!existingAbout.ImagePaths.Contains(path))
+                        {
+                            var oldFilePath = Path.Combine(_env.WebRootPath, path.TrimStart('/'));
+                            if (File.Exists(oldFilePath))
+                            {
+                                File.Delete(oldFilePath);
+                            }
+                        }
                     }
                 }
+
+                // Log existing image paths for debugging
+                Console.WriteLine($"Existing Image Paths after update: {string.Join(", ", existingAbout.ImagePaths)}");
 
                 return true;
             }
@@ -105,6 +113,7 @@ namespace INFORMATIONAPI.Service
                 throw new Exception($"Error while updating about content: {ex.Message}");
             }
         }
+
 
         public async Task<bool> DeleteAsync(string id)
         {
@@ -116,8 +125,7 @@ namespace INFORMATIONAPI.Service
                     return false;
                 }
 
-                // Store the image path to delete if it exists
-                string imagePathToDelete = aboutToDelete.ImagePath;
+                var imagePathsToDelete = aboutToDelete.ImagePaths;
 
                 var result = await _dbContext.About.DeleteOneAsync(a => a.Id == id);
                 if (result.DeletedCount == 0)
@@ -125,13 +133,15 @@ namespace INFORMATIONAPI.Service
                     return false;
                 }
 
-                // Delete the image file if it exists
-                if (!string.IsNullOrEmpty(imagePathToDelete))
+                if (imagePathsToDelete != null)
                 {
-                    var filePath = Path.Combine(_env.WebRootPath, imagePathToDelete.TrimStart('/'));
-                    if (File.Exists(filePath))
+                    foreach (var path in imagePathsToDelete)
                     {
-                        File.Delete(filePath);
+                        var filePath = Path.Combine(_env.WebRootPath, path.TrimStart('/'));
+                        if (File.Exists(filePath))
+                        {
+                            File.Delete(filePath);
+                        }
                     }
                 }
 
@@ -143,10 +153,24 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-
-        private async Task HandleImageUpload(About about, IFormFile? imageFile)
+        private async Task HandleImageUpload(About about, List<IFormFile>? imageFiles)
         {
-            if (imageFile != null && imageFile.Length > 0)
+            // Define the maximum number of images allowed
+            int maxImageCount = 5;  // Example: Limiting to 5 images
+
+            // Ensure ImagePaths is initialized
+            if (about.ImagePaths == null)
+            {
+                about.ImagePaths = new List<string>();
+            }
+
+            // Count existing images
+            int existingImageCount = about.ImagePaths.Count;
+
+            // Calculate how many more images can be added
+            int remainingImageSlots = maxImageCount - existingImageCount;
+
+            if (imageFiles != null && imageFiles.Count > 0)
             {
                 var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
                 if (!Directory.Exists(uploadsFolder))
@@ -154,21 +178,55 @@ namespace INFORMATIONAPI.Service
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                foreach (var imageFile in imageFiles)
                 {
-                    await imageFile.CopyToAsync(stream);
+                    if (remainingImageSlots > 0)
+                    {
+                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(stream);
+                        }
+
+                        about.ImagePaths.Add("/uploads/" + uniqueFileName);
+                        remainingImageSlots--;
+                    }
+                    else
+                    {
+                        // Handle case where maximum image count is exceeded
+                        throw new Exception($"Cannot add more than {maxImageCount} images.");
+                    }
+                }
+            }
+        }
+
+        private async Task HandleImageUpdate(About about, List<IFormFile>? imageFiles)
+        {
+            if (imageFiles != null && imageFiles.Count > 0)
+            {
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
                 }
 
-                about.ImagePath = "/uploads/" + uniqueFileName;
-            }
+                // Clear existing image paths before adding new ones
+                about.ImagePaths.Clear();
 
-            // Ensure ImagePath is not null when inserting or updating into MongoDB
-            if (about.ImagePath == null)
-            {
-                about.ImagePath = string.Empty; // or null if desired
+                foreach (var imageFile in imageFiles)
+                {
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+
+                    about.ImagePaths.Add("/uploads/" + uniqueFileName);
+                }
             }
         }
 

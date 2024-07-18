@@ -4,12 +4,12 @@ namespace INFORMATIONAPI.Repositories
 {
     public interface INewsRepositories
     {
+
         Task<IEnumerable<News>> GetAllAsync();
         Task<News> GetByIdAsync(string id);
-        Task CreateAsync(News news, IFormFile? imageFile);
-        Task<bool> UpdateAsync(string id, News news, IFormFile? imageFile);
+        Task CreateAsync(News news, List<IFormFile>? imageFiles);
+        Task<bool> UpdateAsync(string id, News news, List<IFormFile>? imageFiles);
         Task<bool> DeleteAsync(string id);
-
 
         // NewsType CRUD operations
         Task<IEnumerable<NewsType>> GetAllNewTypesAsync();

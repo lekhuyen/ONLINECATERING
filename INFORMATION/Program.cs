@@ -1,4 +1,5 @@
 
+
 using INFORMATION.API.Services;
 using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
@@ -20,6 +21,8 @@ namespace INFORMATION
 			builder.Services.AddScoped<INewsRepositories, NewsService>();
             builder.Services.AddScoped<IContactRepositories, ContactService>();
             builder.Services.AddSingleton<EmailService>();
+
+
             // Add services to the container.
 
             builder.Services.AddControllers();

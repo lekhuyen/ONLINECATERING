@@ -23,6 +23,6 @@ namespace INFORMATIONAPI.Models
         public string NewsTypeId { get; set; }
 
         [BsonIgnoreIfNull]
-        public string? ImagePath { get; set; }
+        public List<string>? ImagePaths { get; set; } = new List<string>();
     }
 }
