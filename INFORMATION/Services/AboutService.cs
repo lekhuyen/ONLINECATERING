@@ -2,6 +2,7 @@
 using INFORMATIONAPI.Repositories;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -67,7 +68,7 @@ namespace INFORMATIONAPI.Service
 
                 if (existingAbout == null)
                 {
-                    return false;
+                    return false; // Return false if the about document with the given id doesn't exist
                 }
 
                 if (about.Id != id)
@@ -75,33 +76,51 @@ namespace INFORMATIONAPI.Service
                     throw new Exception("Mismatched ID in about object and parameter");
                 }
 
-                var existingImagePaths = existingAbout.ImagePaths ?? new List<string>();
-
+                // Update title and content
                 existingAbout.Title = about.Title;
                 existingAbout.Content = about.Content;
 
                 // Handle image update
-                await HandleImageUpdate(existingAbout, imageFiles);
+                if (imageFiles != null && imageFiles.Count > 0)
+                {
+                    var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+
+                    // Delete old images from the folder
+                    foreach (var imagePath in existingAbout.ImagePaths)
+                    {
+                        var fullPath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
+                        if (File.Exists(fullPath))
+                        {
+                            File.Delete(fullPath);
+                        }
+                    }
+
+                    // Clear existing image paths before adding new ones
+                    existingAbout.ImagePaths.Clear();
+
+                    // Add new images
+                    foreach (var imageFile in imageFiles)
+                    {
+                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(stream);
+                        }
+
+                        existingAbout.ImagePaths.Add("/uploads/" + uniqueFileName);
+                    }
+                }
+                else if (existingAbout.ImagePaths != null && existingAbout.ImagePaths.Count > 0)
+                {
+                    // Maintain existing images if no new images are provided
+                    about.ImagePaths = existingAbout.ImagePaths;
+                }
 
                 // Replace the entire document in MongoDB
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
                 await _dbContext.About.ReplaceOneAsync(a => a.Id == id, existingAbout, options);
-
-                // Clean up old image files (if needed)
-                if (existingImagePaths != null)
-                {
-                    foreach (var path in existingImagePaths)
-                    {
-                        if (!existingAbout.ImagePaths.Contains(path))
-                        {
-                            var oldFilePath = Path.Combine(_env.WebRootPath, path.TrimStart('/'));
-                            if (File.Exists(oldFilePath))
-                            {
-                                File.Delete(oldFilePath);
-                            }
-                        }
-                    }
-                }
 
                 // Log existing image paths for debugging
                 Console.WriteLine($"Existing Image Paths after update: {string.Join(", ", existingAbout.ImagePaths)}");
@@ -113,7 +132,6 @@ namespace INFORMATIONAPI.Service
                 throw new Exception($"Error while updating about content: {ex.Message}");
             }
         }
-
 
         public async Task<bool> DeleteAsync(string id)
         {
@@ -202,33 +220,71 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-        private async Task HandleImageUpdate(About about, List<IFormFile>? imageFiles)
+
+
+        /*[HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, [FromForm] Product? product
+    , List<IFormFile>? formFiles) // List<int>? idsDelete de xoa nhieu hinh anh ben UI
         {
-            if (imageFiles != null && imageFiles.Count > 0)
+            try
             {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
-                if (!Directory.Exists(uploadsFolder))
+                var existedProduct = await _dbContext.Products
+                    .Include(p => p.ProductImages)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+                if (existedProduct == null)
                 {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                // Clear existing image paths before adding new ones
-                about.ImagePaths.Clear();
-
-                foreach (var imageFile in imageFiles)
-                {
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    return NotFound(new
                     {
-                        await imageFile.CopyToAsync(stream);
-                    }
-
-                    about.ImagePaths.Add("/uploads/" + uniqueFileName);
+                        status = 400,
+                        message = "Product is not found",
+                        data = existedProduct,
+                    });
                 }
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest();
+                }
+                if (formFiles?.Count() > 0)
+                {
+                    // xoa hinh anh trong folder
+                    foreach (var item in existedProduct.ProductImages)
+                    {
+                        if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            FileUpload.DeleteImage(item.ImageUrl);
+                            //_dbContext.Products.Remove(product);
+                        }
+                    }
+                    // product.ProductImages.Clear();
+                    // them hinh anh trong folder & DB
+                    //productExisted.ProductImages.Clear();
+                    foreach (var item in formFiles)
+                    {
+                        var imagePath = await FileUpload.SaveImage("productImages", item);
+                        var productImage = new ProductImages
+                        {
+                            ImageUrl = imagePath,
+                            ProductId = id
+                        };
+                        await _dbContext.ProductImages.AddAsync(productImage);
+                    }
+                }
+                // k can user nhap but set ID de biet update tai ID nao
+                product.Id = id;
+                _dbContext.Entry(existedProduct).CurrentValues.SetValues(product);
+                await _dbContext.SaveChangesAsync();
+                return Ok(new
+                {
+                    status = 200,
+                    message = "Update product successfully",
+                    data = existedProduct
+                });
             }
-        }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }*/
 
     }
 }
