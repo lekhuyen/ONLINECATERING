@@ -18,6 +18,11 @@ namespace INFORMATIONAPI.Models
         [MinLength(10, ErrorMessage = "Content must contain at least 10 words")]
         public string Content { get; set; }
 
+
+        [BsonRepresentation(BsonType.ObjectId)]
+        [Required(ErrorMessage = "AboutTypeId is required")]
+        public string AboutTypeId { get; set; }
+
         [BsonIgnoreIfNull]
         public List<string>? ImagePaths { get; set; } = new List<string>();
     }

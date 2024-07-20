@@ -1,4 +1,5 @@
-﻿using INFORMATIONAPI.Models;
+﻿using INFORMATION.API.Models;
+using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -76,9 +77,13 @@ namespace INFORMATIONAPI.Service
                     throw new Exception("Mismatched ID in about object and parameter");
                 }
 
+                // Update the AboutTypeName with the new value
+                var existingImagePaths = existingAbout.ImagePaths ?? new List<string>();
+
                 // Update title and content
                 existingAbout.Title = about.Title;
                 existingAbout.Content = about.Content;
+                existingAbout.AboutTypeId = about.AboutTypeId;
 
                 // Handle image update
                 if (imageFiles != null && imageFiles.Count > 0)
@@ -112,18 +117,23 @@ namespace INFORMATIONAPI.Service
                         existingAbout.ImagePaths.Add("/uploads/" + uniqueFileName);
                     }
                 }
-                else if (existingAbout.ImagePaths != null && existingAbout.ImagePaths.Count > 0)
-                {
-                    // Maintain existing images if no new images are provided
-                    about.ImagePaths = existingAbout.ImagePaths;
-                }
 
                 // Replace the entire document in MongoDB
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
                 await _dbContext.About.ReplaceOneAsync(a => a.Id == id, existingAbout, options);
 
-                // Log existing image paths for debugging
-                Console.WriteLine($"Existing Image Paths after update: {string.Join(", ", existingAbout.ImagePaths)}");
+                // Delete the old image files if the image paths were updated and previously existed
+                foreach (var imagePath in existingImagePaths)
+                {
+                    if (!existingAbout.ImagePaths.Contains(imagePath))
+                    {
+                        var oldFilePath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
+                        if (File.Exists(oldFilePath))
+                        {
+                            File.Delete(oldFilePath);
+                        }
+                    }
+                }
 
                 return true;
             }
@@ -220,71 +230,108 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-
-
-        /*[HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, [FromForm] Product? product
-    , List<IFormFile>? formFiles) // List<int>? idsDelete de xoa nhieu hinh anh ben UI
+        // AboutType
+        public async Task<IEnumerable<AboutType>> GetAllAboutTypesAsync()
         {
             try
             {
-                var existedProduct = await _dbContext.Products
-                    .Include(p => p.ProductImages)
-                    .FirstOrDefaultAsync(p => p.Id == id);
-                if (existedProduct == null)
-                {
-                    return NotFound(new
-                    {
-                        status = 400,
-                        message = "Product is not found",
-                        data = existedProduct,
-                    });
-                }
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest();
-                }
-                if (formFiles?.Count() > 0)
-                {
-                    // xoa hinh anh trong folder
-                    foreach (var item in existedProduct.ProductImages)
-                    {
-                        if (!string.IsNullOrEmpty(item.ImageUrl))
-                        {
-                            FileUpload.DeleteImage(item.ImageUrl);
-                            //_dbContext.Products.Remove(product);
-                        }
-                    }
-                    // product.ProductImages.Clear();
-                    // them hinh anh trong folder & DB
-                    //productExisted.ProductImages.Clear();
-                    foreach (var item in formFiles)
-                    {
-                        var imagePath = await FileUpload.SaveImage("productImages", item);
-                        var productImage = new ProductImages
-                        {
-                            ImageUrl = imagePath,
-                            ProductId = id
-                        };
-                        await _dbContext.ProductImages.AddAsync(productImage);
-                    }
-                }
-                // k can user nhap but set ID de biet update tai ID nao
-                product.Id = id;
-                _dbContext.Entry(existedProduct).CurrentValues.SetValues(product);
-                await _dbContext.SaveChangesAsync();
-                return Ok(new
-                {
-                    status = 200,
-                    message = "Update product successfully",
-                    data = existedProduct
-                });
+                return await _dbContext.AboutType.Find(_ => true).ToListAsync();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return StatusCode(500, e.Message);
+                throw new Exception($"Error while retrieving all AboutTypes: {ex.Message}");
             }
-        }*/
+        }
+
+        public async Task<AboutType> GetAboutTypeByIdAsync(string id)
+        {
+            try
+            {
+                return await _dbContext.AboutType.Find(nt => nt.Id == id).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while retrieving AboutType by Id: {ex.Message}");
+            }
+        }
+
+        public async Task<AboutType> GetAboutTypeByNameAsync(string name)
+        {
+            try
+            {
+                return await _dbContext.AboutType.Find(nt => nt.AboutTypeName == name).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while retrieving AboutType by name: {ex.Message}");
+            }
+        }
+
+        public async Task CreateAboutTypeAsync(AboutType aboutType)
+        {
+            try
+            {
+                await _dbContext.AboutType.InsertOneAsync(aboutType);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while creating AboutType: {ex.Message}");
+            }
+        }
+
+        public async Task<bool> UpdateAboutTypeAsync(string id, AboutType aboutType)
+        {
+            try
+            {
+                var existingAboutType = await _dbContext.AboutType.Find(nt => nt.Id == id).FirstOrDefaultAsync();
+
+                if (existingAboutType == null)
+                {
+                    return false; // Return false if the news type with the given ID is not found
+                }
+
+                // Ensure the Id in the existingAboutType matches the id parameter
+                if (existingAboutType.Id != id)
+                {
+                    throw new Exception("Mismatched ID in existingAboutType and parameter");
+                }
+
+                // Update the AboutTypeName with the new value
+                existingAboutType.AboutTypeName = aboutType.AboutTypeName;
+
+                // Define options for the ReplaceOneAsync operation
+                ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
+
+                // Perform the update operation using ReplaceOneAsync
+                var result = await _dbContext.AboutType.ReplaceOneAsync(nt => nt.Id == id, existingAboutType, options);
+
+                // Check if the update was successful
+                if (result.ModifiedCount == 0 && result.MatchedCount == 0)
+                {
+                    return false; // Return false if no documents were modified
+                }
+
+                return true; // Return true indicating successful update
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while updating AboutType: {ex.Message}");
+            }
+        }
+
+
+        public async Task<bool> DeleteAboutTypeAsync(string id)
+        {
+            try
+            {
+                var result = await _dbContext.AboutType.DeleteOneAsync(nt => nt.Id == id);
+                return result.DeletedCount > 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while deleting AboutType: {ex.Message}");
+            }
+        }
 
     }
 }
