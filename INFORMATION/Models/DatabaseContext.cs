@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using INFORMATION.API.Models;
+using MongoDB.Driver;
 
 namespace INFORMATIONAPI.Models
 {
@@ -11,6 +12,9 @@ namespace INFORMATIONAPI.Models
             _mongoDB = client.GetDatabase("InformationTB");
         }
         public IMongoCollection<About> About => _mongoDB.GetCollection<About>("About");
+
+        public IMongoCollection<AboutType> AboutType => _mongoDB.GetCollection<AboutType>("AboutType");
+
 
         public IMongoCollection<News> News => _mongoDB.GetCollection<News>("News");
 

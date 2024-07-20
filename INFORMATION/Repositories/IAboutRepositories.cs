@@ -1,4 +1,5 @@
-﻿using INFORMATIONAPI.Models;
+﻿using INFORMATION.API.Models;
+using INFORMATIONAPI.Models;
 
 namespace INFORMATIONAPI.Repositories
 {
@@ -9,5 +10,13 @@ namespace INFORMATIONAPI.Repositories
         Task CreateAsync(About about, List<IFormFile>? imageFiles);
         Task<bool> UpdateAsync(string id, About about, List<IFormFile>? imageFiles);
         Task<bool> DeleteAsync(string id);
+
+        // AboutType CRUD operations
+        Task<IEnumerable<AboutType>> GetAllAboutTypesAsync();
+        Task<AboutType> GetAboutTypeByIdAsync(string id);
+        Task CreateAboutTypeAsync(AboutType aboutType);
+        Task<bool> UpdateAboutTypeAsync(string id, AboutType aboutType);
+        Task<bool> DeleteAboutTypeAsync(string id);
+        Task<AboutType> GetAboutTypeByNameAsync(string aboutTypeName);
     }
 }
