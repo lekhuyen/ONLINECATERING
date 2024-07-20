@@ -104,40 +104,68 @@ namespace INFORMATIONAPI.Service
 
                 if (existingNews == null)
                 {
-                    return false;
+                    return false; // Return false if the news document with the given id doesn't exist
                 }
 
-                // Ensure the Id in the about object matches the id parameter
                 if (news.Id != id)
                 {
-                    throw new Exception("Mismatched ID in about object and parameter");
+                    throw new Exception("Mismatched ID in news object and parameter");
                 }
 
                 // Store the existing image paths to delete if necessary
                 var existingImagePaths = existingNews.ImagePaths ?? new List<string>();
 
+                // Update title, content, and news type ID
                 existingNews.Title = news.Title;
                 existingNews.Content = news.Content;
                 existingNews.NewsTypeId = news.NewsTypeId;
 
-                await HandleImageUpdate(existingNews, imageFiles);
+                // Handle image update
+                if (imageFiles != null && imageFiles.Count > 0)
+                {
+                    var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+
+                    // Delete old images from the folder
+                    foreach (var imagePath in existingImagePaths)
+                    {
+                        var fullPath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
+                        if (File.Exists(fullPath))
+                        {
+                            File.Delete(fullPath);
+                        }
+                    }
+
+                    // Clear existing image paths before adding new ones
+                    existingNews.ImagePaths.Clear();
+
+                    // Add new images
+                    foreach (var imageFile in imageFiles)
+                    {
+                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(stream);
+                        }
+
+                        existingNews.ImagePaths.Add("/uploads/" + uniqueFileName);
+                    }
+                }
 
                 // Replace the entire document in MongoDB
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
                 await _dbContext.News.ReplaceOneAsync(a => a.Id == id, existingNews, options);
 
                 // Delete the old image files if the image paths were updated and previously existed
-                if (existingImagePaths != null)
+                foreach (var imagePath in existingImagePaths)
                 {
-                    foreach (var imagePath in existingImagePaths)
+                    if (!existingNews.ImagePaths.Contains(imagePath))
                     {
-                        if (!existingNews.ImagePaths.Contains(imagePath))
+                        var oldFilePath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
+                        if (File.Exists(oldFilePath))
                         {
-                            var oldFilePath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
-                            if (File.Exists(oldFilePath))
-                            {
-                                File.Delete(oldFilePath);
-                            }
+                            File.Delete(oldFilePath);
                         }
                     }
                 }
@@ -146,9 +174,10 @@ namespace INFORMATIONAPI.Service
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error while updating about content: {ex.Message}");
+                throw new Exception($"Error while updating news content: {ex.Message}");
             }
         }
+
 
         private async Task HandleImageUpload(News news, List<IFormFile>? imageFiles)
         {
@@ -194,36 +223,6 @@ namespace INFORMATIONAPI.Service
                         // Handle case where maximum image count is exceeded
                         throw new Exception($"Cannot add more than {maxImageCount} images.");
                     }
-                }
-            }
-        }
-
-        private async Task HandleImageUpdate(News news, List<IFormFile>? imageFiles)
-        {
-            
-            if (imageFiles != null && imageFiles.Count > 0)
-            {
-
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                news.ImagePaths.Clear();
-
-                foreach (var imageFile in imageFiles)
-                {
-                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(stream);
-                    }
-
-                    // Add new image path
-                    news.ImagePaths.Add("/uploads/" + uniqueFileName);
                 }
             }
         }
