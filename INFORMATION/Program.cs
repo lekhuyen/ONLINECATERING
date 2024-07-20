@@ -17,8 +17,8 @@ namespace INFORMATION
 			builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 			builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment);
 			builder.Services.AddScoped<DatabaseContext>();
-			builder.Services.AddScoped<IAboutRepositories, AboutService>();
-			builder.Services.AddScoped<INewsRepositories, NewsService>();
+            builder.Services.AddScoped<IAboutRepositories, AboutService>();
+            builder.Services.AddScoped<INewsRepositories, NewsService>();
             builder.Services.AddScoped<IContactRepositories, ContactService>();
             builder.Services.AddSingleton<EmailService>();
 

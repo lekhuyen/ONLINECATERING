@@ -56,13 +56,11 @@ namespace INFORMATIONAPI.Controllers
             }
             catch (Exception ex)
             {
-                string errorMessage = "Error fetching all news content: " + ex.Message;
-                Console.WriteLine(errorMessage); // Output to console for debugging purposes
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = errorMessage,
+                    Message = "Error from service",
                     Data = null
                 });
             }
@@ -127,6 +125,16 @@ namespace INFORMATIONAPI.Controllers
         {
             try
             {
+                if (imageFiles != null && imageFiles.Count > 5)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "You can upload up to 5 images."
+                    });
+                }
+
                 await _newsRepositories.CreateAsync(news, imageFiles);
                 return Created("success", new ApiResponse
                 {
@@ -164,6 +172,17 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
+                // Check if imageFiles contains more than 5 files
+                if (imageFiles != null && imageFiles.Count > 5)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "You can upload up to 5 images."
+                    });
+                }
+
                 var updated = await _newsRepositories.UpdateAsync(id, news, imageFiles);
                 if (!updated)
                 {
@@ -172,16 +191,6 @@ namespace INFORMATIONAPI.Controllers
                         Success = false,
                         Status = 1,
                         Message = "News not found",
-                    });
-                }
-
-                if (imageFiles != null && imageFiles.Count > 5)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "You can upload up to 5 images."
                     });
                 }
 
@@ -384,7 +393,7 @@ namespace INFORMATIONAPI.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "A NewsType with the same name already exists",
+                        Message = "A News Type with the same name already exists",
                         Data = null
                     });
                 }
