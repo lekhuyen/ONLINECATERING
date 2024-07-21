@@ -34,8 +34,8 @@ namespace INFORMATIONAPI.Controllers
                 var aboutContent = await _aboutRepository.GetAllAsync();
 
                 // Retrieve all about types to map ids to names
-                var AboutTypes = await _aboutRepository.GetAllAboutTypesAsync();
-                var AboutTypeMap = AboutTypes.ToDictionary(nt => nt.Id, nt => nt.AboutTypeName);
+                var aboutTypes = await _aboutRepository.GetAllAboutTypesAsync();
+                var AboutTypeMap = aboutTypes.ToDictionary(nt => nt.Id, nt => nt.AboutTypeName);
 
                 var formattedAbout = aboutContent.Select(about => new
                 {
@@ -51,7 +51,7 @@ namespace INFORMATIONAPI.Controllers
                     Success = true,
                     Status = 0,
                     Message = "Get About Content Successfully",
-                    Data = aboutContent
+                    Data = formattedAbout
                 });
             }
             catch (Exception ex)
@@ -65,6 +65,7 @@ namespace INFORMATIONAPI.Controllers
                 });
             }
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOneById(string id)
@@ -98,13 +99,12 @@ namespace INFORMATIONAPI.Controllers
                     imagePaths = about.ImagePaths != null && about.ImagePaths.Count > 0 ? about.ImagePaths : new List<string>()
                 };
 
-
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
                     Message = "About Content founded Successfully",
-                    Data = about
+                    Data = formattedAbout
                 });
             }
             catch (Exception ex)
@@ -118,6 +118,7 @@ namespace INFORMATIONAPI.Controllers
                 });
             }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateContent([FromForm] About abt, [FromForm] List<IFormFile>? imageFiles)
@@ -266,7 +267,7 @@ namespace INFORMATIONAPI.Controllers
 
         // About Types
 
-        [HttpGet("newtypes")]
+        [HttpGet("abouttypes")]
         public async Task<IActionResult> GetAllAboutTypes()
         {
             try
@@ -293,7 +294,7 @@ namespace INFORMATIONAPI.Controllers
         }
 
         [HttpGet("abouttypes/{id}")]
-        public async Task<IActionResult> GetNewTypeById(string id)
+        public async Task<IActionResult> GetAboutTypeById(string id)
         {
             try
             {
@@ -383,7 +384,7 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
-                // Check if a NewsType with the same name already exists (excluding the current type being updated)
+                // Check if a AboutType with the same name already exists (excluding the current type being updated)
                 var existingType = await _aboutRepository.GetAboutTypeByNameAsync(aboutType.AboutTypeName);
                 if (existingType != null && existingType.Id != id)
                 {
