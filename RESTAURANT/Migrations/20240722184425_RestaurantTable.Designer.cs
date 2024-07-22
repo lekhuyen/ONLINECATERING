@@ -12,7 +12,7 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240722165822_RestaurantTable")]
+    [Migration("20240722184425_RestaurantTable")]
     partial class RestaurantTable
     {
         /// <inheritdoc />
@@ -395,6 +395,9 @@ namespace RESTAURANT.API.Migrations
 
                     b.Property<DateTime>("Oganization")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("PromotionId")
+                        .HasColumnType("int");
 
                     b.Property<int>("QuantityTable")
                         .HasColumnType("int");

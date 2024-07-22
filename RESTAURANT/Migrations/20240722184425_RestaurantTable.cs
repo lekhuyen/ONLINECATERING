@@ -388,6 +388,7 @@ namespace RESTAURANT.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     ComboCustomId = table.Column<int>(type: "int", nullable: true),
+                    PromotionId = table.Column<int>(type: "int", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     QuantityTable = table.Column<int>(type: "int", nullable: false),
                     StatusPayment = table.Column<bool>(type: "bit", nullable: false),
