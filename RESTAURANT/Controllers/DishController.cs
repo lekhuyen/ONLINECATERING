@@ -41,17 +41,7 @@ namespace RESTAURANT.API.Controllers
                     Price = dish.Price,
                     Status = dish.Status,
                     ImagePath = dish.ImagePath,
-                    ComboDishes = dish.ComboDishes.Select(cd => new ComboDishDTO
-                    {
-                        ComboId = cd.ComboId,
-                        DishId = cd.DishId
-                    }).ToList(),
-                    CustomCombo = new CustomComboDTO // Sample, adjust as needed
-                    {
-                        Id = dish.CustomCombo?.Id ?? 0,
-                        Date = dish.CustomCombo?.Date ?? DateTime.MinValue,
-                        // Map other properties from CustomComboDTO if needed
-                    }
+
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -80,9 +70,7 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                var dish = await _dbContext.Dishes
-                    .Include(d => d.ComboDishes)
-                    .FirstOrDefaultAsync(d => d.Id == id);
+                var dish = await _dbContext.Dishes.FirstOrDefaultAsync(d => d.Id == id);
 
                 if (dish == null)
                 {
@@ -101,17 +89,6 @@ namespace RESTAURANT.API.Controllers
                     Price = dish.Price,
                     Status = dish.Status,
                     ImagePath = dish.ImagePath,
-                    ComboDishes = dish.ComboDishes.Select(cd => new ComboDishDTO
-                    {
-                        ComboId = cd.ComboId,
-                        DishId = cd.DishId
-                    }).ToList(),
-                    CustomCombo = new CustomComboDTO // Sample, adjust as needed
-                    {
-                        Id = dish.CustomCombo?.Id ?? 0,
-                        Date = dish.CustomCombo?.Date ?? DateTime.MinValue,
-                        // Map other properties from CustomComboDTO if needed
-                    }
                 };
 
                 return Ok(new ApiResponse
@@ -140,14 +117,12 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                // Handle CustomCombo and ComboDishes if needed
-                // For simplicity, assume no CustomCombo and ComboDishes in this example
 
                 // Save image if exists
                 string imagePath = null;
                 if (dishDTO.ImageFile != null)
                 {
-                    imagePath = await FileUpload.SaveImage("dishImages", dishDTO.ImageFile);
+                    imagePath = await FileUpload.SaveImage("Images", dishDTO.ImageFile);
                 }
 
                 // Map DTO to entity
@@ -163,23 +138,12 @@ namespace RESTAURANT.API.Controllers
                 await _dbContext.Dishes.AddAsync(newDish);
                 await _dbContext.SaveChangesAsync();
 
-                var createdDishDTO = new DishDTO
-                {
-                    Id = newDish.Id,
-                    Name = newDish.Name,
-                    Price = newDish.Price,
-                    Status = newDish.Status,
-                    ImagePath = newDish.ImagePath,
-                    ComboDishes = new List<ComboDishDTO>(), // Empty for now, adjust if needed
-                    CustomCombo = null // No CustomCombo in create scenario
-                };
-
-                return CreatedAtAction(nameof(GetDishById), new { id = newDish.Id }, new ApiResponse
+                return Created("success", new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Dish created successfully",
-                    Data = createdDishDTO
+                    Message = "Add Disk Successfully",
+                    Data = newDish
                 });
             }
             catch (Exception e)
@@ -212,6 +176,17 @@ namespace RESTAURANT.API.Controllers
                     });
                 }
 
+                if (id != dishDTO.Id)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Mismatched ID in about object and parameter",
+                        Data = null
+                    });
+                }
+
                 // Update scalar properties
                 existingDish.Name = dishDTO.Name;
                 existingDish.Price = dishDTO.Price;
@@ -227,8 +202,10 @@ namespace RESTAURANT.API.Controllers
                     }
 
                     // Save new image and update ImagePath
-                    existingDish.ImagePath = await FileUpload.SaveImage("dishImages", dishDTO.ImageFile);
+                    existingDish.ImagePath = await FileUpload.SaveImage("Images", dishDTO.ImageFile);
                 }
+                // If diskDTO.ImageFile is null, do nothing, which will keep the existing image
+
 
                 // Update entity in DbContext
                 _dbContext.Dishes.Update(existingDish);
@@ -241,17 +218,6 @@ namespace RESTAURANT.API.Controllers
                     Price = existingDish.Price,
                     Status = existingDish.Status,
                     ImagePath = existingDish.ImagePath,
-                    ComboDishes = existingDish.ComboDishes.Select(cd => new ComboDishDTO
-                    {
-                        ComboId = cd.ComboId,
-                        DishId = cd.DishId
-                    }).ToList(),
-                    CustomCombo = new CustomComboDTO // Sample, adjust as needed
-                    {
-                        Id = existingDish.CustomCombo?.Id ?? 0,
-                        Date = existingDish.CustomCombo?.Date ?? DateTime.MinValue,
-                        // Map other properties from CustomComboDTO if needed
-                    }
                 };
 
                 return Ok(new ApiResponse

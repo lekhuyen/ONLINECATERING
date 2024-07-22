@@ -16,7 +16,7 @@ namespace RESTAURANT.API.Models
         [NotMapped]
         public IFormFile ImageFile { get; set; }
 
-        public int Status { get; set; }
+        public bool Status { get; set; }
         public int QuantityTable { get; set; }
         public decimal Price { get; set; }
         public ICollection<Order>? Orders { get; set; }
