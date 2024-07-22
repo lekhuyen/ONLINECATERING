@@ -76,5 +76,7 @@ namespace RESTAURANT.API.Models
         public DbSet<User> User { get; set;}
         public DbSet<CommentChild> CommentChildren { get; set;}
         public DbSet<RestaurantImages> RestaurantImages { get; set;}
+        public DbSet<Service> Services { get; set;}
+
     }
 }
