@@ -8,47 +8,49 @@ using RESTAURANT.API.Servicer;
 
 namespace RESTAURANT
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+	public class Program
+	{
+		public static void Main(string[] args)
+		{
+			var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+			// Add services to the container.
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-            //connect db
-            builder.Services.AddDbContext<DatabaseContext>(options =>
-            {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectDB"));
-            });
+			builder.Services.AddControllers();
+			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+			builder.Services.AddEndpointsApiExplorer();
+			builder.Services.AddSwaggerGen();
+			//connect db
+			builder.Services.AddDbContext<DatabaseContext>(options =>
+			{
+				options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectDB"));
+			});
 
-            
 
-            builder.Services.AddScoped<IRestaurant, RestaurantRepositories>();
-            builder.Services.AddScoped<ICategory, CategoryRepositories>();
-            builder.Services.AddScoped<IComment, CommentRepositories>();
-            builder.Services.AddScoped<ICommentChild, CommentChildRepositories>();
-            builder.Services.AddScoped<IMenu, MenuRespositories>();
-            builder.Services.AddScoped<IServiceRepository,ServiceRepository>();
 
-            builder.Services.AddSingleton<RedisClient>(sp =>
+			builder.Services.AddScoped<IRestaurant, RestaurantRepositories>();
+			builder.Services.AddScoped<ICategory, CategoryRepositories>();
+			builder.Services.AddScoped<IComment, CommentRepositories>();
+			builder.Services.AddScoped<ICommentChild, CommentChildRepositories>();
+			builder.Services.AddScoped<IMenu, MenuRespositories>();
+			builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+			builder.Services.AddScoped<ILobbyRepository, LobbyRepository>();
+			builder.Services.AddScoped<ILobbyImagesRepository, LobbyImagesRepository>();
 
-                new RedisClient(builder.Configuration.GetValue<string>("Redis:ConnectionStrings")!)
-            );
+			builder.Services.AddSingleton<RedisClient>(sp =>
 
-            builder.Services.AddHostedService<RedisSubcribeService>(sp =>
-            {
-                var scopeFatory = sp.GetRequiredService<IServiceScopeFactory>();
-                var redisClient = sp.GetRequiredService<RedisClient>();
-                var dbContext = scopeFatory.CreateScope().ServiceProvider.GetRequiredService<DatabaseContext>();
-                return new RedisSubcribeService(redisClient, dbContext);
-            });
+				new RedisClient(builder.Configuration.GetValue<string>("Redis:ConnectionStrings")!)
+			);
 
-            var app = builder.Build();
+			builder.Services.AddHostedService<RedisSubcribeService>(sp =>
+			{
+				var scopeFatory = sp.GetRequiredService<IServiceScopeFactory>();
+				var redisClient = sp.GetRequiredService<RedisClient>();
+				var dbContext = scopeFatory.CreateScope().ServiceProvider.GetRequiredService<DatabaseContext>();
+				return new RedisSubcribeService(redisClient, dbContext);
+			});
+
+			var app = builder.Build();
 
 			app.UseCors(builder => builder
 				 .AllowAnyOrigin()
@@ -57,9 +59,9 @@ namespace RESTAURANT
 
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+			{
+				app.UseSwagger();
+				app.UseSwaggerUI();
 			}
 
 			app.UseStaticFiles(new StaticFileOptions
@@ -72,9 +74,9 @@ namespace RESTAURANT
 			app.UseAuthorization();
 
 
-            app.MapControllers();
+			app.MapControllers();
 
-            app.Run();
-        }
-    }
+			app.Run();
+		}
+	}
 }

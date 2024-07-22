@@ -6,7 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RESTAURANT.API.Migrations
 {
     /// <inheritdoc />
+<<<<<<<< HEAD:RESTAURANT/Migrations/20240722093424_m1restaurant.cs
+    public partial class m1restaurant : Migration
+========
     public partial class RestaurantTable : Migration
+>>>>>>>> b43dd1e2cb8cabe138082be3c61af110ac04b734:RESTAURANT/Migrations/20240722143327_RestaurantTable.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
