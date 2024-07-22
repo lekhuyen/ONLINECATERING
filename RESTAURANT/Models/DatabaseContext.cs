@@ -61,54 +61,57 @@ namespace RESTAURANT.API.Models
                 .HasOne(b => b.User)
                 .WithMany(b => b.Booking)
                 .HasForeignKey(b => b.UserId);
-
-            //Order
+            
+            // ComboDish
             modelBuilder.Entity<ComboDish>()
-               .HasKey(cd => new { cd.ComboId, cd.DishId });
-
-            modelBuilder.Entity<ComboDish>()
-                .HasOne(cd => cd.Combo)
-                .WithMany(c => c.ComboDishes)
-                .HasForeignKey(cd => cd.ComboId);
+             .HasKey(cd => new { cd.DishId, cd.ComboId });
 
             modelBuilder.Entity<ComboDish>()
                 .HasOne(cd => cd.Dish)
                 .WithMany(d => d.ComboDishes)
                 .HasForeignKey(cd => cd.DishId);
 
-            modelBuilder.Entity<CustomCombo>()
-                .HasOne(cc => cc.User)
-                .WithOne(u => u.CustomCombo)
-                .HasForeignKey<CustomCombo>(cc => cc.UserId);
+            modelBuilder.Entity<ComboDish>()
+                .HasOne(cd => cd.Combo)
+                .WithMany(c => c.ComboDishes)
+                .HasForeignKey(cd => cd.ComboId);
 
-            modelBuilder.Entity<CustomCombo>()
-                .HasOne(cc => cc.Dish)
-                .WithOne(d => d.CustomCombo)
-                .HasForeignKey<CustomCombo>(cc => cc.DishId);
-
-            modelBuilder.Entity<Dish>()
-                .HasOne(d => d.CustomCombo)
-                .WithOne(cc => cc.Dish)
-                .HasForeignKey<Dish>(d => d.Id); // Adjust as per your actual model
-
+            //Order
             modelBuilder.Entity<Order>()
-               .HasOne(o => o.User)  // One Order belongs to one User
-               .WithMany(u => u.Order)  // One User can have many Orders
-               .HasForeignKey(o => o.UserId);  // Foreign key
-
-            modelBuilder.Entity<Order>()
-                .HasMany(o => o.Promotions)
-                .WithMany(p => p.Orders)
-                .UsingEntity(j => j.ToTable("OrderPromotions"));
+                .HasOne(o => o.User)
+                .WithMany(u => u.Orders)
+                .HasForeignKey(o => o.UserId);
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Payment)
                 .WithOne(p => p.Order)
                 .HasForeignKey<Payment>(p => p.OrderId);
 
-            // Additional configurations as needed
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.CustomCombo)
+                .WithOne(cc => cc.Order)
+                .HasForeignKey<Order>(o => o.ComboCustomId);
 
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.Promotions)
+                .WithMany(p => p.Orders)
+                .UsingEntity(j => j.ToTable("OrderPromotions"));
+
+            //CustomCombo
+            modelBuilder.Entity<CustomCombo>()
+                .HasOne(cc => cc.Dish)
+                .WithOne(d => d.CustomCombo)
+                .HasForeignKey<CustomCombo>(cc => cc.DishId);
+
+            modelBuilder.Entity<CustomCombo>()
+                .HasOne(cc => cc.User)
+                .WithOne(u => u.CustomCombo)
+                .HasForeignKey<CustomCombo>(cc => cc.UserId);
+
+            // Service
+            modelBuilder.Entity<Service>()
+                .HasKey(s => s.Id);
+
         }
 
         public DbSet<Restaurant> Restaurants { get; set;}
