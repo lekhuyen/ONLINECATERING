@@ -92,10 +92,10 @@ namespace RESTAURANT.API.Models
                 .WithOne(cc => cc.Order)
                 .HasForeignKey<Order>(o => o.ComboCustomId);
 
-            modelBuilder.Entity<Order>()
+            /*modelBuilder.Entity<Order>()
                 .HasMany(o => o.Promotions)
-                .WithMany(p => p.Orders)
-                .UsingEntity(j => j.ToTable("OrderPromotions"));
+                .WithMany(p => p.Order)
+                .UsingEntity(j => j.ToTable("OrderPromotions"));*/
 
             //CustomCombo
             modelBuilder.Entity<CustomCombo>()

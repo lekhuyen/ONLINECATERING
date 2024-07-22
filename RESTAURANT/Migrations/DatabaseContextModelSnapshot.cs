@@ -393,6 +393,9 @@ namespace RESTAURANT.API.Migrations
                     b.Property<DateTime>("Oganization")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("PromotionId")
+                        .HasColumnType("int");
+
                     b.Property<int>("QuantityTable")
                         .HasColumnType("int");
 
