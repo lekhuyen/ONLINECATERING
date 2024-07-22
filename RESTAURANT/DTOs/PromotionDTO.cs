@@ -9,9 +9,9 @@ namespace RESTAURANT.API.DTOs
         public string Description { get; set; }
         public string? ImagePath { get; set; }
 
-        public IFormFile ImageFile { get; set; }
+        public IFormFile? ImageFile { get; set; }
 
-        public int Status { get; set; }
+        public bool Status { get; set; }
         public int QuantityTable { get; set; }
         public decimal Price { get; set; }
         public ICollection<OrderDTO>? Orders { get; set; }

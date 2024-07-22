@@ -65,7 +65,7 @@ namespace RESTAURANT.API.Controllers
             try
             {
                 var combo = await _dbContext.Combos
-                    .FirstOrDefaultAsync(c => c.Id == id);
+                    .FindAsync(id);
 
                 if (combo == null)
                 {
@@ -98,12 +98,11 @@ namespace RESTAURANT.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiResponse
+                return BadRequest(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = $"Failed to get combo: {ex.Message}",
-                    Data = ex.ToString() // Return exception details for debugging purposes
+                    Message = "Create combo failed"
                 });
             }
         }
@@ -136,22 +135,33 @@ namespace RESTAURANT.API.Controllers
                 // Add to DbContext
                 await _dbContext.Combos.AddAsync(newCombo);
                 await _dbContext.SaveChangesAsync();
+
+                var updatedComboDTO = new ComboDTO
+                {
+                    Id = newCombo.Id,
+                    Name = newCombo.Name,
+                    Price = newCombo.Price,
+                    Status = newCombo.Status,
+                    ImagePath = newCombo.ImagePath, // Ensure this matches the updated value
+                    Type = newCombo.Type,
+                };
+
                 return Created("success", new ApiResponse
                 {
                     Success = true,
                     Status = 0,
                     Message = "Add Combo Successfully",
-                    Data = newCombo
+                    Data = updatedComboDTO
                 });
             }
             catch (Exception e)
             {
-                return StatusCode(500, new ApiResponse
+                return BadRequest(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Internal server error",
-                    Data = e.Message
+                    Message = "Error from service",
+                    Data = null
                 });
             }
         }
@@ -228,12 +238,12 @@ namespace RESTAURANT.API.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500, new ApiResponse
+                return BadRequest(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Internal server error",
-                    Data = e.Message
+                    Message = "Error from service",
+                    Data = null
                 });
             }
         }
@@ -274,11 +284,12 @@ namespace RESTAURANT.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiResponse
+                return BadRequest(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Failed to delete combo",
+                    Message = "Error from service",
+                    Data = null
                 });
             }
         }

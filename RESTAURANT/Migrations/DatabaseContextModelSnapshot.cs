@@ -424,8 +424,8 @@ namespace RESTAURANT.API.Migrations
                     b.Property<int>("QuantityTable")
                         .HasColumnType("int");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
