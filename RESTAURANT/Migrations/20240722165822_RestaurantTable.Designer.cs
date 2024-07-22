@@ -12,13 +12,8 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-<<<<<<<< HEAD:RESTAURANT/Migrations/20240722093424_m1restaurant.Designer.cs
-    [Migration("20240722093424_m1restaurant")]
-    partial class m1restaurant
-========
-    [Migration("20240722143327_RestaurantTable")]
+    [Migration("20240722165822_RestaurantTable")]
     partial class RestaurantTable
->>>>>>>> b43dd1e2cb8cabe138082be3c61af110ac04b734:RESTAURANT/Migrations/20240722143327_RestaurantTable.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -280,6 +275,55 @@ namespace RESTAURANT.API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Dishes");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Lobby", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LobbyName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lobbies");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.LobbyImages", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ImagesUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LobbyId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LobbyId");
+
+                    b.ToTable("LobbiesImages");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Menu", b =>
@@ -702,6 +746,17 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("Restaurant");
                 });
 
+            modelBuilder.Entity("RESTAURANT.API.Models.LobbyImages", b =>
+                {
+                    b.HasOne("RESTAURANT.API.Models.Lobby", "Lobby")
+                        .WithMany("LobbyImages")
+                        .HasForeignKey("LobbyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lobby");
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Menu", b =>
                 {
                     b.HasOne("RESTAURANT.API.Models.Restaurant", "Restaurant")
@@ -799,6 +854,11 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("ComboDishes");
 
                     b.Navigation("CustomCombo");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Lobby", b =>
+                {
+                    b.Navigation("LobbyImages");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>

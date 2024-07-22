@@ -112,6 +112,11 @@ namespace RESTAURANT.API.Models
             modelBuilder.Entity<Service>()
                 .HasKey(s => s.Id);
 
+            modelBuilder.Entity<LobbyImages>()
+               .HasOne(li => li.Lobby) // Navigation property to Lobby
+               .WithMany(l => l.LobbyImages) // One lobby can have many images
+               .HasForeignKey(li => li.LobbyId); // Foreign key property in LobbyImages
+
         }
 
         public DbSet<Restaurant> Restaurants { get; set;}
