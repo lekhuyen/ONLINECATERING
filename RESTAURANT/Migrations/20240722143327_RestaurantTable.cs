@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RESTAURANT.API.Migrations
 {
     /// <inheritdoc />
-    public partial class ServiceTB : Migration
+    public partial class RestaurantTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -81,7 +81,7 @@ namespace RESTAURANT.API.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<bool>(type: "bit", nullable: false),
                     QuantityTable = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },

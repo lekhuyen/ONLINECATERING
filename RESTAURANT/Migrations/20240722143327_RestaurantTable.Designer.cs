@@ -12,8 +12,8 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240722080443_ServiceTB")]
-    partial class ServiceTB
+    [Migration("20240722143327_RestaurantTable")]
+    partial class RestaurantTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -427,8 +427,8 @@ namespace RESTAURANT.API.Migrations
                     b.Property<int>("QuantityTable")
                         .HasColumnType("int");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
