@@ -137,6 +137,8 @@ namespace RESTAURANT.API.Models
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Service> Services { get; set;}
+        public DbSet<Lobby> Lobbies { get; set; }
+        public DbSet<LobbyImages> LobbiesImages { get; set; }
 
     }
 }
