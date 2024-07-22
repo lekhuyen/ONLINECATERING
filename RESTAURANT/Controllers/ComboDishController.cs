@@ -1,9 +1,13 @@
 ﻿using APIRESPONSE.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using static Azure.Core.HttpHeader;
 
 namespace RESTAURANT.API.Controllers
 {
@@ -18,8 +22,9 @@ namespace RESTAURANT.API.Controllers
             _dbContext = dbContext;
         }
 
-        [HttpGet("Index")]
-        public async Task<IActionResult> Index()
+        // GET: api/ComboDish/Index
+        [HttpGet]
+        public async Task<IActionResult> GetAllComboDish()
         {
             try
             {
@@ -30,16 +35,20 @@ namespace RESTAURANT.API.Controllers
 
                 var list = comboDishes.Select(cd => new ComboDishDTO
                 {
-                    DishName = cd.Dish.Name,
+                    DishId = cd.DishId,
+                    ComboId = cd.ComboId,
+/*                    DishName = cd.Dish.Name,
+                    DishPrice = cd.Dish.Price, 
                     ComboName = cd.Combo.Name,
+                    ComboPrice = cd.Combo.Price,  */
                 }).ToList();
 
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Get ComboDisks successfully",
-                    Data = comboDishes
+                    Message = "Get ComboDishes successfully",
+                    Data = list
                 });
             }
             catch (Exception ex)
@@ -49,9 +58,73 @@ namespace RESTAURANT.API.Controllers
                     Success = false,
                     Status = 1,
                     Message = "Error from service",
-                    Data = null
+                    Data = ex.Message
                 });
             }
         }
+
+        // POST: api/ComboDish/Create
+        [HttpPost("Create")]
+        public async Task<IActionResult> Create(ComboDishDTO comboDishDTO)
+        {
+            try
+            {
+                // Validate if DishId and ComboId exist
+                var dish = await _dbContext.Dishes.FindAsync(comboDishDTO.DishId);
+                var combo = await _dbContext.Combos.FindAsync(comboDishDTO.ComboId);
+
+                if (dish == null || combo == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Invalid DishId or ComboId provided",
+                        Data = null
+                    });
+                }
+
+                // Create new ComboDish entity and save
+                var newComboDish = new ComboDish
+                {
+                    DishId = comboDishDTO.DishId,
+                    ComboId = comboDishDTO.ComboId
+                };
+
+                _dbContext.ComboDishes.Add(newComboDish);
+                await _dbContext.SaveChangesAsync();
+
+                // Return newly created ComboDishDTO with populated DishName, DishPrice, ComboName, and ComboPrice
+                var createdComboDishDTO = new ComboDishDTO
+                {
+                    DishId = newComboDish.DishId,
+                    ComboId = newComboDish.ComboId,
+/*                    DishName = dish.Name,
+                    DishPrice = dish.Price, 
+                    ComboName = combo.Name,
+                    ComboPrice = combo.Price, */
+                };
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "ComboDish created successfully",
+                    Data = createdComboDishDTO
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error occurred while creating ComboDish",
+                    Data = ex.Message
+                });
+            }
+        }
+
     }
+
 }
