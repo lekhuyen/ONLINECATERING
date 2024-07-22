@@ -12,7 +12,7 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240722073232_ServiceTB")]
+    [Migration("20240722080443_ServiceTB")]
     partial class ServiceTB
     {
         /// <inheritdoc />
@@ -414,8 +414,7 @@ namespace RESTAURANT.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Images")
-                        .IsRequired()
+                    b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
