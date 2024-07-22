@@ -61,7 +61,56 @@ namespace RESTAURANT.API.Models
                 .HasOne(b => b.User)
                 .WithMany(b => b.Booking)
                 .HasForeignKey(b => b.UserId);
+            
+            // ComboDish
+            modelBuilder.Entity<ComboDish>()
+             .HasKey(cd => new { cd.DishId, cd.ComboId });
 
+            modelBuilder.Entity<ComboDish>()
+                .HasOne(cd => cd.Dish)
+                .WithMany(d => d.ComboDishes)
+                .HasForeignKey(cd => cd.DishId);
+
+            modelBuilder.Entity<ComboDish>()
+                .HasOne(cd => cd.Combo)
+                .WithMany(c => c.ComboDishes)
+                .HasForeignKey(cd => cd.ComboId);
+
+            //Order
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.User)
+                .WithMany(u => u.Orders)
+                .HasForeignKey(o => o.UserId);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Payment)
+                .WithOne(p => p.Order)
+                .HasForeignKey<Payment>(p => p.OrderId);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.CustomCombo)
+                .WithOne(cc => cc.Order)
+                .HasForeignKey<Order>(o => o.ComboCustomId);
+
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.Promotions)
+                .WithMany(p => p.Orders)
+                .UsingEntity(j => j.ToTable("OrderPromotions"));
+
+            //CustomCombo
+            modelBuilder.Entity<CustomCombo>()
+                .HasOne(cc => cc.Dish)
+                .WithOne(d => d.CustomCombo)
+                .HasForeignKey<CustomCombo>(cc => cc.DishId);
+
+            modelBuilder.Entity<CustomCombo>()
+                .HasOne(cc => cc.User)
+                .WithOne(u => u.CustomCombo)
+                .HasForeignKey<CustomCombo>(cc => cc.UserId);
+
+            // Service
+            modelBuilder.Entity<Service>()
+                .HasKey(s => s.Id);
 
         }
 
@@ -76,5 +125,20 @@ namespace RESTAURANT.API.Models
         public DbSet<User> User { get; set;}
         public DbSet<CommentChild> CommentChildren { get; set;}
         public DbSet<RestaurantImages> RestaurantImages { get; set;}
+
+
+        //Order
+        public DbSet<Combo> Combos { get; set; }
+        public DbSet<ComboDish> ComboDishes { get; set; }
+        public DbSet<CustomCombo> CustomCombos { get; set; }
+        public DbSet<Dish> Dishes { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<Promotion> Promotions { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Service> Services { get; set;}
+        public DbSet<Lobby> Lobbies { get; set; }
+        public DbSet<LobbyImages> LobbiesImages { get; set; }
+
     }
 }

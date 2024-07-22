@@ -16,7 +16,7 @@ namespace RESTAURANT.API.DTOs
         public bool Status { get; set; }
         public decimal? TotalRating { get; set; }
 
-        //canh bao khi bi bao cao xau
+        //warning for the badfeedback
         public int Warning { get; set; }
 
 
