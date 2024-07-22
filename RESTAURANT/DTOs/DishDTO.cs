@@ -8,9 +8,9 @@
         public bool Status { get; set; }
         public string? ImagePath { get; set; }
 
-        public IFormFile ImageFile { get; set; }
+        public IFormFile? ImageFile { get; set; }
 
-        public ICollection<ComboDishDTO>? ComboDishes { get; set; }
-        public CustomComboDTO? CustomCombo { get; set; }
+/*        public ICollection<ComboDishDTO>? ComboDishes { get; set; }
+        public CustomComboDTO? CustomCombo { get; set; }*/
     }
 }
