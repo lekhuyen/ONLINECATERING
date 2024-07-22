@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using REDISCLIENT;
 using RESTAURANT.API.Models;
 using RESTAURANT.API.Repositories;
@@ -32,6 +33,7 @@ namespace RESTAURANT
             builder.Services.AddScoped<IComment, CommentRepositories>();
             builder.Services.AddScoped<ICommentChild, CommentChildRepositories>();
             builder.Services.AddScoped<IMenu, MenuRespositories>();
+            builder.Services.AddScoped<IServiceRepository,ServiceRepository>();
 
             builder.Services.AddSingleton<RedisClient>(sp =>
 
@@ -48,14 +50,26 @@ namespace RESTAURANT
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+			app.UseCors(builder => builder
+				 .AllowAnyOrigin()
+				 .AllowAnyMethod()
+				 .AllowAnyHeader());
+
+			// Configure the HTTP request pipeline.
+			if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
-            }
+			}
 
-            app.UseAuthorization();
+			app.UseStaticFiles(new StaticFileOptions
+			{
+				FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+				RequestPath = "/Uploads"
+			});
+			app.UseCors();
+
+			app.UseAuthorization();
 
 
             app.MapControllers();

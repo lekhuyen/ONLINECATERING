@@ -123,6 +123,7 @@ namespace RESTAURANT.API.Models
         public DbSet<CommentChild> CommentChildren { get; set;}
         public DbSet<RestaurantImages> RestaurantImages { get; set;}
 
+
         //Order
         public DbSet<Combo> Combos { get; set; }
         public DbSet<ComboDish> ComboDishes { get; set; }
@@ -132,5 +133,7 @@ namespace RESTAURANT.API.Models
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Service> Services { get; set;}
+
     }
 }
