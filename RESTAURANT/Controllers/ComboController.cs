@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
+using RESTAURANT.API.Repositories;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -13,22 +14,21 @@ namespace RESTAURANT.API.Controllers
     [ApiController]
     public class ComboController : ControllerBase
     {
-        private readonly DatabaseContext _context;
+        private readonly DatabaseContext _dbContext;
 
         public ComboController(DatabaseContext context)
         {
-            _context = context;
+            _dbContext = context;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ComboDTO>>> GetCombos()
+        public async Task<ActionResult<IEnumerable<ComboDTO>>> GetAllCombos()
         {
-            var combos = await _context.Combos.Include(c => c.ComboDishes).ToListAsync();
-            var comboDTOs = new List<ComboDTO>();
-
-            foreach (var combo in combos)
+            try
             {
-                comboDTOs.Add(new ComboDTO
+                var combos = await _dbContext.Combos.ToListAsync();
+
+                var ComboDTOs = combos.Select(combo => new ComboDTO
                 {
                     Id = combo.Id,
                     Name = combo.Name,
@@ -36,177 +36,38 @@ namespace RESTAURANT.API.Controllers
                     Status = combo.Status,
                     ImagePath = combo.ImagePath,
                     Type = combo.Type,
-                    ComboDishes = combo.ComboDishes.Select(cd => new ComboDishDTO
-                    {
-                        ComboId = cd.ComboId,
-                        DishId = cd.DishId
-                    }).ToList()
+
+                }).ToList();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Get combos successfully",
+                    Data = ComboDTOs
                 });
             }
-
-            return Ok(new ApiResponse
+            catch (Exception e)
             {
-                Success = true,
-                Status = 0,
-                Message = "Get combo Successfully",
-                Data = comboDTOs
-            });
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Internal server error",
+                    Data = e.Message
+                });
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ComboDTO>> GetComboById(int id)
+        public async Task<ActionResult<ApiResponse>> GetComboById(int id)
         {
-            var combo = await _context.Combos.Include(c => c.ComboDishes).FirstOrDefaultAsync(c => c.Id == id);
-
-            if (combo == null)
-            {
-                return NotFound(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Combo not found",
-                });
-            }
-
-            var comboDTO = new ComboDTO
-            {
-                Id = combo.Id,
-                Name = combo.Name,
-                Price = combo.Price,
-                Status = combo.Status,
-                ImagePath = combo.ImagePath,
-                Type = combo.Type,
-                ComboDishes = combo.ComboDishes.Select(cd => new ComboDishDTO
-                {
-                    ComboId = cd.ComboId,
-                    DishId = cd.DishId
-                }).ToList()
-            };
-
-            return Ok(new ApiResponse
-            {
-                Success = true,
-                Status = 0,
-                Message = "Get combo Successfully",
-                Data = comboDTO
-            });
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<ComboDTO>> CreateCombo([FromForm] ComboDTO comboDTO)
-        {
-            if (comboDTO.ImageFile != null)
-            {
-                var filePath = Path.Combine("wwwroot", "images", comboDTO.ImageFile.FileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await comboDTO.ImageFile.CopyToAsync(stream);
-                }
-
-                comboDTO.ImagePath = filePath;
-            }
-
-            var combo = new Combo
-            {
-                Name = comboDTO.Name,
-                Price = comboDTO.Price,
-                Status = comboDTO.Status,
-                ImagePath = comboDTO.ImagePath,
-                Type = comboDTO.Type
-            };
-
-            _context.Combos.Add(combo);
-            await _context.SaveChangesAsync();
-
-            if (comboDTO.ComboDishes != null)
-            {
-                foreach (var comboDishDTO in comboDTO.ComboDishes)
-                {
-                    var comboDish = new ComboDish
-                    {
-                        ComboId = combo.Id,
-                        DishId = comboDishDTO.DishId
-                    };
-                    _context.ComboDishes.Add(comboDish);
-                }
-
-                await _context.SaveChangesAsync();
-            }
-
-            return CreatedAtAction(nameof(GetCombo), new { id = combo.Id }, comboDTO);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCombo(int id, [FromForm] ComboDTO comboDTO)
-        {
-            if (id != comboDTO.Id)
-            {
-                return BadRequest(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Mismatched ID in about object and parameter",
-                    Data = null
-                });
-            }
-
-            var combo = await _context.Combos.Include(c => c.ComboDishes).FirstOrDefaultAsync(c => c.Id == id);
-            if (combo == null)
-            {
-                return NotFound(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Combo not found",
-                });
-            }
-
-            if (comboDTO.ImageFile != null)
-            {
-                var filePath = Path.Combine("wwwroot", "images", comboDTO.ImageFile.FileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await comboDTO.ImageFile.CopyToAsync(stream);
-                }
-
-                comboDTO.ImagePath = filePath;
-            }
-
-            combo.Name = comboDTO.Name;
-            combo.Price = comboDTO.Price;
-            combo.Status = comboDTO.Status;
-            combo.ImagePath = comboDTO.ImagePath;
-            combo.Type = comboDTO.Type;
-
-            _context.Entry(combo).State = EntityState.Modified;
-
-            if (comboDTO.ComboDishes != null)
-            {
-                // Remove existing ComboDishes
-                var existingComboDishes = _context.ComboDishes.Where(cd => cd.ComboId == id);
-                _context.ComboDishes.RemoveRange(existingComboDishes);
-
-                // Add new ComboDishes
-                foreach (var comboDishDTO in comboDTO.ComboDishes)
-                {
-                    var comboDish = new ComboDish
-                    {
-                        ComboId = combo.Id,
-                        DishId = comboDishDTO.DishId
-                    };
-                    _context.ComboDishes.Add(comboDish);
-                }
-            }
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ComboExists(id))
+                var combo = await _dbContext.Combos
+                    .FirstOrDefaultAsync(c => c.Id == id);
+
+                if (combo == null)
                 {
                     return NotFound(new ApiResponse
                     {
@@ -215,41 +76,217 @@ namespace RESTAURANT.API.Controllers
                         Message = "Combo not found",
                     });
                 }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return NoContent();
+                var comboDTO = new ComboDTO
+                {
+                    Id = combo.Id,
+                    Name = combo.Name,
+                    Price = combo.Price,
+                    Status = combo.Status,
+                    ImagePath = combo.ImagePath,
+                    Type = combo.Type,
+
+                };
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Get combo successfully",
+                    Data = comboDTO
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = $"Failed to get combo: {ex.Message}",
+                    Data = ex.ToString() // Return exception details for debugging purposes
+                });
+            }
         }
+
+
+
+        [HttpPost]
+        public async Task<ActionResult<ComboDTO>> CreateCombo([FromForm] ComboDTO comboDTO)
+        {
+            try
+            {
+
+                // Save image if exists
+                string imagePath = null;
+                if (comboDTO.ImageFile != null)
+                {
+                    imagePath = await FileUpload.SaveImage("Images", comboDTO.ImageFile);
+                }
+
+                // Map DTO to entity
+                var newCombo = new Combo
+                {
+                    Name = comboDTO.Name,
+                    Price = comboDTO.Price,
+                    Status = comboDTO.Status,
+                    ImagePath = imagePath,
+                    Type = comboDTO.Type,
+                };
+
+                // Add to DbContext
+                await _dbContext.Combos.AddAsync(newCombo);
+                await _dbContext.SaveChangesAsync();
+                return Created("success", new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Add Combo Successfully",
+                    Data = newCombo
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Internal server error",
+                    Data = e.Message
+                });
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCombo(int id, [FromForm] ComboDTO comboDTO)
+        {
+            try
+            {
+                var existingCombo = await _dbContext.Combos.FindAsync(id);
+
+                if (existingCombo == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Combo not found",
+                    });
+                }
+
+                if (id != comboDTO.Id)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Mismatched ID in object and parameter",
+                        Data = null
+                    });
+                }
+
+                // Update scalar properties
+                existingCombo.Name = comboDTO.Name;
+                existingCombo.Price = comboDTO.Price;
+                existingCombo.Status = comboDTO.Status;
+                existingCombo.Type = comboDTO.Type;
+
+                // Handle image update
+                if (comboDTO.ImageFile != null)
+                {
+                    // Delete old image if it exists
+                    if (!string.IsNullOrEmpty(existingCombo.ImagePath))
+                    {
+                        FileUpload.DeleteImage(existingCombo.ImagePath);
+                    }
+
+                    // Save new image and update ImagePath
+                    existingCombo.ImagePath = await FileUpload.SaveImage("Images", comboDTO.ImageFile);
+                }
+                // If comboDTO.ImageFile is null, do nothing, which will keep the existing image
+
+                // Update entity in DbContext
+                _dbContext.Combos.Update(existingCombo);
+                await _dbContext.SaveChangesAsync();
+
+                var updatedComboDTO = new ComboDTO
+                {
+                    Id = existingCombo.Id,
+                    Name = existingCombo.Name,
+                    Price = existingCombo.Price,
+                    Status = existingCombo.Status,
+                    ImagePath = existingCombo.ImagePath, // Ensure this matches the updated value
+                    Type = existingCombo.Type,
+                };
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Combo updated successfully",
+                    Data = updatedComboDTO
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Internal server error",
+                    Data = e.Message
+                });
+            }
+        }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCombo(int id)
         {
-            var combo = await _context.Combos.FindAsync(id);
-            if (combo == null)
+            try
             {
-                return NotFound(new ApiResponse
+                var combotoDelete = await _dbContext.Combos.FindAsync(id);
+                if (combotoDelete == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Combo not found",
+                    });
+                }
+
+                // Delete associated image if exists
+                if (!string.IsNullOrEmpty(combotoDelete.ImagePath))
+                {
+                    FileUpload.DeleteImage(combotoDelete.ImagePath);
+                }
+
+                // Remove from DbContext and save changes
+                _dbContext.Combos.Remove(combotoDelete);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Delete combo successfully",
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Combo not found",
+                    Message = "Failed to delete combo",
                 });
             }
-
-            var comboDishes = _context.ComboDishes.Where(cd => cd.ComboId == id);
-            _context.ComboDishes.RemoveRange(comboDishes);
-
-            _context.Combos.Remove(combo);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
+
 
         private bool ComboExists(int id)
         {
-            return _context.Combos.Any(e => e.Id == id);
+            return _dbContext.Combos.Any(e => e.Id == id);
         }
     }
 }
