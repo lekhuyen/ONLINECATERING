@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using REDISCLIENT;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -16,6 +17,7 @@ using USER.API.DTOs;
 using USER.API.Helpers;
 using USER.API.Models;
 using USER.API.Repositories;
+using USER.API.Service;
 
 namespace USER.API.Controllers
 {
@@ -28,14 +30,22 @@ namespace USER.API.Controllers
         private readonly IAuthUser _authUser;
         private readonly RedisClient _redisClient;
 
+        private readonly DatabaseContext _databaseContext;
+        private readonly EmailServices _emailServices;
 
-
-        public UserController(IAuthUser authUser,IRepositories repositories, IConfiguration configuration, RedisClient redisClient)
+        public UserController(IAuthUser authUser,
+                                IRepositories repositories, 
+                                IConfiguration configuration, 
+                                DatabaseContext databaseContext,
+                                EmailServices emailServices,
+                                RedisClient redisClient)
         {
             _repository = repositories;
             _configuration = configuration;
             _authUser = authUser;
             _redisClient = redisClient;
+            _databaseContext = databaseContext;
+            _emailServices = emailServices;
         }
 
         [HttpGet]
@@ -77,7 +87,7 @@ namespace USER.API.Controllers
                     //await _databaseContext.Users.InsertOneAsync(user);
                     if (userRes == 1)
                     {
-                        return BadRequest(new ApiResponse
+                        return Ok(new ApiResponse
                         {
                             Success = false,
                             Status = 1,
@@ -86,7 +96,7 @@ namespace USER.API.Controllers
                     }
                     else if (userRes == 2)
                     {
-                        return BadRequest(new ApiResponse
+                        return Ok(new ApiResponse
                         {
                             Success = false,
                             Status = 1,
@@ -111,14 +121,14 @@ namespace USER.API.Controllers
                         Message = "User added successfully"
                     });
                 }
-                return BadRequest(new ApiResponse
+                return Ok(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
                     Message = "Create Users failed"
                 });
             }catch(Exception ex) {
-                return BadRequest(new ApiResponse
+                return Ok(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
@@ -272,12 +282,12 @@ namespace USER.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(Login login)
         {
-            var userLogin = await _authUser.Login(email, password);
+            var userLogin = await _authUser.Login(login);
             if (userLogin == null)
             {
-                return NotFound(new ApiResponse
+                return Ok(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
@@ -371,8 +381,173 @@ namespace USER.API.Controllers
             });
 
         }
+        private string RandomString(int length)
+        {
+            var random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        //public async Task SendMail(EmailRequest emailRequest)
+        //{
+        //    await _emailServices.SendEmailAsync(emailRequest);
+        //}
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(string userEmail)
+        {
+            try
+            {
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
+
+                if (user != null)
+                {
+                    var otp = RandomString(6);
+
+                    var emailRequest = new EmailRequest
+                    {
+                        HtmlContent = $"Your OTP is {otp}",
+                        ToMail = userEmail, 
+                        Subject = "ForgotPassword"
+                    };
+
+                    await _emailServices.SendEmailAsync(emailRequest);
+
+                    user.Otp = otp;
+                    user.OtpExpired = DateTime.UtcNow.AddMinutes(1);
+                    _databaseContext.Users.Update(user);
+                    await _databaseContext.SaveChangesAsync();
+
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Status = 0,
+                        Message = "Otp has been sent to your mail"
+                    });
+                }else
+                {
+                    return Ok(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Email is incorrect or does not exist "
+                    });
+                }
+            }
+            catch(Exception ex)
+            {
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Servder something wrong "
+                });
+            }
+        }
+
+        [HttpPost("otp")]
+        public async Task<IActionResult> Otp(string userEmail, string otp)
+        {
+            try
+            {
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
+
+                if (user != null)
+                {
+                    if (user.Otp != otp)
+                    {
+                        return Ok(new ApiResponse
+                        {
+                            Success = false,
+                            Status = 1,
+                            Message = "OTP is incorrect"
+                        });
+                    }
+                    if (user.OtpExpired <= DateTime.UtcNow)
+                    {
+                        return Ok(new ApiResponse
+                        {
+                            Success = false,
+                            Status = 1,
+                            Message = "OTP has expired"
+                        });
+                    }
+                    user.Otp = "";
+                    user.OtpExpired = null;
 
 
-        
+                    _databaseContext.Users.Update(user);
+                    await _databaseContext.SaveChangesAsync();
+
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Status = 0,
+                    });
+                }
+                else
+                {
+                    return Ok(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Otp is incorrect Expired otp"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Servder something wrong "
+                });
+            }
+        }
+
+        [HttpPost("update-password")]
+        public async Task<IActionResult> UpdatePassword(string userEmail, string password)
+        {
+            try
+            {
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
+
+                if (user != null)
+                {
+
+                    user.Password = PasswordBcrypt.HashPassword(password);
+
+                    _databaseContext.Users.Update(user);
+                    await _databaseContext.SaveChangesAsync();
+
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Status = 0,
+                        Message = "Password has been changed, please log in again"
+                    });
+                }
+                else
+                {
+                    return Ok(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Servder something wrong "
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Servder something wrong "
+                });
+            }
+        }
     }
 }

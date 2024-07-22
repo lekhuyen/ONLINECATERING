@@ -23,7 +23,11 @@ namespace USER
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-           
+            //email
+            builder.Services.Configure<EmailSetting>(builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.AddTransient<EmailServices>();
+
+
             //connect db
             builder.Services.AddDbContext<DatabaseContext>(options =>
             {
