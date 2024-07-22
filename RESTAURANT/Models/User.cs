@@ -14,8 +14,7 @@ namespace RESTAURANT.API.Models
         public int? BookingId { get; set; }
         public ICollection<Booking>? Booking { get; set; }
 
+        public ICollection<Order>? Orders { get; set; }
         public CustomCombo? CustomCombo { get; set; }
-
-        public Order? Order { get; set; }
     }
 }

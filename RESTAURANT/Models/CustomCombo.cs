@@ -8,18 +8,12 @@ namespace RESTAURANT.API.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
-        public int DishId { get; set; }  // Foreign key to Dish tabl
-
-        public Dish? Dish { get; set; }  // Navigation property to Dish table
-
-        public int UserId { get; set; }  // Foreign key to User table
-
-        public User? User { get; set; }   // Navigation property to User table
-
-        public Order? Order { get; set; }
-
+        public int DishId { get; set; }
+        public Dish? Dish { get; set; }
+        public int UserId { get; set; }
+        public User? User { get; set; }
         public DateTime Date { get; set; }
+        public Order? Order { get; set; }
     }
 
 }

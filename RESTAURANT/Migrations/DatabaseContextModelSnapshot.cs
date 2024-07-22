@@ -22,6 +22,21 @@ namespace RESTAURANT.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("OrderPromotion", b =>
+                {
+                    b.Property<int>("OrdersId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PromotionsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("OrdersId", "PromotionsId");
+
+                    b.HasIndex("PromotionsId");
+
+                    b.ToTable("OrderPromotions", (string)null);
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Booking", b =>
                 {
                     b.Property<int>("Id")
@@ -86,6 +101,50 @@ namespace RESTAURANT.API.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("RESTAURANT.API.Models.Combo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Combos");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.ComboDish", b =>
+                {
+                    b.Property<int>("DishId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ComboId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DishId", "ComboId");
+
+                    b.HasIndex("ComboId");
+
+                    b.ToTable("ComboDishes");
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Comment", b =>
                 {
                     b.Property<int>("Id")
@@ -136,6 +195,34 @@ namespace RESTAURANT.API.Migrations
                     b.ToTable("CommentChildren");
                 });
 
+            modelBuilder.Entity("RESTAURANT.API.Models.CustomCombo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DishId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DishId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("CustomCombos");
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Description", b =>
                 {
                     b.Property<int>("Id")
@@ -156,6 +243,35 @@ namespace RESTAURANT.API.Migrations
                     b.HasIndex("RestaurantId");
 
                     b.ToTable("Descriptions");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Dish", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CustomComboId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Dishes");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Menu", b =>
@@ -209,6 +325,112 @@ namespace RESTAURANT.API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MenuImages");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ComboCustomId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Deposit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Oganization")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("QuantityTable")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("StatusPayment")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComboCustomId")
+                        .IsUnique()
+                        .HasFilter("[ComboCustomId] IS NOT NULL");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Promotion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Images")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("QuantityTable")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Promotions");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Rating", b =>
@@ -368,6 +590,21 @@ namespace RESTAURANT.API.Migrations
                     b.ToTable("User");
                 });
 
+            modelBuilder.Entity("OrderPromotion", b =>
+                {
+                    b.HasOne("RESTAURANT.API.Models.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrdersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RESTAURANT.API.Models.Promotion", null)
+                        .WithMany()
+                        .HasForeignKey("PromotionsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Booking", b =>
                 {
                     b.HasOne("RESTAURANT.API.Models.Restaurant", "Restaurant")
@@ -385,6 +622,25 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("Restaurant");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.ComboDish", b =>
+                {
+                    b.HasOne("RESTAURANT.API.Models.Combo", "Combo")
+                        .WithMany("ComboDishes")
+                        .HasForeignKey("ComboId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RESTAURANT.API.Models.Dish", "Dish")
+                        .WithMany("ComboDishes")
+                        .HasForeignKey("DishId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Combo");
+
+                    b.Navigation("Dish");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Comment", b =>
@@ -409,6 +665,25 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("Comment");
                 });
 
+            modelBuilder.Entity("RESTAURANT.API.Models.CustomCombo", b =>
+                {
+                    b.HasOne("RESTAURANT.API.Models.Dish", "Dish")
+                        .WithOne("CustomCombo")
+                        .HasForeignKey("RESTAURANT.API.Models.CustomCombo", "DishId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RESTAURANT.API.Models.User", "User")
+                        .WithOne("CustomCombo")
+                        .HasForeignKey("RESTAURANT.API.Models.CustomCombo", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Dish");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Description", b =>
                 {
                     b.HasOne("RESTAURANT.API.Models.Restaurant", "Restaurant")
@@ -429,6 +704,34 @@ namespace RESTAURANT.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Restaurant");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>
+                {
+                    b.HasOne("RESTAURANT.API.Models.CustomCombo", "CustomCombo")
+                        .WithOne("Order")
+                        .HasForeignKey("RESTAURANT.API.Models.Order", "ComboCustomId");
+
+                    b.HasOne("RESTAURANT.API.Models.User", "User")
+                        .WithMany("Orders")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomCombo");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Payment", b =>
+                {
+                    b.HasOne("RESTAURANT.API.Models.Order", "Order")
+                        .WithOne("Payment")
+                        .HasForeignKey("RESTAURANT.API.Models.Payment", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Rating", b =>
@@ -469,9 +772,31 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("Restaurants");
                 });
 
+            modelBuilder.Entity("RESTAURANT.API.Models.Combo", b =>
+                {
+                    b.Navigation("ComboDishes");
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Comment", b =>
                 {
                     b.Navigation("CommentChildren");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.CustomCombo", b =>
+                {
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Dish", b =>
+                {
+                    b.Navigation("ComboDishes");
+
+                    b.Navigation("CustomCombo");
+                });
+
+            modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>
+                {
+                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Restaurant", b =>
@@ -492,6 +817,10 @@ namespace RESTAURANT.API.Migrations
             modelBuilder.Entity("RESTAURANT.API.Models.User", b =>
                 {
                     b.Navigation("Booking");
+
+                    b.Navigation("CustomCombo");
+
+                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }

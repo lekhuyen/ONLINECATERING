@@ -10,30 +10,17 @@ namespace RESTAURANT.API.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
-        [Column(TypeName = "decimal(10,2)")] // Example of specifying column type
+        public int UserId { get; set; }
+        public User? User { get; set; }
+        public int? ComboCustomId { get; set; }
+        public CustomCombo? CustomCombo { get; set; }
+        public ICollection<Promotion>? Promotions { get; set; }
         public decimal TotalPrice { get; set; }
-
         public int QuantityTable { get; set; }
-
         public bool StatusPayment { get; set; }
-
-        [Column(TypeName = "decimal(10,2)")] // Example of specifying column type
         public decimal Deposit { get; set; }
-
-        public DateTime Organization { get; set; }
-
-        public int UserId { get; set; }  // Foreign key to User table
-
-        public ICollection<User>? User { get; set; }
-
-        public ICollection<Promotion>? Promotions { get; set; }  // Collection navigation property to Promotion table
-
-
-        public Payment? Payment { get; set; }  // One-to-one relationship with Payment
-
-
-        public CustomCombo? CustomCombo { get; set; }  // One-to-one relationship with CustomCombo
+        public DateTime Oganization { get; set; }
+        public Payment? Payment { get; set; }
 
 
     }
