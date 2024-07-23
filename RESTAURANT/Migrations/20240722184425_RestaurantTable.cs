@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RESTAURANT.API.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:RESTAURANT/Migrations/20240722093424_m1restaurant.cs
-    public partial class m1restaurant : Migration
-========
     public partial class RestaurantTable : Migration
->>>>>>>> b43dd1e2cb8cabe138082be3c61af110ac04b734:RESTAURANT/Migrations/20240722143327_RestaurantTable.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -60,6 +56,22 @@ namespace RESTAURANT.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Dishes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Lobbies",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    LobbyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Area = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Lobbies", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -177,6 +189,26 @@ namespace RESTAURANT.API.Migrations
                         name: "FK_ComboDishes_Dishes_DishId",
                         column: x => x.DishId,
                         principalTable: "Dishes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LobbiesImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImagesUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LobbyId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LobbiesImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LobbiesImages_Lobbies_LobbyId",
+                        column: x => x.LobbyId,
+                        principalTable: "Lobbies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -356,6 +388,7 @@ namespace RESTAURANT.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     ComboCustomId = table.Column<int>(type: "int", nullable: true),
+                    PromotionId = table.Column<int>(type: "int", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     QuantityTable = table.Column<int>(type: "int", nullable: false),
                     StatusPayment = table.Column<bool>(type: "bit", nullable: false),
@@ -489,6 +522,11 @@ namespace RESTAURANT.API.Migrations
                 column: "RestaurantId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LobbiesImages_LobbyId",
+                table: "LobbiesImages",
+                column: "LobbyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Menus_RestaurantId",
                 table: "Menus",
                 column: "RestaurantId");
@@ -548,6 +586,9 @@ namespace RESTAURANT.API.Migrations
                 name: "Descriptions");
 
             migrationBuilder.DropTable(
+                name: "LobbiesImages");
+
+            migrationBuilder.DropTable(
                 name: "MenuImages");
 
             migrationBuilder.DropTable(
@@ -573,6 +614,9 @@ namespace RESTAURANT.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "Comments");
+
+            migrationBuilder.DropTable(
+                name: "Lobbies");
 
             migrationBuilder.DropTable(
                 name: "Promotions");
