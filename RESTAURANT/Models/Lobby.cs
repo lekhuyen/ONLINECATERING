@@ -16,9 +16,9 @@ namespace RESTAURANT.API.Models
         public int Type { get; set; }
 		public ICollection<LobbyImages>? LobbyImages { get; set; }
 
-        public Lobby()
-        {
-            LobbyImages = new List<LobbyImages>();
-        }
+        //public Lobby()
+        //{
+        //    LobbyImages = new List<LobbyImages>();
+        //}
     }
 }

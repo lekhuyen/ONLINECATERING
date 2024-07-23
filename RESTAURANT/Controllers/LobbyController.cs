@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.Models;
 using RESTAURANT.API.Repositories;
 
@@ -11,6 +12,7 @@ namespace RESTAURANT.API.Controllers
 	[ApiController]
 	public class LobbyController : ControllerBase
 	{
+		private readonly DatabaseContext _dbContext;
 		private readonly ILobbyRepository _lobbyRepository;
 
 		public LobbyController(ILobbyRepository lobbyRepository)
@@ -24,12 +26,23 @@ namespace RESTAURANT.API.Controllers
 			try
 			{
 				var lobbies = await _lobbyRepository.GetAllLobbies();
+
+				var responseData = lobbies.Select(lobby => new
+				{
+					lobby.Id,
+					lobby.LobbyName,
+					lobby.Description,
+					lobby.Area,
+					lobby.Type,
+					LobbyImages = lobby.LobbyImages?.Select(image => image.ImagesUrl).ToList()
+				}).ToList();
+
 				return Ok(new ApiResponse
 				{
 					Success = true,
 					Status = 0,
 					Message = "Get all lobbies successfully",
-					Data = lobbies
+					Data = responseData
 				});
 			}
 			catch (Exception ex)
@@ -118,6 +131,15 @@ namespace RESTAURANT.API.Controllers
 		{
 			try
 			{
+				if (id != lobby.Id)
+				{
+					return BadRequest(new ApiResponse
+					{
+						Success = false,
+						Status = 1,
+						Message = "The ID is mismatched"
+					});
+				}
 				var existingLobby = await _lobbyRepository.GetLobbyById(id);
 				if (existingLobby == null)
 				{
@@ -156,12 +178,15 @@ namespace RESTAURANT.API.Controllers
 		}
 
 		[HttpDelete("{id}")]
-		public async Task<IActionResult> Delete(int id)
+		public async Task<IActionResult> DeleteLobby(int id)
 		{
 			try
 			{
-				var existingLobby = await _lobbyRepository.GetLobbyById(id);
-				if (existingLobby == null)
+				var lobby = await _dbContext.Lobbies
+					.Include(l => l.LobbyImages)
+					.FirstOrDefaultAsync(l => l.Id == id);
+
+				if (lobby == null)
 				{
 					return NotFound(new ApiResponse
 					{
@@ -171,25 +196,41 @@ namespace RESTAURANT.API.Controllers
 					});
 				}
 
-				await _lobbyRepository.DeleteLobby(id);
+				// Delete all images associated with the lobby from file system and database
+				foreach (var image in lobby.LobbyImages)
+				{
+					string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "images", image.ImagesUrl);
+					if (System.IO.File.Exists(filePath))
+					{
+						System.IO.File.Delete(filePath);
+					}
+				}
+
+				_dbContext.LobbiesImages.RemoveRange(lobby.LobbyImages); // Remove from database
+				_dbContext.Lobbies.Remove(lobby); // Remove lobby
+				await _dbContext.SaveChangesAsync();
 
 				return Ok(new ApiResponse
 				{
 					Success = true,
 					Status = 0,
-					Message = "Delete lobby successfully",
-					Data = existingLobby
+					Message = "Delete lobby and images successfully",
+					Data = lobby // Optionally return deleted lobby data if needed
 				});
 			}
 			catch (Exception ex)
 			{
+				// Handle and log the exception
+				Console.WriteLine($"Error deleting lobby with id {id}: {ex.Message}");
 				return BadRequest(new ApiResponse
 				{
 					Success = false,
 					Status = 1,
-					Message = "Error from service"
+					Message = "Error deleting lobby",
+					Data = null
 				});
 			}
 		}
+
 	}
 }
