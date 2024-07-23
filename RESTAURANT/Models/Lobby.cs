@@ -15,5 +15,10 @@ namespace RESTAURANT.API.Models
         public string Area { get; set; }
         public int Type { get; set; }
 		public ICollection<LobbyImages>? LobbyImages { get; set; }
+
+        public Lobby()
+        {
+            LobbyImages = new List<LobbyImages>();
+        }
     }
 }

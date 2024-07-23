@@ -32,19 +32,25 @@ namespace RESTAURANT.API.Repositories
 			return lobby;
 		}
 
-		public async Task<IEnumerable<Lobby>> GetAllLobbies()
-		{
-			var lobs = await _dbContext.Lobbies.ToListAsync();
-			return lobs;
-		}
+        public async Task<IEnumerable<Lobby>> GetAllLobbies()
+        {
+            var lobbies = await _dbContext.Lobbies
+                .Include(l => l.LobbyImages) // Eager loading LobbyImages
+                .ToListAsync();
 
-		public async Task<Lobby> GetLobbyById(int id)
-		{
-			var lob = await _dbContext.Lobbies.FindAsync(id);
-			return lob;
-		}
+            return lobbies;
+        }
 
-		public async Task<Lobby> UpdateLobby(Lobby lobby)
+        public async Task<Lobby> GetLobbyById(int id)
+        {
+            var lobby = await _dbContext.Lobbies
+                .Include(l => l.LobbyImages) // Eager loading LobbyImages
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            return lobby;
+        }
+
+        public async Task<Lobby> UpdateLobby(Lobby lobby)
 		{
 			_dbContext.Entry(lobby).State = EntityState.Modified;
 			await _dbContext.SaveChangesAsync();
