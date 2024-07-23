@@ -92,6 +92,8 @@ namespace USER.API.Repositories
                 Phone = u.Phone,
                 Role = u.Role,
                 Password = u.Password,
+                Otp = u.Otp,
+                OtpExpired = u.OtpExpired,
                 //Restaurants = u.Restaurants.Select(u => new RestaurantDTO
                 //{
                 //    Id = u.Id,
@@ -163,10 +165,14 @@ namespace USER.API.Repositories
             {
                 m = await _dbContext.Menus.Where(m => userBooking.MenuId.Contains(m.Id.ToString())).ToListAsync();
             }
-            foreach (var menu in m)
+            if(m != null)
             {
-                total = (menu.Price * menu.Quatity) + total;
+                foreach (var menu in m)
+                {
+                    total = (menu.Price * menu.Quatity) + total;
+                }
             }
+            
 
 
             var userDTO = new UserDTO
@@ -177,13 +183,9 @@ namespace USER.API.Repositories
                 Phone = user.Phone,
                 Role = user.Role,
                 Status = user.Status,
-                //Restaurants = user.Restaurants.Select(u => new RestaurantDTO
-                //{
-                //    Id = u.Id,
-                //    RestaurantName = u.RestaurantName,
-                //    City = u.City,
-                //    Address = u.Address,
-                //}).ToList(),
+                Otp = user.Otp,
+                OtpExpired = user.OtpExpired,
+                
                 Booking = user?.UserBookings?.Select(u => new BookingDTO
                 {
                     Id = u.Id,

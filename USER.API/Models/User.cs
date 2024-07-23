@@ -19,6 +19,8 @@ namespace USER.API.Models
         public ICollection<FavoriteList>? FavoriteLists { get; set; }
         public int GradeId { get; set; }
         public Grade? Grade { get; set; }
+        public string? Otp { get; set; }
+        public DateTime? OtpExpired { get; set; }
         public ICollection<Booking>? UserBookings { get; set; }
         //public ICollection<Restaurant>? Restaurants { get; set; }
     }
