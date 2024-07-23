@@ -1,4 +1,4 @@
-﻿/*using APIRESPONSE.Models;
+﻿using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
@@ -28,17 +28,11 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                var orders = await _dbContext.Orders
-                    .Include(o => o.User)
-                    .Include(o => o.CustomCombo)
-                    .Include(o => o.Promotions)
-                    .Include(o => o.Payment)
-                    .ToListAsync();
+                var orders = await _dbContext.Orders.ToListAsync();
 
                 var orderDTOs = orders.Select(o => new OrderDTO
                 {
                     Id = o.Id,
-
                     TotalPrice = o.TotalPrice,
                     QuantityTable = o.QuantityTable,
                     StatusPayment = o.StatusPayment,
@@ -82,8 +76,8 @@ namespace RESTAURANT.API.Controllers
                     StatusPayment = orderDTO.StatusPayment,
                     Deposit = orderDTO.Deposit,
                     Oganization = orderDTO.Oganization,
-                    PromotionId = orderDTO.PromotionId  // Assign PromotionId here
-                };
+/*                    PromotionId = orderDTO.PromotionId  // Assign PromotionId here
+*/                };
 
                 // Add to database
                 _dbContext.Orders.Add(order);
@@ -103,8 +97,8 @@ namespace RESTAURANT.API.Controllers
                         StatusPayment = order.StatusPayment,
                         Deposit = order.Deposit,
                         Oganization = order.Oganization,
-                        PromotionId = order.PromotionId  // Return the associated PromotionId
-                    }
+/*                        PromotionId = order.PromotionId  // Return the associated PromotionId
+*/                    }
                 });
             }
             catch (Exception ex)
@@ -120,4 +114,3 @@ namespace RESTAURANT.API.Controllers
         }
     }
 }
-*/
