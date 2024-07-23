@@ -10,10 +10,13 @@ namespace RESTAURANT.API.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
         public User? User { get; set; }
         public int? ComboCustomId { get; set; }
         public CustomCombo? CustomCombo { get; set; }
+
+/*        public int? PromotionsId { get; set; }
+*/
         public ICollection<Promotion>? Promotions { get; set; }
         public decimal TotalPrice { get; set; }
         public int QuantityTable { get; set; }
@@ -24,4 +27,5 @@ namespace RESTAURANT.API.Models
 
 
     }
+
 }

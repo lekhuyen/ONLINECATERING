@@ -7,8 +7,8 @@
         public CustomComboDTO? CustomCombo { get; set; }*/
 /*        public ICollection<PromotionDTO>? Promotions { get; set; }
 */
-        public int PromotionId { get; set; }  // Property to hold Promotion Id
-
+/*        public int PromotionId { get; set; }  // Property to hold Promotion Id
+*/
         public decimal TotalPrice { get; set; }
         public int QuantityTable { get; set; }
         public bool StatusPayment { get; set; }
