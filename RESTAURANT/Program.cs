@@ -26,14 +26,14 @@ namespace RESTAURANT
 				options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectDB"));
 			});
 
-            builder.Services.AddControllers()
+			builder.Services.AddControllers()
 				.AddJsonOptions(options =>
 				{
 					options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
 				});
 
 
-            builder.Services.AddScoped<IRestaurant, RestaurantRepositories>();
+			builder.Services.AddScoped<IRestaurant, RestaurantRepositories>();
 			builder.Services.AddScoped<ICategory, CategoryRepositories>();
 			builder.Services.AddScoped<IComment, CommentRepositories>();
 			builder.Services.AddScoped<ICommentChild, CommentChildRepositories>();
@@ -54,6 +54,9 @@ namespace RESTAURANT
 				var dbContext = scopeFatory.CreateScope().ServiceProvider.GetRequiredService<DatabaseContext>();
 				return new RedisSubcribeService(redisClient, dbContext);
 			});
+
+			
+
 
 			var app = builder.Build();
 
