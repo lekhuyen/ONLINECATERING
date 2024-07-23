@@ -17,8 +17,6 @@ namespace RESTAURANT.API.Models
 
         public ICollection<ComboDish>? ComboDishes { get; set; }
 
-        public int CustomComboId { get; set; }
-
         public CustomCombo? CustomCombo { get; set; }
 
 
