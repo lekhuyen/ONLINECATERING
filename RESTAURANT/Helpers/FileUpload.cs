@@ -1,30 +1,50 @@
-﻿namespace RESTAURANT.API.Helpers
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
+namespace RESTAURANT.API.Helpers
 {
     public class FileUpload
     {
         static readonly string baseFolder = "Uploads";
+        static readonly string subFolder = "images"; // Adjust subfolder name as needed
         static readonly string rootUrl = "http://localhost:5265/";
 
-        public static async Task<string> SaveImage(string subFolder, IFormFile formFile)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public FileUpload(IWebHostEnvironment webHostEnvironment)
+        {
+            _webHostEnvironment = webHostEnvironment;
+        }
+
+        public async Task<string> SaveImage(IFormFile formFile)
         {
             string imagesName = Guid.NewGuid().ToString() + "_" + formFile.FileName;
-            var imagePath = Path.Combine(Directory.GetCurrentDirectory(), baseFolder, subFolder);
-            if(!Directory.Exists(imagePath))
+            var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, baseFolder, subFolder);
+
+            if (!Directory.Exists(imagePath))
             {
                 Directory.CreateDirectory(imagePath);
             }
-            var exacPath = Path.Combine(imagePath, imagesName);
-            using(var fileStream = new FileStream(exacPath, FileMode.Create))
+
+            var exactPath = Path.Combine(imagePath, imagesName);
+
+            using (var fileStream = new FileStream(exactPath, FileMode.Create))
             {
                 await formFile.CopyToAsync(fileStream);
             }
-            return Path.Combine(rootUrl, baseFolder,subFolder, imagesName).Replace("\\", "/");
+
+            return Path.Combine(rootUrl, baseFolder, subFolder, imagesName).Replace("\\", "/");
         }
-        public static void DeleteImage(string imagePath)
+
+        public void DeleteImage(string imageUrl)
         {
-            var exacPath = imagePath.Substring(rootUrl.Length);
-            var filePath = Path.Combine(exacPath);
-            if(File.Exists(filePath))
+            var exactPath = imageUrl.Replace(rootUrl, "").Replace("/", "\\");
+            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, exactPath);
+
+            if (File.Exists(filePath))
             {
                 File.Delete(filePath);
             }

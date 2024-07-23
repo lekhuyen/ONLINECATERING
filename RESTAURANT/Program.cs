@@ -26,9 +26,14 @@ namespace RESTAURANT
 				options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectDB"));
 			});
 
+            builder.Services.AddControllers()
+				.AddJsonOptions(options =>
+				{
+					options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+				});
 
 
-			builder.Services.AddScoped<IRestaurant, RestaurantRepositories>();
+            builder.Services.AddScoped<IRestaurant, RestaurantRepositories>();
 			builder.Services.AddScoped<ICategory, CategoryRepositories>();
 			builder.Services.AddScoped<IComment, CommentRepositories>();
 			builder.Services.AddScoped<ICommentChild, CommentChildRepositories>();
@@ -64,11 +69,7 @@ namespace RESTAURANT
 				app.UseSwaggerUI();
 			}
 
-			app.UseStaticFiles(new StaticFileOptions
-			{
-				FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
-				RequestPath = "/Uploads"
-			});
+			app.UseStaticFiles();
 			app.UseCors();
 
 			app.UseAuthorization();
