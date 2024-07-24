@@ -12,8 +12,8 @@ using USER.API.Models;
 namespace USER.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240722151729_m3")]
-    partial class m3
+    [Migration("20240724134414_UserTB")]
+    partial class UserTB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
