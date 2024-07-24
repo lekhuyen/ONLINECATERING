@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace USER.API.Migrations
 {
     /// <inheritdoc />
-    public partial class m1 : Migration
+    public partial class UserTB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -44,7 +44,9 @@ namespace USER.API.Migrations
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RefeshToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RefreshTokenExpiryTime = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    GradeId = table.Column<int>(type: "int", nullable: false)
+                    GradeId = table.Column<int>(type: "int", nullable: false),
+                    Otp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OtpExpired = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -146,11 +148,6 @@ namespace USER.API.Migrations
                         column: x => x.BookingId,
                         principalTable: "UserBooking",
                         principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Restaurants_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -168,11 +165,6 @@ namespace USER.API.Migrations
                 name: "IX_Restaurants_BookingId",
                 table: "Restaurants",
                 column: "BookingId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Restaurants_UserId",
-                table: "Restaurants",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserBooking_UserId",
