@@ -28,17 +28,21 @@ namespace RESTAURANT.API.Controllers
 			{
 				var lobbies = await _lobbyRepository.GetAllLobbies();
 
-				var responseData = lobbies.Select(lobby => new
-				{
-					lobby.Id,
-					lobby.LobbyName,
-					lobby.Description,
-					lobby.Area,
-					lobby.Type,
-					LobbyImages = lobby.LobbyImages?.Select(image => image.ImagesUrl).ToList()
-				}).ToList();
+                var responseData = lobbies.Select(lobby => new
+                {
+                    lobby.Id,
+                    lobby.LobbyName,
+                    lobby.Description,
+                    lobby.Area,
+                    lobby.Type,
+                    LobbyImages = lobby.LobbyImages?.Select(image => new
+                    {
+                        image.Id,
+                        image.ImagesUrl
+                    }).ToList()
+                }).ToList();
 
-				return Ok(new ApiResponse
+                return Ok(new ApiResponse
 				{
 					Success = true,
 					Status = 0,
@@ -203,7 +207,7 @@ namespace RESTAURANT.API.Controllers
                     // Delete all images associated with the lobby from file system and database
                     foreach (var image in lobby.LobbyImages)
                     {
-                        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "images", image.ImagesUrl);
+                        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", image.ImagesUrl);
                         if (System.IO.File.Exists(filePath))
                         {
                             System.IO.File.Delete(filePath);
