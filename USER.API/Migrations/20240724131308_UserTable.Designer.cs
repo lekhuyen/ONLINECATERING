@@ -12,8 +12,8 @@ using USER.API.Models;
 namespace USER.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240716152128_m1")]
-    partial class m1
+    [Migration("20240724131308_UserTable")]
+    partial class UserTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -201,8 +201,6 @@ namespace USER.API.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("Restaurants");
                 });
 
@@ -216,6 +214,12 @@ namespace USER.API.Migrations
 
                     b.Property<int>("GradeId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Otp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("OtpExpired")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -290,13 +294,7 @@ namespace USER.API.Migrations
                         .WithMany("Restaurant")
                         .HasForeignKey("BookingId");
 
-                    b.HasOne("USER.API.Models.User", "User")
-                        .WithMany("Restaurants")
-                        .HasForeignKey("UserId");
-
                     b.Navigation("Booking");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("USER.API.Models.Booking", b =>
@@ -309,8 +307,6 @@ namespace USER.API.Migrations
                     b.Navigation("FavoriteLists");
 
                     b.Navigation("Grade");
-
-                    b.Navigation("Restaurants");
 
                     b.Navigation("UserBookings");
                 });

@@ -30,7 +30,7 @@ namespace RESTAURANT.API.Controllers
 		{
 			try
 			{
-				if (formFiles.Count == 0)
+				if (formFiles == null || formFiles.Count == 0)
 				{
 					return BadRequest(new ApiResponse
 					{
@@ -40,9 +40,11 @@ namespace RESTAURANT.API.Controllers
 					});
 				}
 
+				var addedImages = new List<LobbyImages>();
+
 				foreach (var item in formFiles)
 				{
-					var imagePath = await FileUpload.SaveImage("images", item);
+					var imagePath = await FileUpload.SaveImage("Uploads/images", item);
 					var lobbyImage = new LobbyImages
 					{
 						LobbyId = lobbyId,
@@ -56,6 +58,7 @@ namespace RESTAURANT.API.Controllers
 					Success = true,
 					Status = 0,
 					Message = "Add images Successfully",
+					Data = addedImages
 				});
 			}
 			catch (Exception ex)
@@ -70,26 +73,32 @@ namespace RESTAURANT.API.Controllers
 			}
 		}
 
-		[HttpGet("{imageId}")]
-		public async Task<IActionResult> GetImageById(int imageId)
+		[HttpGet("images/{lobbyId}")]
+		public async Task<IActionResult> GetImagesByLobbyId(int lobbyId)
 		{
 			try
 			{
-				var image = await _databaseContext.LobbiesImages.FirstOrDefaultAsync(r => r.Id == imageId);
-				if (image != null)
+				var images = await _databaseContext.LobbiesImages
+					.Where(li => li.LobbyId == lobbyId)
+					.Select(li => li.ImagesUrl)
+					.ToListAsync();
+
+				if (images != null && images.Any())
 				{
 					return Ok(new ApiResponse
 					{
 						Success = true,
 						Status = 0,
-						Data = image
+						Message = "Get images by lobbyId successfully",
+						Data = images
 					});
 				}
+
 				return NotFound(new ApiResponse
 				{
 					Success = false,
 					Status = 1,
-					Message = "Image not found",
+					Message = "No images found for the given lobbyId"
 				});
 			}
 			catch (Exception ex)
@@ -104,42 +113,68 @@ namespace RESTAURANT.API.Controllers
 			}
 		}
 
-		[HttpDelete("{id}")]
-		public async Task<IActionResult> DeleteImage(int id)
-		{
-			try
-			{
-				var image = await _databaseContext.LobbiesImages.FirstOrDefaultAsync(r => r.Id == id);
-				if (image == null)
-				{
-					return NotFound(new ApiResponse
-					{
-						Success = false,
-						Status = 1,
-						Message = "Image not found",
-					});
-				}
+        [HttpDelete("{id}/images")]
+        public async Task<IActionResult> DeleteLobbyImages(int id)
+        {
+            try
+            {
+                var lobby = await _databaseContext.Lobbies
+                    .Include(l => l.LobbyImages)
+                    .FirstOrDefaultAsync(l => l.Id == id);
 
-				FileUpload.DeleteImage(image.ImagesUrl);
-				_databaseContext.Remove(image);
-				await _databaseContext.SaveChangesAsync();
+                if (lobby == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Lobby not found"
+                    });
+                }
 
-				return Ok(new ApiResponse
-				{
-					Success = true,
-					Status = 0,
-					Message = "Deleted",
-				});
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new ApiResponse
-				{
-					Success = false,
-					Status = 1,
-					Message = "Error from service",
-				});
-			}
-		}
-	}
+                // Delete all images associated with the lobby
+                foreach (var image in lobby.LobbyImages)
+                {
+
+                    string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", image.ImagesUrl);
+
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                    else
+                    {
+                        // Log a warning or handle accordingly if the file doesn't exist
+                        Console.WriteLine($"File not found at path: {filePath}");
+                    }
+                }
+
+                // Remove images from the database
+                _databaseContext.LobbiesImages.RemoveRange(lobby.LobbyImages);
+                await _databaseContext.SaveChangesAsync();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Delete lobby images successfully",
+                    Data = lobby // Optionally return the lobby data after images are deleted
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = $"Error deleting lobby images: {ex.Message}",
+                    Data = null
+                });
+            }
+        }
+
+
+
+    }
 }
+

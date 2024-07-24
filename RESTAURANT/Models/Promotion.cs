@@ -19,7 +19,10 @@ namespace RESTAURANT.API.Models
         public bool Status { get; set; }
         public int QuantityTable { get; set; }
         public decimal Price { get; set; }
-        public ICollection<Order>? Orders { get; set; }
+
+        public int? OrderId { get; set; }
+
+        public Order? Order { get; set; }
 
     }
 }

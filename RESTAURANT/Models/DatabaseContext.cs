@@ -78,9 +78,10 @@ namespace RESTAURANT.API.Models
 
             //Order
             modelBuilder.Entity<Order>()
-                .HasOne(o => o.User)
-                .WithMany(u => u.Orders)
-                .HasForeignKey(o => o.UserId);
+               .HasOne(o => o.User)
+               .WithMany(u => u.Orders)
+               .HasForeignKey(o => o.UserId)
+               .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Payment)
@@ -90,12 +91,27 @@ namespace RESTAURANT.API.Models
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.CustomCombo)
                 .WithOne(cc => cc.Order)
-                .HasForeignKey<Order>(o => o.ComboCustomId);
+                .HasForeignKey<Order>(o => o.CustomComboId);
 
             modelBuilder.Entity<Order>()
-                .HasMany(o => o.Promotions)
-                .WithMany(p => p.Orders)
-                .UsingEntity(j => j.ToTable("OrderPromotions"));
+                .HasOne(o => o.Promotion)
+                .WithOne(cc => cc.Order)
+                .HasForeignKey<Order>(o => o.PromotionId);
+
+            modelBuilder.Entity<OrderDish>()
+                .HasKey(od => new { od.DishId, od.OrderId });
+
+            modelBuilder.Entity<OrderDish>()
+                .HasOne(od => od.Order)
+                .WithMany(o => o.OrderDishes)
+                .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.Restrict); // Restrict cascade delete for Order
+
+            modelBuilder.Entity<OrderDish>()
+                .HasOne(od => od.Dish)
+                .WithMany(d => d.OrderDishes)
+                .HasForeignKey(od => od.DishId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             //CustomCombo
             modelBuilder.Entity<CustomCombo>()
@@ -111,6 +127,11 @@ namespace RESTAURANT.API.Models
             // Service
             modelBuilder.Entity<Service>()
                 .HasKey(s => s.Id);
+
+            modelBuilder.Entity<LobbyImages>()
+               .HasOne(li => li.Lobby) // Navigation property to Lobby
+               .WithMany(l => l.LobbyImages) // One lobby can have many images
+               .HasForeignKey(li => li.LobbyId); // Foreign key property in LobbyImages
 
         }
 
@@ -139,6 +160,8 @@ namespace RESTAURANT.API.Models
         public DbSet<Service> Services { get; set;}
         public DbSet<Lobby> Lobbies { get; set; }
         public DbSet<LobbyImages> LobbiesImages { get; set; }
+
+        public DbSet<OrderDish> OrderDishs { get; set; }
 
     }
 }

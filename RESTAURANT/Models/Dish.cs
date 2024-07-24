@@ -17,8 +17,6 @@ namespace RESTAURANT.API.Models
 
         public ICollection<ComboDish>? ComboDishes { get; set; }
 
-        public int CustomComboId { get; set; }
-
         public CustomCombo? CustomCombo { get; set; }
 
 
@@ -26,5 +24,7 @@ namespace RESTAURANT.API.Models
 
         [NotMapped]
         public IFormFile ImageFile { get; set; }
+
+        public ICollection<OrderDish>? OrderDishes { get; set; }
     }
 }

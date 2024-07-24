@@ -23,6 +23,7 @@ namespace RESTAURANT.API.Controllers
         }
 
         // GET: api/ComboDish/Index
+        // GET: api/ComboDish/Index
         [HttpGet]
         public async Task<IActionResult> GetAllComboDish()
         {
@@ -35,12 +36,13 @@ namespace RESTAURANT.API.Controllers
 
                 var list = comboDishes.Select(cd => new ComboDishDTO
                 {
-                    DishId = cd.DishId,
-                    ComboId = cd.ComboId,
-/*                    DishName = cd.Dish.Name,
-                    DishPrice = cd.Dish.Price, 
-                    ComboName = cd.Combo.Name,
-                    ComboPrice = cd.Combo.Price,  */
+                    DishId = cd.Dish.Id,
+                    DishName = cd.Dish.Name, // This can be null if Dish is optional
+                    DishPrice = cd.Dish.Price, // This can be null if Dish is optional
+
+                    ComboId = cd.Combo.Id,
+                    ComboName = cd.Combo.Name, // This can be null if Combo is optional
+                    ComboPrice = cd.Combo.Price, // This can be null if Combo is optional
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -63,7 +65,6 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
-        // POST: api/ComboDish/Create
         [HttpPost("Create")]
         public async Task<IActionResult> Create(ComboDishDTO comboDishDTO)
         {
@@ -98,11 +99,12 @@ namespace RESTAURANT.API.Controllers
                 var createdComboDishDTO = new ComboDishDTO
                 {
                     DishId = newComboDish.DishId,
+                    DishName = dish?.Name, // Handle null with null-conditional operator
+                    DishPrice = dish?.Price,
+
                     ComboId = newComboDish.ComboId,
-/*                    DishName = dish.Name,
-                    DishPrice = dish.Price, 
-                    ComboName = combo.Name,
-                    ComboPrice = combo.Price, */
+                    ComboName = combo?.Name, // Handle null with null-conditional operator
+                    ComboPrice = combo?.Price,
                 };
 
                 return Ok(new ApiResponse
@@ -124,6 +126,7 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+
 
     }
 

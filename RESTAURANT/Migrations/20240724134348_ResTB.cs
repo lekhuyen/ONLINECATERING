@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RESTAURANT.API.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:RESTAURANT/Migrations/20240722093424_m1restaurant.cs
-    public partial class m1restaurant : Migration
-========
-    public partial class RestaurantTable : Migration
->>>>>>>> b43dd1e2cb8cabe138082be3c61af110ac04b734:RESTAURANT/Migrations/20240722143327_RestaurantTable.cs
+    public partial class ResTB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -54,12 +50,27 @@ namespace RESTAURANT.API.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<bool>(type: "bit", nullable: false),
-                    CustomComboId = table.Column<int>(type: "int", nullable: false),
                     ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Dishes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Lobbies",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    LobbyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Area = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Lobbies", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -74,24 +85,6 @@ namespace RESTAURANT.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MenuImages", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Promotions",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Status = table.Column<bool>(type: "bit", nullable: false),
-                    QuantityTable = table.Column<int>(type: "int", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Promotions", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -177,6 +170,26 @@ namespace RESTAURANT.API.Migrations
                         name: "FK_ComboDishes_Dishes_DishId",
                         column: x => x.DishId,
                         principalTable: "Dishes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LobbiesImages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImagesUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LobbyId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LobbiesImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LobbiesImages_Lobbies_LobbyId",
+                        column: x => x.LobbyId,
+                        principalTable: "Lobbies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -355,7 +368,7 @@ namespace RESTAURANT.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    ComboCustomId = table.Column<int>(type: "int", nullable: true),
+                    CustomComboId = table.Column<int>(type: "int", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     QuantityTable = table.Column<int>(type: "int", nullable: false),
                     StatusPayment = table.Column<bool>(type: "bit", nullable: false),
@@ -366,16 +379,17 @@ namespace RESTAURANT.API.Migrations
                 {
                     table.PrimaryKey("PK_Orders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Orders_CustomCombos_ComboCustomId",
-                        column: x => x.ComboCustomId,
+                        name: "FK_Orders_CustomCombos_CustomComboId",
+                        column: x => x.CustomComboId,
                         principalTable: "CustomCombos",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Orders_User_UserId",
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -400,30 +414,6 @@ namespace RESTAURANT.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OrderPromotions",
-                columns: table => new
-                {
-                    OrdersId = table.Column<int>(type: "int", nullable: false),
-                    PromotionsId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OrderPromotions", x => new { x.OrdersId, x.PromotionsId });
-                    table.ForeignKey(
-                        name: "FK_OrderPromotions_Orders_OrdersId",
-                        column: x => x.OrdersId,
-                        principalTable: "Orders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_OrderPromotions_Promotions_PromotionsId",
-                        column: x => x.PromotionsId,
-                        principalTable: "Promotions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Payments",
                 columns: table => new
                 {
@@ -440,6 +430,31 @@ namespace RESTAURANT.API.Migrations
                     table.PrimaryKey("PK_Payments", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Payments_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Promotions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<bool>(type: "bit", nullable: false),
+                    QuantityTable = table.Column<int>(type: "int", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    OrderId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Promotions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Promotions_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
                         principalColumn: "Id",
@@ -489,21 +504,20 @@ namespace RESTAURANT.API.Migrations
                 column: "RestaurantId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LobbiesImages_LobbyId",
+                table: "LobbiesImages",
+                column: "LobbyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Menus_RestaurantId",
                 table: "Menus",
                 column: "RestaurantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderPromotions_PromotionsId",
-                table: "OrderPromotions",
-                column: "PromotionsId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Orders_ComboCustomId",
+                name: "IX_Orders_CustomComboId",
                 table: "Orders",
-                column: "ComboCustomId",
-                unique: true,
-                filter: "[ComboCustomId] IS NOT NULL");
+                column: "CustomComboId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_UserId",
@@ -513,6 +527,12 @@ namespace RESTAURANT.API.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_OrderId",
                 table: "Payments",
+                column: "OrderId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Promotions_OrderId",
+                table: "Promotions",
                 column: "OrderId",
                 unique: true);
 
@@ -548,16 +568,19 @@ namespace RESTAURANT.API.Migrations
                 name: "Descriptions");
 
             migrationBuilder.DropTable(
+                name: "LobbiesImages");
+
+            migrationBuilder.DropTable(
                 name: "MenuImages");
 
             migrationBuilder.DropTable(
                 name: "Menus");
 
             migrationBuilder.DropTable(
-                name: "OrderPromotions");
+                name: "Payments");
 
             migrationBuilder.DropTable(
-                name: "Payments");
+                name: "Promotions");
 
             migrationBuilder.DropTable(
                 name: "Ratings");
@@ -575,7 +598,7 @@ namespace RESTAURANT.API.Migrations
                 name: "Comments");
 
             migrationBuilder.DropTable(
-                name: "Promotions");
+                name: "Lobbies");
 
             migrationBuilder.DropTable(
                 name: "Orders");

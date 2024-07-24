@@ -26,6 +26,11 @@ namespace RESTAURANT
 				options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectDB"));
 			});
 
+			builder.Services.AddControllers()
+				.AddJsonOptions(options =>
+				{
+					options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+				});
 
 
 			builder.Services.AddScoped<IRestaurant, RestaurantRepositories>();
@@ -50,6 +55,9 @@ namespace RESTAURANT
 				return new RedisSubcribeService(redisClient, dbContext);
 			});
 
+			
+
+
 			var app = builder.Build();
 
 			app.UseCors(builder => builder
@@ -64,11 +72,7 @@ namespace RESTAURANT
 				app.UseSwaggerUI();
 			}
 
-			app.UseStaticFiles(new StaticFileOptions
-			{
-				FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
-				RequestPath = "/Uploads"
-			});
+			app.UseStaticFiles();
 			app.UseCors();
 
 			app.UseAuthorization();
