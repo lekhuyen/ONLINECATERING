@@ -37,12 +37,12 @@ namespace INFORMATIONAPI.Controllers
                         Data = null
                     });
                 }
-
+                // Send a confirmation email to the user
+                await _emailService.SendEmailAsync(contact.Email, "Contact Received", "Your contact message has been received. We will get back to you soon.");
                 contact.IsAdminResponse = false;
                 await _contactRepositories.CreateContact(contact);
 
-                // Send a confirmation email to the user
-                await _emailService.SendEmailAsync(contact.Email, "Contact Received", "Your contact message has been received. We will get back to you soon.");
+                
 
                 return Ok(new ApiResponse
                 {
