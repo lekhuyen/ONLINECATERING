@@ -116,7 +116,7 @@ namespace RESTAURANT.API.Repositories
                     Description = u.Description,
                     User = new UserDTO
                     {
-                        Id = u.User?.Id,
+                        Id = u.User.Id,
                         UserEmail = u.User.UserEmail,
                         UserName = u.User.UserName,
                         Phone = u.User.Phone
