@@ -31,7 +31,7 @@ namespace RESTAURANT.API.Controllers
                 var customComboDTOs = customCombos.Select(cc => new CustomComboDTO
                 {
                     Id = cc.Id,
-/*                    UserId = cc.UserId,*/
+                    UserId = cc.UserId,
                     DishId = cc.DishId,
                     Date = cc.Date
                 }).ToList();
@@ -76,7 +76,7 @@ namespace RESTAURANT.API.Controllers
                 var customComboDTO = new CustomComboDTO
                 {
                     Id = customCombo.Id,
-/*                    UserId = customCombo.UserId,*/
+                    UserId = customCombo.UserId,
                     DishId = customCombo.DishId,
                     Date = customCombo.Date
                 };
@@ -95,7 +95,8 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Retrieve custom combo failed"
+                    Message = "Retrieve custom combo failed",
+                    Data = ex.Message
                 });
             }
         }
@@ -105,11 +106,36 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
+                // Check if UserId exists in Users table
+                var existingUser = await _dbContext.Users.FindAsync(customComboDTO.UserId);
+                if (existingUser == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Invalid UserId. User does not exist.",
+                        Data = null
+                    });
+                }
+
+                // Check if DishId exists in Dishes table
+                var existingDish = await _dbContext.Dishes.FindAsync(customComboDTO.DishId);
+                if (existingDish == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Invalid DishId. Dish does not exist.",
+                        Data = null
+                    });
+                }
+
                 // Map DTO to entity
                 var newCustomCombo = new CustomCombo
                 {
-                    Id = customComboDTO.Id,
-/*                    UserId = customComboDTO.UserId,*/
+                    UserId = customComboDTO.UserId,
                     DishId = customComboDTO.DishId,
                     Date = customComboDTO.Date
                 };
@@ -121,7 +147,7 @@ namespace RESTAURANT.API.Controllers
                 var updatedCustomComboDTO = new CustomComboDTO
                 {
                     Id = newCustomCombo.Id,
-/*                    UserId = newCustomCombo.UserId,*/
+                    UserId = newCustomCombo.UserId,
                     DishId = newCustomCombo.DishId,
                     Date = newCustomCombo.Date
                 };
@@ -163,19 +189,34 @@ namespace RESTAURANT.API.Controllers
                     });
                 }
 
-                if (id != customComboDTO.Id)
+                // Check if UserId exists in Users table
+                var existingUser = await _dbContext.Users.FindAsync(customComboDTO.UserId);
+                if (existingUser == null)
                 {
                     return BadRequest(new ApiResponse
                     {
                         Success = false,
                         Status = 1,
-                        Message = "Mismatched ID in object and parameter",
+                        Message = "Invalid UserId. User does not exist.",
+                        Data = null
+                    });
+                }
+
+                // Check if DishId exists in Dishes table
+                var existingDish = await _dbContext.Dishes.FindAsync(customComboDTO.DishId);
+                if (existingDish == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Invalid DishId. Dish does not exist.",
                         Data = null
                     });
                 }
 
                 // Update scalar properties
-/*                existingCustomCombo.UserId = customComboDTO.UserId;*/
+                existingCustomCombo.UserId = customComboDTO.UserId;
                 existingCustomCombo.DishId = customComboDTO.DishId;
                 existingCustomCombo.Date = customComboDTO.Date;
 
@@ -186,7 +227,7 @@ namespace RESTAURANT.API.Controllers
                 var updatedCustomComboDTO = new CustomComboDTO
                 {
                     Id = existingCustomCombo.Id,
-/*                    UserId = existingCustomCombo.UserId,*/
+                    UserId = existingCustomCombo.UserId,
                     DishId = existingCustomCombo.DishId,
                     Date = existingCustomCombo.Date
                 };

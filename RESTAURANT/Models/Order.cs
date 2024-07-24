@@ -10,9 +10,9 @@ namespace RESTAURANT.API.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        public int? UserId { get; set; }
+        public int UserId { get; set; }
         public User? User { get; set; }
-        public int? ComboCustomId { get; set; }
+        public int CustomComboId { get; set; }
         public CustomCombo? CustomCombo { get; set; }
 
         public Promotion? Promotion { get; set; }
@@ -22,7 +22,6 @@ namespace RESTAURANT.API.Models
         public decimal Deposit { get; set; }
         public DateTime Oganization { get; set; }
         public Payment? Payment { get; set; }
-
 
     }
 

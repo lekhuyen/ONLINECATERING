@@ -78,9 +78,10 @@ namespace RESTAURANT.API.Models
 
             //Order
             modelBuilder.Entity<Order>()
-                .HasOne(o => o.User)
-                .WithMany(u => u.Orders)
-                .HasForeignKey(o => o.UserId);
+               .HasOne(o => o.User)
+               .WithMany(u => u.Orders)
+               .HasForeignKey(o => o.UserId)
+               .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Payment)
@@ -90,7 +91,7 @@ namespace RESTAURANT.API.Models
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.CustomCombo)
                 .WithOne(cc => cc.Order)
-                .HasForeignKey<Order>(o => o.ComboCustomId);
+                .HasForeignKey<Order>(o => o.CustomComboId);
 
             modelBuilder.Entity<Promotion>()
                 .HasOne(p => p.Order)
