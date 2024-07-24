@@ -93,10 +93,25 @@ namespace RESTAURANT.API.Models
                 .WithOne(cc => cc.Order)
                 .HasForeignKey<Order>(o => o.CustomComboId);
 
-            modelBuilder.Entity<Promotion>()
-                .HasOne(p => p.Order)
-                .WithOne(cc => cc.Promotion)
-                .HasForeignKey<Promotion>(p => p.OrderId);
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Promotion)
+                .WithOne(cc => cc.Order)
+                .HasForeignKey<Order>(o => o.PromotionId);
+
+            modelBuilder.Entity<OrderDish>()
+                .HasKey(od => new { od.DishId, od.OrderId });
+
+            modelBuilder.Entity<OrderDish>()
+                .HasOne(od => od.Order)
+                .WithMany(o => o.OrderDishes)
+                .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.Restrict); // Restrict cascade delete for Order
+
+            modelBuilder.Entity<OrderDish>()
+                .HasOne(od => od.Dish)
+                .WithMany(d => d.OrderDishes)
+                .HasForeignKey(od => od.DishId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             //CustomCombo
             modelBuilder.Entity<CustomCombo>()
@@ -145,6 +160,8 @@ namespace RESTAURANT.API.Models
         public DbSet<Service> Services { get; set;}
         public DbSet<Lobby> Lobbies { get; set; }
         public DbSet<LobbyImages> LobbiesImages { get; set; }
+
+        public DbSet<OrderDish> OrderDishs { get; set; }
 
     }
 }

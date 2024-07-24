@@ -24,5 +24,7 @@ namespace RESTAURANT.API.Models
 
         [NotMapped]
         public IFormFile ImageFile { get; set; }
+
+        public ICollection<OrderDish>? OrderDishes { get; set; }
     }
 }
