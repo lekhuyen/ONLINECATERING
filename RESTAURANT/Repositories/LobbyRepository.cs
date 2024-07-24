@@ -21,16 +21,25 @@ namespace RESTAURANT.API.Repositories
 			return lobby;
 		}
 
-		public async Task<Lobby> DeleteLobby(int id)
-		{
-			var lobby = await _dbContext.Lobbies.FindAsync(id);
-			if (lobby != null)
-			{
-				_dbContext.Lobbies.Remove(lobby);
-				await _dbContext.SaveChangesAsync();
-			}
-			return lobby;
-		}
+        public async Task<Lobby> DeleteLobby(int id)
+        {
+            var lobby = await _dbContext.Lobbies.FindAsync(id);
+            if (lobby != null)
+            {
+                _dbContext.Lobbies.Remove(lobby);
+                try
+                {
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    // Log the exception for debugging purposes
+                    Console.WriteLine($"Error deleting lobby with ID {id}: {ex.Message}");
+                    throw; // Re-throw the exception to propagate it
+                }
+            }
+            return lobby;
+        }
 
         public async Task<IEnumerable<Lobby>> GetAllLobbies()
         {

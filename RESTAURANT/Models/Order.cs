@@ -15,9 +15,9 @@ namespace RESTAURANT.API.Models
         public int? ComboCustomId { get; set; }
         public CustomCombo? CustomCombo { get; set; }
 
-/*        public int? PromotionsId { get; set; }
-*/
-        public ICollection<Promotion>? Promotions { get; set; }
+        public int? PromotionId { get; set; }
+
+        public Promotion? Promotions { get; set; }
         public decimal TotalPrice { get; set; }
         public int QuantityTable { get; set; }
         public bool StatusPayment { get; set; }
