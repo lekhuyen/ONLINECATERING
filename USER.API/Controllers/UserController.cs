@@ -313,6 +313,8 @@ namespace USER.API.Controllers
                 UserName = userLogin.UserName,
                 Phone = userLogin.Phone,
                 Role = userLogin.Role,
+                AccessToken = token,
+                RefeshToken = refeshToken
             };
 
             return Ok(new ApiResponse
@@ -320,8 +322,8 @@ namespace USER.API.Controllers
                 Success = true,
                 Status = 0,
                 Message = "Logged in successfully",
-                AccessToken = token,
-                RefreshToken = refeshToken,
+                //AccessToken = token,
+                //RefreshToken = refeshToken,
                 Data = userDTO
             });
 
@@ -395,45 +397,57 @@ namespace USER.API.Controllers
         //}
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword(string userEmail)
+        public async Task<IActionResult> ForgotPassword(Login useEmail)
         {
             try
             {
-                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
-
-                if (user != null)
+                if(ModelState.IsValid)
                 {
-                    var otp = RandomString(6);
+                    var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == useEmail.UserEmail);
 
-                    var emailRequest = new EmailRequest
+                    if (user != null)
                     {
-                        HtmlContent = $"Your OTP is {otp}",
-                        ToMail = userEmail, 
-                        Subject = "ForgotPassword"
-                    };
+                        var otp = RandomString(6);
 
-                    await _emailServices.SendEmailAsync(emailRequest);
+                        var emailRequest = new EmailRequest
+                        {
+                            HtmlContent = $"Your OTP is {otp}",
+                            ToMail = useEmail.UserEmail!,
+                            Subject = "ForgotPassword"
+                        };
 
-                    user.Otp = otp;
-                    user.OtpExpired = DateTime.UtcNow.AddMinutes(1);
-                    _databaseContext.Users.Update(user);
-                    await _databaseContext.SaveChangesAsync();
+                        await _emailServices.SendEmailAsync(emailRequest);
 
-                    return Ok(new ApiResponse
+                        user.Otp = otp;
+                        user.OtpExpired = DateTime.UtcNow.AddMinutes(1);
+                        _databaseContext.Users.Update(user);
+                        await _databaseContext.SaveChangesAsync();
+
+                        return Ok(new ApiResponse
+                        {
+                            Success = true,
+                            Status = 0,
+                            Message = "Otp has been sent to your mail",
+                            Data = user.UserEmail
+                        });
+                    }
+                    else
                     {
-                        Success = true,
-                        Status = 0,
-                        Message = "Otp has been sent to your mail"
-                    });
-                }else
-                {
-                    return Ok(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "Email is incorrect or does not exist "
-                    });
+                        return Ok(new ApiResponse
+                        {
+                            Success = false,
+                            Status = 1,
+                            Message = "Email is incorrect or does not exist "
+                        });
+                    }
                 }
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Email is empty"
+                });
+
             }
             catch(Exception ex)
             {
@@ -447,15 +461,15 @@ namespace USER.API.Controllers
         }
 
         [HttpPost("otp")]
-        public async Task<IActionResult> Otp(string userEmail, string otp)
+        public async Task<IActionResult> Otp(Login login)
         {
             try
             {
-                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
 
                 if (user != null)
                 {
-                    if (user.Otp != otp)
+                    if (user.Otp != login.Otp)
                     {
                         return Ok(new ApiResponse
                         {
@@ -484,6 +498,7 @@ namespace USER.API.Controllers
                     {
                         Success = true,
                         Status = 0,
+                        Data = user.UserEmail
                     });
                 }
                 else
@@ -492,7 +507,7 @@ namespace USER.API.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "Otp is incorrect Expired otp"
+                        Message = "Otp is incorrect or Expired otp"
                     });
                 }
             }
@@ -508,16 +523,16 @@ namespace USER.API.Controllers
         }
 
         [HttpPost("update-password")]
-        public async Task<IActionResult> UpdatePassword(string userEmail, string password)
+        public async Task<IActionResult> UpdatePassword(Login login)
         {
             try
             {
-                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
 
                 if (user != null)
                 {
 
-                    user.Password = PasswordBcrypt.HashPassword(password);
+                    user.Password = PasswordBcrypt.HashPassword(login.Password);
 
                     _databaseContext.Users.Update(user);
                     await _databaseContext.SaveChangesAsync();

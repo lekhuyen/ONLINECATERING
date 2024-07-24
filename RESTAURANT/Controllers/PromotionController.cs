@@ -33,13 +33,13 @@ namespace RESTAURANT.API.Controllers
                 var promotionDTOs = promotions.Select(promotion => new PromotionDTO
                 {
                     Id = promotion.Id,
+                    OrderId = promotion.OrderId,
                     Name = promotion.Name,
                     Description = promotion.Description,
                     ImagePath = promotion.ImagePath,
                     Status = promotion.Status,
                     QuantityTable = promotion.QuantityTable,
                     Price = promotion.Price,
-
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -83,13 +83,13 @@ namespace RESTAURANT.API.Controllers
                 var promotionDTO = new PromotionDTO
                 {
                     Id = promotion.Id,
+                    OrderId = promotion.OrderId,
                     Name = promotion.Name,
                     Description = promotion.Description,
                     ImagePath = promotion.ImagePath,
                     Status = promotion.Status,
                     QuantityTable = promotion.QuantityTable,
                     Price = promotion.Price,
-
                 };
 
                 return Ok(new ApiResponse
@@ -106,7 +106,8 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Create promotion failed"
+                    Message = "Error from service",
+                    Data = null
                 });
             }
         }
@@ -117,6 +118,20 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
+
+                // Check if the OrderId exists in the Orders table
+                var existingOrder = await _dbContext.Orders.FindAsync(promotionDTO.OrderId);
+                if (existingOrder == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Invalid OrderId. Order does not exist.",
+                        Data = null
+                    });
+                }
+
                 // Save image if exists
                 string imagePath = null;
                 if (promotionDTO.ImageFile != null)
@@ -133,15 +148,18 @@ namespace RESTAURANT.API.Controllers
                     Status = promotionDTO.Status,
                     QuantityTable = promotionDTO.QuantityTable,
                     Price = promotionDTO.Price,
+                    OrderId = promotionDTO.OrderId  // Assign the OrderId
                 };
 
                 // Add to DbContext
                 await _dbContext.Promotions.AddAsync(newPromotion);
                 await _dbContext.SaveChangesAsync();
 
+                // Prepare response DTO
                 var createdPromotionDTO = new PromotionDTO
                 {
                     Id = newPromotion.Id,
+                    OrderId = newPromotion.OrderId,
                     Name = newPromotion.Name,
                     Description = newPromotion.Description,
                     ImagePath = newPromotion.ImagePath,
@@ -220,13 +238,34 @@ namespace RESTAURANT.API.Controllers
                 }
                 // If promotionDTO.ImageFile is null, do nothing, which will keep the existing image
 
+                // Handle OrderId update if necessary (example scenario)
+                if (promotionDTO.OrderId != existingPromotion.OrderId)
+                {
+                    // Check if the new OrderId exists
+                    var existingOrder = await _dbContext.Orders.FindAsync(promotionDTO.OrderId);
+                    if (existingOrder == null)
+                    {
+                        return BadRequest(new ApiResponse
+                        {
+                            Success = false,
+                            Status = 1,
+                            Message = "Invalid OrderId. Order does not exist.",
+                            Data = null
+                        });
+                    }
+
+                    existingPromotion.OrderId = promotionDTO.OrderId; // Update the OrderId
+                }
+
                 // Update entity in DbContext
                 _dbContext.Promotions.Update(existingPromotion);
                 await _dbContext.SaveChangesAsync();
 
+                // Prepare response DTO
                 var updatedPromotionDTO = new PromotionDTO
                 {
                     Id = existingPromotion.Id,
+                    OrderId = existingPromotion.OrderId,
                     Name = existingPromotion.Name,
                     Description = existingPromotion.Description,
                     ImagePath = existingPromotion.ImagePath,
@@ -249,11 +288,12 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
+                    Message = "Error from service: " + ex.Message,
                     Data = null
                 });
             }
         }
+
 
         // DELETE: api/Promotion/5
         [HttpDelete("{id}")]
