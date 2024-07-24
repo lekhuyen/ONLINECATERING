@@ -13,21 +13,25 @@ builder.Services.AddRateLimiter(rateLimiterOptions =>
         option.PermitLimit = 2;
     });
 });
-builder.Services.AddCors(otp =>
-{
-    otp.AddPolicy("onlinecarering", builder =>
-    {
-        builder.WithOrigins("http://localhost:3000")
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowCredentials();
-    });
-});
+//builder.Services.AddCors(otp =>
+//{
+//    otp.AddPolicy("onlinecarering", builder =>
+//    {
+//        builder.WithOrigins("http://localhost:3000")
+//        .AllowAnyMethod()
+//        .AllowAnyHeader()
+//        .AllowCredentials();
+//    });
+//});
 
 var app = builder.Build();
+app.UseCors(builder => builder
+     .AllowAnyOrigin()
+     .AllowAnyMethod()
+     .AllowAnyHeader());
 
 app.UseRateLimiter();
 app.MapReverseProxy(); ;
-app.UseCors("onlinecarering");
+app.UseCors();
 
 app.Run();
