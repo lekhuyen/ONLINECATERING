@@ -30,19 +30,25 @@ namespace RESTAURANT.API.Controllers
             try
             {
                 var comboDishes = await _dbContext.ComboDishes
-                    .Include(cd => cd.Combo)
                     .Include(cd => cd.Dish)
+                        .ThenInclude(d => d.CustomCombos)
+                    .Include(cd => cd.Combo)
                     .ToListAsync();
 
                 var list = comboDishes.Select(cd => new ComboDishDTO
                 {
                     DishId = cd.Dish.Id,
-                    DishName = cd.Dish.Name, // This can be null if Dish is optional
-                    DishPrice = cd.Dish.Price, // This can be null if Dish is optional
+                    DishName = cd.Dish.Name,
+                    DishPrice = cd.Dish.Price,
+                    DishStatus = cd.Dish.Status,
+                    DishImagePath = cd.Dish.ImagePath,
 
                     ComboId = cd.Combo.Id,
-                    ComboName = cd.Combo.Name, // This can be null if Combo is optional
-                    ComboPrice = cd.Combo.Price, // This can be null if Combo is optional
+                    ComboName = cd.Combo.Name,
+                    ComboPrice = cd.Combo.Price,
+                    ComboStatus = cd.Combo.Status,
+                    ComboType = cd.Combo.Type,
+                    ComboImagePath = cd.Combo.ImagePath
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -65,12 +71,12 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
+
         [HttpPost("Create")]
         public async Task<IActionResult> Create(ComboDishDTO comboDishDTO)
         {
             try
             {
-                // Validate if DishId and ComboId exist
                 var dish = await _dbContext.Dishes.FindAsync(comboDishDTO.DishId);
                 var combo = await _dbContext.Combos.FindAsync(comboDishDTO.ComboId);
 
@@ -85,7 +91,6 @@ namespace RESTAURANT.API.Controllers
                     });
                 }
 
-                // Create new ComboDish entity and save
                 var newComboDish = new ComboDish
                 {
                     DishId = comboDishDTO.DishId,
@@ -95,16 +100,20 @@ namespace RESTAURANT.API.Controllers
                 _dbContext.ComboDishes.Add(newComboDish);
                 await _dbContext.SaveChangesAsync();
 
-                // Return newly created ComboDishDTO with populated DishName, DishPrice, ComboName, and ComboPrice
                 var createdComboDishDTO = new ComboDishDTO
                 {
                     DishId = newComboDish.DishId,
-                    DishName = dish?.Name, // Handle null with null-conditional operator
+                    DishName = dish?.Name,
                     DishPrice = dish?.Price,
+                    DishStatus = dish?.Status,
+                    DishImagePath = dish?.ImagePath,
 
                     ComboId = newComboDish.ComboId,
-                    ComboName = combo?.Name, // Handle null with null-conditional operator
+                    ComboName = combo?.Name,
                     ComboPrice = combo?.Price,
+                    ComboStatus = combo?.Status,
+                    ComboType = combo?.Type,
+                    ComboImagePath = combo?.ImagePath
                 };
 
                 return Ok(new ApiResponse
@@ -126,6 +135,7 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+
 
 
     }

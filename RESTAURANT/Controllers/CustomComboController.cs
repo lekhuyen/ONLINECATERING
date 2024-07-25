@@ -26,13 +26,27 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                var customCombos = await _dbContext.CustomCombos.ToListAsync();
+                var customCombos = await _dbContext.CustomCombos
+                    .Include(cc => cc.User)
+                    .Include(cc => cc.Dish)
+                    .Include(cc => cc.Order)
+                    .ToListAsync();
 
                 var customComboDTOs = customCombos.Select(cc => new CustomComboDTO
                 {
                     Id = cc.Id,
                     UserId = cc.UserId,
+                    UserName = cc.User.UserName,
+                    UserEmail = cc.User.UserEmail,
+                    Phone = cc.User.Phone,
+
                     DishId = cc.DishId,
+                    DishName = cc.Dish.Name,
+                    DishPrice = cc.Dish.Price,
+                    DishStatus = cc.Dish.Status,
+                    DishImagePath = cc.Dish.ImagePath,
+                    OrderId = cc.OrderId,
+
                     Date = cc.Date
                 }).ToList();
 
@@ -56,12 +70,16 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
+
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponse>> GetCustomComboById(int id)
         {
             try
             {
-                var customCombo = await _dbContext.CustomCombos.FindAsync(id);
+                var customCombo = await _dbContext.CustomCombos
+                    .Include(cc => cc.User)
+                    .Include(cc => cc.Dish)
+                    .FirstOrDefaultAsync(cc => cc.Id == id);
 
                 if (customCombo == null)
                 {
@@ -77,7 +95,17 @@ namespace RESTAURANT.API.Controllers
                 {
                     Id = customCombo.Id,
                     UserId = customCombo.UserId,
+                    UserName = customCombo.User.UserName,
+                    UserEmail = customCombo.User.UserEmail,
+                    Phone = customCombo.User.Phone,
+
                     DishId = customCombo.DishId,
+                    DishName = customCombo.Dish.Name,
+                    DishPrice = customCombo.Dish.Price,
+                    DishStatus = customCombo.Dish.Status,
+                    DishImagePath = customCombo.Dish.ImagePath,
+
+                    OrderId = customCombo.OrderId,
                     Date = customCombo.Date
                 };
 
@@ -100,6 +128,8 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+
+
 
         [HttpPost]
         public async Task<ActionResult<CustomComboDTO>> CreateCustomCombo(CustomComboDTO customComboDTO)
@@ -137,6 +167,7 @@ namespace RESTAURANT.API.Controllers
                 {
                     UserId = customComboDTO.UserId,
                     DishId = customComboDTO.DishId,
+                    OrderId = customComboDTO.OrderId,
                     Date = customComboDTO.Date
                 };
 
@@ -144,11 +175,27 @@ namespace RESTAURANT.API.Controllers
                 await _dbContext.CustomCombos.AddAsync(newCustomCombo);
                 await _dbContext.SaveChangesAsync();
 
+                // Retrieve full details after saving
+                newCustomCombo = await _dbContext.CustomCombos
+                    .Include(cc => cc.User)
+                    .Include(cc => cc.Dish)
+                    .FirstOrDefaultAsync(cc => cc.Id == newCustomCombo.Id);
+
                 var updatedCustomComboDTO = new CustomComboDTO
                 {
                     Id = newCustomCombo.Id,
                     UserId = newCustomCombo.UserId,
+                    UserName = newCustomCombo.User.UserName,
+                    UserEmail = newCustomCombo.User.UserEmail,
+                    Phone = newCustomCombo.User.Phone,
+
                     DishId = newCustomCombo.DishId,
+                    DishName = newCustomCombo.Dish.Name,
+                    DishPrice = newCustomCombo.Dish.Price,
+                    DishStatus = newCustomCombo.Dish.Status,
+                    DishImagePath = newCustomCombo.Dish.ImagePath,
+
+                    OrderId = newCustomCombo.OrderId,
                     Date = newCustomCombo.Date
                 };
 
@@ -171,6 +218,7 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCustomCombo(int id, CustomComboDTO customComboDTO)
@@ -224,11 +272,27 @@ namespace RESTAURANT.API.Controllers
                 _dbContext.CustomCombos.Update(existingCustomCombo);
                 await _dbContext.SaveChangesAsync();
 
+                // Retrieve full details after saving
+                existingCustomCombo = await _dbContext.CustomCombos
+                    .Include(cc => cc.User)
+                    .Include(cc => cc.Dish)
+                    .FirstOrDefaultAsync(cc => cc.Id == existingCustomCombo.Id);
+
                 var updatedCustomComboDTO = new CustomComboDTO
                 {
                     Id = existingCustomCombo.Id,
                     UserId = existingCustomCombo.UserId,
+                    UserName = existingCustomCombo.User.UserName,
+                    UserEmail = existingCustomCombo.User.UserEmail,
+                    Phone = existingCustomCombo.User.Phone,
+
                     DishId = existingCustomCombo.DishId,
+                    DishName = existingCustomCombo.Dish.Name,
+                    DishPrice = existingCustomCombo.Dish.Price,
+                    DishStatus = existingCustomCombo.Dish.Status,
+                    DishImagePath = existingCustomCombo.Dish.ImagePath,
+
+                    OrderId = existingCustomCombo.OrderId,
                     Date = existingCustomCombo.Date
                 };
 
@@ -251,6 +315,7 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCustomCombo(int id)

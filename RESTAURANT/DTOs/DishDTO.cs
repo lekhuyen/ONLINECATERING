@@ -10,7 +10,5 @@
 
         public IFormFile? ImageFile { get; set; }
 
-/*        public ICollection<ComboDishDTO>? ComboDishes { get; set; }
-        public CustomComboDTO? CustomCombo { get; set; }*/
     }
 }
