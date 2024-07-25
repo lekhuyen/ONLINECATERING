@@ -117,36 +117,16 @@ namespace RESTAURANT.API.Controllers
             try
             {
                 // Check if CustomComboId exists
-                var customCombo = await _dbContext.CustomCombos.FindAsync(orderDTO.CustomComboId);
-                if (customCombo == null)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = $"Invalid CustomComboId {orderDTO.CustomComboId}. Custom combo does not exist.",
-                        Data = null
-                    });
-                }
-
-                // Check if PromotionId exists
-                var promotion = await _dbContext.Promotions.FindAsync(orderDTO.PromotionId);
-                if (promotion == null)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = $"Invalid PromotionId {orderDTO.PromotionId}. Promotion does not exist.",
-                        Data = null
-                    });
-                }
+                var customCombo = await _dbContext.CustomCombos
+                    .Include(cc => cc.User) // Include related User information
+                    .Include(cc => cc.Dish) // Include related Dish information if needed
+                    .FirstOrDefaultAsync(cc => cc.Id == orderDTO.CustomComboId);
 
                 // Create new Order entity and set properties
                 var order = new Order
                 {
-                    UserId = orderDTO.UserId,
-                    CustomComboId = orderDTO.CustomComboId,
+                    UserId = orderDTO?.UserId,
+                    CustomComboId = orderDTO?.CustomComboId,
                     TotalPrice = orderDTO.TotalPrice,
                     QuantityTable = orderDTO.QuantityTable,
                     StatusPayment = orderDTO.StatusPayment,
@@ -158,23 +138,28 @@ namespace RESTAURANT.API.Controllers
                 _dbContext.Orders.Add(order);
                 await _dbContext.SaveChangesAsync();
 
+                // Prepare detailed response data
+                var responseData = new OrderDTO
+                {
+                    Id = order.Id,
+                    UserId = order.UserId,
+                    CustomComboId = order.CustomComboId,
+                    TotalPrice = order.TotalPrice,
+                    QuantityTable = order.QuantityTable,
+                    StatusPayment = order.StatusPayment,
+                    Deposit = order.Deposit,
+                    Oganization = order.Oganization,
+
+                    // Include other properties as needed
+                };
+
                 // Return created order DTO
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
                     Message = "Order created successfully",
-                    Data = new OrderDTO
-                    {
-                        Id = order.Id,
-                        UserId = order.UserId,
-                        CustomComboId = order.CustomComboId,
-                        TotalPrice = order.TotalPrice,
-                        QuantityTable = order.QuantityTable,
-                        StatusPayment = order.StatusPayment,
-                        Deposit = order.Deposit,
-                        Oganization = order.Oganization,
-                    }
+                    Data = responseData
                 });
             }
             catch (Exception ex)
@@ -188,6 +173,8 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+
+
 
         // PUT: api/Order/5
         [HttpPut("{id}")]
@@ -209,34 +196,14 @@ namespace RESTAURANT.API.Controllers
                 }
 
                 // Check if CustomComboId exists
-                var customCombo = await _dbContext.CustomCombos.FindAsync(orderDTO.CustomComboId);
-                if (customCombo == null)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = $"Invalid CustomComboId {orderDTO.CustomComboId}. Custom combo does not exist.",
-                        Data = null
-                    });
-                }
-
-                // Check if PromotionId exists
-                var promotion = await _dbContext.Promotions.FindAsync(orderDTO.PromotionId);
-                if (promotion == null)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = $"Invalid PromotionId {orderDTO.PromotionId}. Promotion does not exist.",
-                        Data = null
-                    });
-                }
+                var customCombo = await _dbContext.CustomCombos
+                    .Include(cc => cc.Dish) // Include related Dish information if needed
+                    .FirstOrDefaultAsync(cc => cc.Id == orderDTO.CustomComboId);
 
                 // Update Order entity
-                order.UserId = orderDTO.UserId;
-                order.CustomComboId = orderDTO.CustomComboId;
+                order.UserId = orderDTO?.UserId;
+                order.CustomComboId = orderDTO?.CustomComboId;
+                order.PromotionId = orderDTO?.PromotionId;
                 order.TotalPrice = orderDTO.TotalPrice;
                 order.QuantityTable = orderDTO.QuantityTable;
                 order.StatusPayment = orderDTO.StatusPayment;
@@ -247,23 +214,27 @@ namespace RESTAURANT.API.Controllers
                 _dbContext.Orders.Update(order);
                 await _dbContext.SaveChangesAsync();
 
+                // Prepare updated order DTO response
+                var updatedOrderDTO = new OrderDTO
+                {
+                    Id = order.Id,
+                    UserId = order.UserId,
+                    CustomComboId = order.CustomComboId,
+                    TotalPrice = order.TotalPrice,
+                    QuantityTable = order.QuantityTable,
+                    StatusPayment = order.StatusPayment,
+                    Deposit = order.Deposit,
+                    Oganization = order.Oganization,
+                    // Include other properties as needed
+                };
+
                 // Return updated order DTO
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
                     Message = "Order updated successfully",
-                    Data = new OrderDTO
-                    {
-                        Id = order.Id,
-                        UserId = order.UserId,
-                        CustomComboId = order.CustomComboId,
-                        TotalPrice = order.TotalPrice,
-                        QuantityTable = order.QuantityTable,
-                        StatusPayment = order.StatusPayment,
-                        Deposit = order.Deposit,
-                        Oganization = order.Oganization,
-                    }
+                    Data = updatedOrderDTO
                 });
             }
             catch (Exception ex)
@@ -277,6 +248,7 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+
 
         // DELETE: api/Order/5
         [HttpDelete("{id}")]

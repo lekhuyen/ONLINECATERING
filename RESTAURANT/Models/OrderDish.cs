@@ -1,8 +1,13 @@
-﻿namespace RESTAURANT.API.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace RESTAURANT.API.Models
 {
     public class OrderDish
     {
-        public int Id { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int OrderDishId { get; set; }
 
         public int DishId { get; set; }
 
