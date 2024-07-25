@@ -55,10 +55,18 @@ namespace RESTAURANT
 				return new RedisSubcribeService(redisClient, dbContext);
 			});
 
-			
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin",
+                    builder => builder
+                        .WithOrigins("http://localhost:3000") // Allow requests from this origin
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials());
+            });
 
 
-			var app = builder.Build();
+            var app = builder.Build();
 
 			app.UseCors(builder => builder
 				 .AllowAnyOrigin()
@@ -71,8 +79,10 @@ namespace RESTAURANT
 				app.UseSwagger();
 				app.UseSwaggerUI();
 			}
+            // Use CORS middleware
+            app.UseCors("AllowSpecificOrigin");
 
-			app.UseStaticFiles();
+            app.UseStaticFiles();
 			app.UseCors();
 
 			app.UseAuthorization();
