@@ -26,7 +26,9 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                var combos = await _dbContext.Combos.ToListAsync();
+                var combos = await _dbContext.Combos
+                    .Include(c => c.Promotions)
+                    .ToListAsync();
 
                 var ComboDTOs = combos.Select(combo => new ComboDTO
                 {
@@ -36,7 +38,13 @@ namespace RESTAURANT.API.Controllers
                     Status = combo.Status,
                     ImagePath = combo.ImagePath,
                     Type = combo.Type,
-
+                    Promotions = combo.Promotions.Select(p => new PromotionDTO
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Description = p.Description,
+                        ImagePath= p.ImagePath,
+                    }).ToList(),
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -65,7 +73,8 @@ namespace RESTAURANT.API.Controllers
             try
             {
                 var combo = await _dbContext.Combos
-                    .FindAsync(id);
+                    .Include(c => c.Promotions)
+                    .FirstOrDefaultAsync(x => x.Id == id);
 
                 if (combo == null)
                 {
@@ -85,6 +94,13 @@ namespace RESTAURANT.API.Controllers
                     Status = combo.Status,
                     ImagePath = combo.ImagePath,
                     Type = combo.Type,
+                    Promotions = combo.Promotions.Select(p => new PromotionDTO
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Description = p.Description,
+                        ImagePath = p.ImagePath,
+                    }).ToList(),
 
                 };
 
@@ -129,7 +145,7 @@ namespace RESTAURANT.API.Controllers
                     Price = comboDTO.Price,
                     Status = comboDTO.Status,
                     ImagePath = imagePath,
-                    Type = comboDTO.Type,
+                    Type = (int)comboDTO.Type,
                 };
 
                 // Add to DbContext
@@ -198,7 +214,7 @@ namespace RESTAURANT.API.Controllers
                 existingCombo.Name = comboDTO.Name;
                 existingCombo.Price = comboDTO.Price;
                 existingCombo.Status = comboDTO.Status;
-                existingCombo.Type = comboDTO.Type;
+                existingCombo.Type = (int)comboDTO.Type;
 
                 // Handle image update
                 if (comboDTO.ImageFile != null)

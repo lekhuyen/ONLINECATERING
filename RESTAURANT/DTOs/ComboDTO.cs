@@ -10,7 +10,8 @@
 
         public IFormFile? ImageFile { get; set; }
 
-        public int Type { get; set; }
-/*        public ICollection<ComboDishDTO>? ComboDishes { get; set; }*/
+        public int? Type { get; set; }
+        public List<PromotionDTO>? Promotions { get; set; }
+        /*        public ICollection<ComboDishDTO>? ComboDishes { get; set; }*/
     }
 }

@@ -24,5 +24,8 @@ namespace RESTAURANT.API.Models
 
         public Order? Order { get; set; }
 
+        public int? ComboId { get; set; }
+        public Combo? Combo { get; set; }
+
     }
 }
