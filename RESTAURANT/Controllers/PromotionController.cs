@@ -121,7 +121,7 @@ namespace RESTAURANT.API.Controllers
 
                 // Check if the OrderId exists in the Orders table
                 var existingOrder = await _dbContext.Orders.FindAsync(promotionDTO.OrderId);
-                if (existingOrder == null)
+/*                if (existingOrder == null)
                 {
                     return BadRequest(new ApiResponse
                     {
@@ -130,7 +130,7 @@ namespace RESTAURANT.API.Controllers
                         Message = "Invalid OrderId. Order does not exist.",
                         Data = null
                     });
-                }
+                }*/
 
                 // Save image if exists
                 string imagePath = null;
@@ -265,7 +265,7 @@ namespace RESTAURANT.API.Controllers
                 var updatedPromotionDTO = new PromotionDTO
                 {
                     Id = existingPromotion.Id,
-                    OrderId = existingPromotion.OrderId,
+/*                    OrderId = existingPromotion.OrderId,*/
                     Name = existingPromotion.Name,
                     Description = existingPromotion.Description,
                     ImagePath = existingPromotion.ImagePath,

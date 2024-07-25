@@ -6,7 +6,7 @@ namespace RESTAURANT.API.DTOs
     {
         public int Id { get; set; }
 
-        public int OrderId { get; set; }
+        public int? OrderId { get; set; }
 
         public string Name { get; set; }
         public string Description { get; set; }
@@ -14,7 +14,7 @@ namespace RESTAURANT.API.DTOs
 
         public IFormFile? ImageFile { get; set; }
 
-        public bool Status { get; set; }
+        public bool Status { get; set; } = false;
         public int QuantityTable { get; set; }
         public decimal Price { get; set; }
 
