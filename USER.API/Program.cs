@@ -50,6 +50,17 @@ namespace USER
 
             //repositories
 
+            // Configure CORS policy
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin",
+                    builder => builder
+                        .WithOrigins("http://localhost:3000") // Allow requests from this origin
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials());
+            });
+
             builder.Services.AddScoped<IRepositories, UserRepositories>();
             builder.Services.AddScoped<IAuthUser, AuthUserRepositories>();
             builder.Services.AddScoped<IFavoriteList, FavoriteRespositories>();
@@ -89,6 +100,7 @@ namespace USER
             }
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseCors("AllowSpecificOrigin");
 
 
             app.MapControllers();
