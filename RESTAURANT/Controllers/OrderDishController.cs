@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using APIRESPONSE.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
@@ -166,27 +167,44 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
-        // DELETE: api/OrderDish/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrderDish(int id)
         {
-            var orderDish = await _dbContext.OrderDishes.FindAsync(id);
-            if (orderDish == null)
-            {
-                return NotFound("Order dish not found");
-            }
-
             try
             {
+                var orderDish = await _dbContext.OrderDishes.FirstOrDefaultAsync(od => od.OrderDishId == id);
+
+                if (orderDish == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Order Dish not found",
+                    });
+                }
+
                 _dbContext.OrderDishes.Remove(orderDish);
                 await _dbContext.SaveChangesAsync();
 
-                return NoContent();
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Order Dish deleted successfully",
+                });
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return BadRequest($"Error deleting order dish: {ex.Message}");
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 400, // Bad Request status code
+                    Message = "Error deleting Order Dish",
+                    Data = e.Message // Provide exception message as Data
+                });
             }
+
         }
     }
 }
