@@ -91,13 +91,14 @@ namespace RESTAURANT.API.Models
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.CustomCombo)
                 .WithOne(cc => cc.Order)
-                .HasForeignKey<Order>(o => o.CustomComboId);
+                .HasForeignKey<CustomCombo>(o => o.OrderId);
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Promotion)
                 .WithOne(cc => cc.Order)
                 .HasForeignKey<Order>(o => o.PromotionId);
 
+            // Orderdish
             modelBuilder.Entity<OrderDish>()
                 .HasKey(od => new { od.DishId, od.OrderId });
 
@@ -113,16 +114,20 @@ namespace RESTAURANT.API.Models
                 .HasForeignKey(od => od.DishId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+
             //CustomCombo
             modelBuilder.Entity<CustomCombo>()
+               .HasKey(od => new { od.DishId, od.UserId });
+
+            modelBuilder.Entity<CustomCombo>()
                 .HasOne(cc => cc.Dish)
-                .WithOne(d => d.CustomCombo)
-                .HasForeignKey<CustomCombo>(cc => cc.DishId);
+                .WithMany(d => d.CustomCombos)
+                .HasForeignKey(cc => cc.DishId);
 
             modelBuilder.Entity<CustomCombo>()
                 .HasOne(cc => cc.User)
-                .WithOne(u => u.CustomCombo)
-                .HasForeignKey<CustomCombo>(cc => cc.UserId);
+                .WithMany(u => u.CustomCombos)
+                .HasForeignKey(cc => cc.UserId);
 
             // Service
             modelBuilder.Entity<Service>()
@@ -161,7 +166,7 @@ namespace RESTAURANT.API.Models
         public DbSet<Lobby> Lobbies { get; set; }
         public DbSet<LobbyImages> LobbiesImages { get; set; }
 
-        public DbSet<OrderDish> OrderDishs { get; set; }
+        public DbSet<OrderDish> OrderDishes { get; set; }
 
     }
 }
