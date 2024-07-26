@@ -50,8 +50,45 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetDessertById(int id)
+        {
+            try
+            {
+                var dessert = await _dbContext.Desserts.FindAsync(id);
+
+                if (dessert == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Dessert not found",
+                        Data = null
+                    });
+                }
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Dessert retrieved successfully",
+                    Data = dessert
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Internal server error",
+                    Data = ex.Message
+                });
+            }
+        }
         [HttpPost]
-        public async Task<IActionResult> AddDessert([FromForm] Dessert dessert,IFormFile formFile)
+        public async Task<IActionResult> AddDessert([FromForm] Dessert dessert, IFormFile formFile)
         {
             var fileUpload = new FileUpload(_webHostEnvironment);
 
@@ -94,6 +131,81 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateDessert(int id, [FromForm] Dessert updatedDessert, IFormFile? formFile)
+        {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
+            try
+            {
+                // Find the existing dessert in the database
+                var existingDessert = await _dbContext.Desserts.FindAsync(id);
+
+                if (existingDessert == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Dessert not found",
+                        Data = null
+                    });
+                }
+
+                if (id != updatedDessert.Id)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Mismatched ID in object and parameter",
+                        Data = null
+                    });
+                }
+
+                // Update the properties of the existing dessert with the new values
+                existingDessert.DessertName = updatedDessert.DessertName;
+                existingDessert.Price = updatedDessert.Price;
+                existingDessert.Quantity = updatedDessert.Quantity;
+
+                // Handle image update
+                if (formFile != null)
+                {
+                    // Delete old image if exists
+                    if (!string.IsNullOrEmpty(existingDessert.DessertImage))
+                    {
+                        fileUpload.DeleteImage(existingDessert.DessertImage);
+                    }
+
+                    // Save the new image
+                    string newImagePath = await fileUpload.SaveImage("images", formFile);
+                    existingDessert.DessertImage = newImagePath;
+                }
+
+                // Save changes to the database
+                _dbContext.Desserts.Update(existingDessert);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Dessert updated successfully",
+                    Data = existingDessert
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Internal server error",
+                    Data = null
+                });
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDessert(int id)
         {

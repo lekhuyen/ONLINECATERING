@@ -143,6 +143,51 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
+        [HttpDelete("Delete/{comboId}/{dishId}")]
+        public async Task<IActionResult> DeleteComboDish(int comboId, int dishId)
+        {
+            try
+            {
+                // Find the ComboDish entry with the specified ComboId and DishId
+                var comboDish = await _dbContext.ComboDishes
+                    .FirstOrDefaultAsync(cd => cd.ComboId == comboId && cd.DishId == dishId);
+
+                if (comboDish == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "ComboDish not found",
+                        Data = null
+                    });
+                }
+
+                // Remove the ComboDish entry from the database
+                _dbContext.ComboDishes.Remove(comboDish);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "ComboDish deleted successfully",
+                    Data = null
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Internal server error",
+                    Data = ex.Message
+                });
+            }
+        }
+
+
     }
 
 }
