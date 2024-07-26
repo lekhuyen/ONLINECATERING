@@ -13,8 +13,9 @@
         public bool StatusPayment { get; set; }
         public decimal Deposit { get; set; }
         public DateTime Oganization { get; set; }
-        // Add PromotionId property if needed
+        
         public int PromotionId { get; set; }
+        //public List<ComboDTO>? ComboId { get; set; }
 
     }
 }

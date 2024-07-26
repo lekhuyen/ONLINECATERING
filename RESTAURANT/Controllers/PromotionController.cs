@@ -34,12 +34,11 @@ namespace RESTAURANT.API.Controllers
                 {
                     Id = promotion.Id,
                     OrderId = promotion.OrderId,
+                    ComboId = promotion.ComboId,
                     Name = promotion.Name,
                     Description = promotion.Description,
                     ImagePath = promotion.ImagePath,
                     Status = promotion.Status,
-                    QuantityTable = promotion.QuantityTable,
-                    Price = promotion.Price,
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -88,8 +87,7 @@ namespace RESTAURANT.API.Controllers
                     Description = promotion.Description,
                     ImagePath = promotion.ImagePath,
                     Status = promotion.Status,
-                    QuantityTable = promotion.QuantityTable,
-                    Price = promotion.Price,
+
                 };
 
                 return Ok(new ApiResponse
@@ -145,9 +143,8 @@ namespace RESTAURANT.API.Controllers
                     Name = promotionDTO.Name,
                     Description = promotionDTO.Description,
                     ImagePath = imagePath,
+                    ComboId = promotionDTO.ComboId,
                     Status = promotionDTO.Status,
-                    QuantityTable = promotionDTO.QuantityTable,
-                    Price = promotionDTO.Price,
                     OrderId = promotionDTO.OrderId  // Assign the OrderId
                 };
 
@@ -164,8 +161,7 @@ namespace RESTAURANT.API.Controllers
                     Description = newPromotion.Description,
                     ImagePath = newPromotion.ImagePath,
                     Status = newPromotion.Status,
-                    QuantityTable = newPromotion.QuantityTable,
-                    Price = newPromotion.Price,
+              
                 };
 
                 return Created("success", new ApiResponse
@@ -221,8 +217,8 @@ namespace RESTAURANT.API.Controllers
                 existingPromotion.Name = promotionDTO.Name;
                 existingPromotion.Description = promotionDTO.Description;
                 existingPromotion.Status = promotionDTO.Status;
-                existingPromotion.QuantityTable = promotionDTO.QuantityTable;
-                existingPromotion.Price = promotionDTO.Price;
+                existingPromotion.ComboId = promotionDTO.ComboId;
+                
 
                 // Handle image update
                 if (promotionDTO.ImageFile != null)
@@ -270,8 +266,7 @@ namespace RESTAURANT.API.Controllers
                     Description = existingPromotion.Description,
                     ImagePath = existingPromotion.ImagePath,
                     Status = existingPromotion.Status,
-                    QuantityTable = existingPromotion.QuantityTable,
-                    Price = existingPromotion.Price,
+
                 };
 
                 return Ok(new ApiResponse
