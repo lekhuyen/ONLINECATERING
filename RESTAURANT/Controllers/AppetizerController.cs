@@ -1,7 +1,9 @@
 ﻿using APIRESPONSE.Models;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RESTAURANT.API.Helpers;
 using RESTAURANT.API.Models;
 
 namespace RESTAURANT.API.Controllers
@@ -11,10 +13,12 @@ namespace RESTAURANT.API.Controllers
     public class AppetizerController : ControllerBase
     {
         private readonly DatabaseContext _dbContext;
-
-        public AppetizerController(DatabaseContext dbContext)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        public AppetizerController(DatabaseContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
             _dbContext = dbContext;
+            _webHostEnvironment = webHostEnvironment;
+
         }
         [HttpGet]
         public async Task<IActionResult> GetAllAppetizer()
@@ -44,14 +48,18 @@ namespace RESTAURANT.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddAppetizer([FromForm] Appetizer appetizer, IFormFile formFile)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 if (ModelState.IsValid)
                 {
+                    string result = null;
                     if (formFile != null)
                     {
-                        var imagePath = await FileUpload.SaveImage("images", formFile);
-                        appetizer.AppetizerImage = imagePath;
+                        result = await fileUpload.SaveImage("images", formFile);
+                        //var imagePath = await FileUpload.SaveImage("images", formFile);
+                        appetizer.AppetizerImage = result;
                     }
 
                     await _dbContext.Appetizers.AddAsync(appetizer);
@@ -102,7 +110,7 @@ namespace RESTAURANT.API.Controllers
 
                 if (!string.IsNullOrEmpty(appetizer.AppetizerImage))
                 {
-                    FileUpload.DeleteImage(appetizer.AppetizerImage);
+                    //FileUpload.DeleteImage(appetizer.AppetizerImage);
                 }
 
 

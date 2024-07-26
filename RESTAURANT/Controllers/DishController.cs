@@ -17,11 +17,15 @@ namespace RESTAURANT.API.Controllers
     [ApiController]
     public class DishController : ControllerBase
     {
+        
         private readonly DatabaseContext _dbContext; // Replace DatabaseContext with your DbContext
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public DishController(DatabaseContext dbContext)
+        public DishController(DatabaseContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
             _dbContext = dbContext;
+            _webHostEnvironment = webHostEnvironment;
+
         }
 
         // GET api/dish
@@ -113,16 +117,18 @@ namespace RESTAURANT.API.Controllers
 
         // POST api/dish
         [HttpPost]
-        public async Task<IActionResult> CreateDish([FromForm] DishDTO dishDTO)
+        public async Task<IActionResult> CreateDish([FromForm] DishDTO dishDTO, IFormFile formFile)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
             try
             {
 
                 // Save image if exists
-                string imagePath = null;
-                if (dishDTO.ImageFile != null)
+                string result = null;
+                if (formFile != null)
                 {
-                    imagePath = await FileUpload.SaveImage("Images", dishDTO.ImageFile);
+                     result = await fileUpload.SaveImage("images",formFile);
+
                 }
 
                 // Map DTO to entity
@@ -131,7 +137,7 @@ namespace RESTAURANT.API.Controllers
                     Name = dishDTO.Name,
                     Price = dishDTO.Price,
                     Status = dishDTO.Status,
-                    ImagePath = imagePath
+                    ImagePath = result
                 };
 
                 // Add to DbContext
@@ -198,11 +204,11 @@ namespace RESTAURANT.API.Controllers
                     // Delete old image if it exists
                     if (!string.IsNullOrEmpty(existingDish.ImagePath))
                     {
-                        FileUpload.DeleteImage(existingDish.ImagePath);
+                        ////FileUpload.DeleteImage(existingDish.ImagePath);
                     }
 
                     // Save new image and update ImagePath
-                    existingDish.ImagePath = await FileUpload.SaveImage("Images", dishDTO.ImageFile);
+                    //existingDish.ImagePath = await FileUpload.SaveImage("Images", dishDTO.ImageFile);
                 }
                 // If diskDTO.ImageFile is null, do nothing, which will keep the existing image
 
@@ -261,7 +267,7 @@ namespace RESTAURANT.API.Controllers
                 // Delete associated image if exists
                 if (!string.IsNullOrEmpty(dishToDelete.ImagePath))
                 {
-                    FileUpload.DeleteImage(dishToDelete.ImagePath);
+                    //FileUpload.DeleteImage(dishToDelete.ImagePath);
                 }
 
                 // Remove from DbContext and save changes

@@ -73,8 +73,8 @@ namespace RESTAURANT.API.Controllers
                 {
                     if(formFile != null)
                     {
-                        var imagePath = await FileUpload.SaveImage("images", formFile);
-                        menuDTO.MenuImage = imagePath;
+                        //var imagePath = await FileUpload.SaveImage("images", formFile);
+                        //menuDTO.MenuImage = imagePath;
                     }
                     
                     await _menu.AddMenu(menuDTO);
@@ -123,13 +123,13 @@ namespace RESTAURANT.API.Controllers
                     {
                         if (formFile != null)
                         {
-                            var imagePath = await FileUpload.SaveImage("images", formFile);
-                            if(menu.MenuImage != null)
-                            {
-                                FileUpload.DeleteImage(menu.MenuImage);
-                            }
+                            //var imagePath = await FileUpload.SaveImage("images", formFile);
+                            //if(menu.MenuImage != null)
+                            //{
+                            //    FileUpload.DeleteImage(menu.MenuImage);
+                            //}
 
-                            menu.MenuImage = imagePath;
+                            //menu.MenuImage = imagePath;
                         }
 
                         menu.MenuName = menuDTO.MenuName;

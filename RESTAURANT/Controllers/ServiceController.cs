@@ -55,7 +55,7 @@ namespace RESTAURANT.API.Controllers
 						Message = "Create service failed"
 					});
 				}
-				service.ImagePath = await FileUpload.SaveImage("images", formFile);
+				//service.ImagePath = await FileUploader.SaveImage("images", formFile);
 				var serviceCreated = await _repository.AddServiceAsync(service);
 				return Created("success", new
 				{
@@ -97,9 +97,9 @@ namespace RESTAURANT.API.Controllers
 				{
 					if (!string.IsNullOrEmpty(serviceExisted.ImagePath))
 					{
-						FileUpload.DeleteImage(serviceExisted.ImagePath);
+						//FileUpload.DeleteImage(serviceExisted.ImagePath);
 					}
-					service.ImagePath = await FileUpload.SaveImage("images", formFile);
+					//service.ImagePath = await FileUpload.SaveImage("images", formFile);
 				}
 				else
 				{
@@ -142,7 +142,7 @@ namespace RESTAURANT.API.Controllers
 				}
 				if (!string.IsNullOrEmpty(serviceExisted.ImagePath))
 				{
-					FileUpload.DeleteImage(serviceExisted.ImagePath);
+					//FileUpload.DeleteImage(serviceExisted.ImagePath);
 				}
 				var serviceDelete = await _repository.DeleteServiceAsync(id);
 				return Ok(new

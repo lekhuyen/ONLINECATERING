@@ -8,9 +8,9 @@ namespace RESTAURANT.API.Helpers
 {
     public class FileUpload
     {
-        static readonly string baseFolder = "Uploads";
-        static readonly string subFolder = "images"; // Adjust subfolder name as needed
+        static readonly string baseFolder = "Uploads"; // Directory outside wwwroot
         static readonly string rootUrl = "http://localhost:5265/";
+        //static readonly string rootUrl = "http://localhost:5246/";
 
         private readonly IWebHostEnvironment _webHostEnvironment;
 
@@ -19,10 +19,10 @@ namespace RESTAURANT.API.Helpers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<string> SaveImage(IFormFile formFile)
+        public async Task<string> SaveImage(string subFolder, IFormFile formFile)
         {
             string imagesName = Guid.NewGuid().ToString() + "_" + formFile.FileName;
-            var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, baseFolder, subFolder);
+            var imagePath = Path.Combine(Directory.GetCurrentDirectory(), baseFolder, subFolder);
 
             if (!Directory.Exists(imagePath))
             {
@@ -36,13 +36,13 @@ namespace RESTAURANT.API.Helpers
                 await formFile.CopyToAsync(fileStream);
             }
 
-            return Path.Combine(rootUrl, baseFolder, subFolder, imagesName).Replace("\\", "/");
+            // If you need to generate a URL to access the file, you would need to handle routing differently
+            return Path.Combine(rootUrl,baseFolder, subFolder, imagesName).Replace("\\", "/");
         }
 
-        public void DeleteImage(string imageUrl)
+        public void DeleteImage(string imagePath)
         {
-            var exactPath = imageUrl.Replace(rootUrl, "").Replace("/", "\\");
-            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, exactPath);
+            var filePath = Path.Combine(_webHostEnvironment.ContentRootPath, imagePath);
 
             if (File.Exists(filePath))
             {

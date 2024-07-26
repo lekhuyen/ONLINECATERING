@@ -1,10 +1,13 @@
 ﻿using APIRESPONSE.Models;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using REDISCLIENT;
 using RESTAURANT.API.DTOs;
+using RESTAURANT.API.Helpers;
 using RESTAURANT.API.Models;
 
 namespace RESTAURANT.API.Controllers
@@ -13,11 +16,14 @@ namespace RESTAURANT.API.Controllers
     [ApiController]
     public class DessertController : ControllerBase
     {
-        private readonly DatabaseContext _dbContext; 
+        private readonly DatabaseContext _dbContext;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public DessertController(DatabaseContext dbContext)
+        public DessertController(DatabaseContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
             _dbContext = dbContext;
+            _webHostEnvironment = webHostEnvironment;
+
         }
         [HttpGet]
         public async Task<IActionResult> GetAllDesserts()
@@ -47,14 +53,17 @@ namespace RESTAURANT.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddDessert([FromForm] Dessert dessert,IFormFile formFile)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 if (ModelState.IsValid)
                 {
+                    string result = null;
                     if (formFile != null)
                     {
-                        var imagePath = await FileUpload.SaveImage("images", formFile);
-                        dessert.DessertImage = imagePath;
+                        result = await fileUpload.SaveImage("images", formFile);
+                        dessert.DessertImage = result;
                     }
 
                     await _dbContext.Desserts.AddAsync(dessert);
@@ -105,7 +114,7 @@ namespace RESTAURANT.API.Controllers
                 
                 if (!string.IsNullOrEmpty(dessert.DessertImage))
                 {
-                    FileUpload.DeleteImage(dessert.DessertImage);
+                    //FileUpload.DeleteImage(dessert.DessertImage);
                 }
 
                 

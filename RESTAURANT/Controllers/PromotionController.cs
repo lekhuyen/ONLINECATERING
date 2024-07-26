@@ -134,7 +134,7 @@ namespace RESTAURANT.API.Controllers
                 string imagePath = null;
                 if (promotionDTO.ImageFile != null)
                 {
-                    imagePath = await FileUpload.SaveImage("Images", promotionDTO.ImageFile);
+                    //imagePath = await FileUpload.SaveImage("Images", promotionDTO.ImageFile);
                 }
 
                 // Map DTO to entity
@@ -226,11 +226,11 @@ namespace RESTAURANT.API.Controllers
                     // Delete old image if it exists
                     if (!string.IsNullOrEmpty(existingPromotion.ImagePath))
                     {
-                        FileUpload.DeleteImage(existingPromotion.ImagePath);
+                        //FileUpload.DeleteImage(existingPromotion.ImagePath);
                     }
 
                     // Save new image and update ImagePath
-                    existingPromotion.ImagePath = await FileUpload.SaveImage("Images", promotionDTO.ImageFile);
+                    //existingPromotion.ImagePath = await FileUpload.SaveImage("Images", promotionDTO.ImageFile);
                 }
                 // If promotionDTO.ImageFile is null, do nothing, which will keep the existing image
 
@@ -311,7 +311,7 @@ namespace RESTAURANT.API.Controllers
                 // Delete associated image if exists
                 if (!string.IsNullOrEmpty(promotionToDelete.ImagePath))
                 {
-                    FileUpload.DeleteImage(promotionToDelete.ImagePath);
+                    //FileUpload.DeleteImage(promotionToDelete.ImagePath);
                 }
 
                 // Remove from DbContext and save changes
