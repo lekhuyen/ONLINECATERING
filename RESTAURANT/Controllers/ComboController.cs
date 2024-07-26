@@ -1,7 +1,10 @@
 ﻿using APIRESPONSE.Models;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
+using RESTAURANT.API.Helpers;
 using RESTAURANT.API.Models;
 using RESTAURANT.API.Repositories;
 using System.Collections.Generic;
@@ -15,10 +18,13 @@ namespace RESTAURANT.API.Controllers
     public class ComboController : ControllerBase
     {
         private readonly DatabaseContext _dbContext;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ComboController(DatabaseContext context)
+        public ComboController(DatabaseContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
-            _dbContext = context;
+            _dbContext = dbContext;
+            _webHostEnvironment = webHostEnvironment;
+
         }
 
         [HttpGet]
@@ -126,16 +132,18 @@ namespace RESTAURANT.API.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<ComboDTO>> CreateCombo([FromForm] ComboDTO comboDTO)
+        public async Task<ActionResult<ComboDTO>> CreateCombo([FromForm] ComboDTO comboDTO, IFormFile formFile)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
 
                 // Save image if exists
-                string imagePath = null;
-                if (comboDTO.ImageFile != null)
+                string result = null;
+                if (formFile != null)
                 {
-                    imagePath = await FileUpload.SaveImage("Images", comboDTO.ImageFile);
+                     result = await fileUpload.SaveImage("images", formFile);
                 }
 
                 // Map DTO to entity
@@ -144,7 +152,7 @@ namespace RESTAURANT.API.Controllers
                     Name = comboDTO.Name,
                     Price = comboDTO.Price,
                     Status = comboDTO.Status,
-                    ImagePath = imagePath,
+                    ImagePath = result,
                     Type = (int)comboDTO.Type,
                 };
 
@@ -222,11 +230,11 @@ namespace RESTAURANT.API.Controllers
                     // Delete old image if it exists
                     if (!string.IsNullOrEmpty(existingCombo.ImagePath))
                     {
-                        FileUpload.DeleteImage(existingCombo.ImagePath);
+                        //FileUpload.DeleteImage(existingCombo.ImagePath);
                     }
 
                     // Save new image and update ImagePath
-                    existingCombo.ImagePath = await FileUpload.SaveImage("Images", comboDTO.ImageFile);
+                    //existingCombo.ImagePath = await FileUpload.SaveImage("Images", comboDTO.ImageFile);
                 }
                 // If comboDTO.ImageFile is null, do nothing, which will keep the existing image
 
@@ -284,7 +292,7 @@ namespace RESTAURANT.API.Controllers
                 // Delete associated image if exists
                 if (!string.IsNullOrEmpty(combotoDelete.ImagePath))
                 {
-                    FileUpload.DeleteImage(combotoDelete.ImagePath);
+                    //FileUpload.DeleteImage(combotoDelete.ImagePath);
                 }
 
                 // Remove from DbContext and save changes

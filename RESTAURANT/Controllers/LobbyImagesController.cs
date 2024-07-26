@@ -44,11 +44,11 @@ namespace RESTAURANT.API.Controllers
 
 				foreach (var item in formFiles)
 				{
-					var imagePath = await FileUpload.SaveImage("Uploads/images", item);
-					var lobbyImage = new LobbyImages
+/*					var imagePath = await FileUploader.SaveImage("Uploads/images", item);
+*/					var lobbyImage = new LobbyImages
 					{
 						LobbyId = lobbyId,
-						ImagesUrl = imagePath,
+						//ImagesUrl = imagePath,
 					};
 					await _lobbyImagesRepository.CreateLobbyImage(lobbyImage);
 				}

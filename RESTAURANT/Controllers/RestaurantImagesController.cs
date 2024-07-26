@@ -34,11 +34,11 @@ namespace RESTAURANT.API.Controllers
                 }
                 foreach (var item in formFiles)
                 {
-                    var imagePath = await FileUpload.SaveImage("images", item);
+                    //var imagePath = await FileUploader.SaveImage("images", item);
                     var restaurantImages = new RestaurantImages
                     {
                         RestaurantId = restaurantId,
-                        ImagesUrl = imagePath,
+                        //ImagesUrl = imagePath,
                     };
                     await _databaseContext.RestaurantImages.AddAsync(restaurantImages);
                     await _databaseContext.SaveChangesAsync();
@@ -105,7 +105,7 @@ namespace RESTAURANT.API.Controllers
                 {
                     return NotFound();
                 }
-                FileUpload.DeleteImage(image.ImagesUrl);
+                //FileUpload.DeleteImage(image.ImagesUrl);
                 _databaseContext.Remove(image);
                 await _databaseContext.SaveChangesAsync();
                 return Ok(new ApiResponse

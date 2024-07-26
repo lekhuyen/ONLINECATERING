@@ -82,8 +82,13 @@ namespace RESTAURANT
             // Use CORS middleware
             app.UseCors("AllowSpecificOrigin");
 
-            app.UseStaticFiles();
-			app.UseCors();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+				Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+						RequestPath = "/Uploads"
+					});
+            app.UseCors();
 
 			app.UseAuthorization();
 
