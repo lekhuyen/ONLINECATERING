@@ -46,10 +46,7 @@ namespace RESTAURANT.API.Models
                 .WithOne(r => r.Restaurant)
                 .HasForeignKey(r => r.RestaurantId);
 
-            //modelBuilder.Entity<Menu>()
-            //    .HasMany(m => m.MenuImages)
-            //    .WithOne( m => m.Menu)
-            //    .HasForeignKey( m => m.MenuId); 
+            
 
 
             modelBuilder.Entity<Comment>()
@@ -138,6 +135,41 @@ namespace RESTAURANT.API.Models
                .WithMany(l => l.LobbyImages) // One lobby can have many images
                .HasForeignKey(li => li.LobbyId); // Foreign key property in LobbyImages
 
+
+            modelBuilder.Entity<ComboAppetizer>()
+               .HasKey(od => new { od.ComboId, od.AppetizerId });
+            modelBuilder.Entity<ComboAppetizer>()
+                .HasOne(c => c.Combo)
+                .WithMany(c => c.ComboAppetizers)
+                .HasForeignKey(c => c.ComboId);
+            modelBuilder.Entity<ComboAppetizer>()
+                .HasOne(c => c.Appetizer)
+                .WithMany(c => c.ComboAppetizers)
+                .HasForeignKey(c => c.AppetizerId);
+
+
+            modelBuilder.Entity<ComboDessert>()
+              .HasKey(od => new { od.ComboId, od.DessertId });
+            modelBuilder.Entity<ComboDessert>()
+                .HasOne(c => c.Dessert)
+                .WithMany(c => c.ComboDesserts)
+                .HasForeignKey(c => c.DessertId);
+            modelBuilder.Entity<ComboDessert>()
+                .HasOne(c => c.Combo)
+                .WithMany(c => c.ComboDesserts)
+                .HasForeignKey(c => c.ComboId);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(c => c.Combo)
+                .WithMany(c => c.Order)
+                .HasForeignKey(c => c.ComboId);
+
+            modelBuilder.Entity<Combo>()
+                .HasMany(c => c.Promotions)
+                .WithOne(c => c.Combo)
+                .HasForeignKey(c => c.ComboId);
+
+
         }
 
         public DbSet<Restaurant> Restaurants { get; set;}
@@ -167,6 +199,10 @@ namespace RESTAURANT.API.Models
         public DbSet<LobbyImages> LobbiesImages { get; set; }
 
         public DbSet<OrderDish> OrderDishes { get; set; }
+        public DbSet<Dessert> Desserts { get; set; }
+        public DbSet<Appetizer> Appetizers { get; set; }
+        public DbSet<ComboAppetizer> ComboAppetizers { get; set; }
+        public DbSet<ComboDessert> ComboDesserts { get; set; }
 
     }
 }

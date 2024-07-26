@@ -15,12 +15,15 @@ namespace RESTAURANT.API.Models
         public int? CustomComboId { get; set; }
         public CustomCombo? CustomCombo { get; set; }
 
-        public int? PromotionId { get; set; }
 
+        public int? ComboId { get; set; }
+        public Combo? Combo { get; set; }
+
+        public int? PromotionId { get; set; }
         public Promotion? Promotion { get; set; }
         public decimal TotalPrice { get; set; }
         public int QuantityTable { get; set; }
-        public bool StatusPayment { get; set; }
+        public bool StatusPayment { get; set; } = false;
         public decimal Deposit { get; set; }
         public DateTime Oganization { get; set; }
         public Payment? Payment { get; set; }

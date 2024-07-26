@@ -25,5 +25,12 @@ namespace RESTAURANT.API.Models
         [NotMapped]
         public IFormFile ImageFile { get; set; }
 
+        public ICollection<ComboAppetizer>? ComboAppetizers { get; set; }
+        public ICollection<ComboDessert>? ComboDesserts { get; set; }
+
+        public ICollection<Promotion>? Promotions { get; set; }
+
+        public ICollection<Order>? Order { get; set; }
+
     }
 }
