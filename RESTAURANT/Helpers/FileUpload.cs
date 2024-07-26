@@ -42,7 +42,8 @@ namespace RESTAURANT.API.Helpers
 
         public void DeleteImage(string imagePath)
         {
-            var filePath = Path.Combine(_webHostEnvironment.ContentRootPath, imagePath);
+			var exactPath = imagePath.Substring(rootUrl.Length);
+			var filePath = Path.Combine(exactPath);
 
             if (File.Exists(filePath))
             {
