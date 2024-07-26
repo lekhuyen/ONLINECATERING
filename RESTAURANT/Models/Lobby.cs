@@ -11,14 +11,14 @@ namespace RESTAURANT.API.Models
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
 		public string LobbyName { get; set; }
-		public string Description { get; set; }
-        public string Area { get; set; }
-        public int Type { get; set; }
-		public ICollection<LobbyImages>? LobbyImages { get; set; }
 
-        //public Lobby()
-        //{
-        //    LobbyImages = new List<LobbyImages>();
-        //}
+        [StringLength(1000)]
+        public string? Description { get; set; }
+        public string? Area { get; set; }
+        public int? Type { get; set; }
+        public decimal? Price { get; set; }
+        public ICollection<LobbyImages>? LobbyImages { get; set; }
+
+        
     }
 }
