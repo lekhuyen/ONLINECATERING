@@ -24,6 +24,24 @@ namespace RESTAURANT.API.Controllers
 			_databaseContext = databaseContext;
 			_lobbyImagesRepository = lobbyImagesRepository;
 		}
+		[HttpGet]
+		public async Task<IActionResult> GetAllImages()
+		{
+			try
+			{
+				var images = await _databaseContext.LobbiesImages.ToListAsync();
+				return Ok(images);
+			}catch (Exception ex)
+			{
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from service",
+                    Data = null
+                });
+            }
+		}
 
 		[HttpPost]
 		public async Task<IActionResult> AddImages([FromForm] int lobbyId, List<IFormFile> formFiles)
