@@ -97,6 +97,8 @@ namespace RESTAURANT.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDessert(int id)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 var dessert = await _dbContext.Desserts.FindAsync(id);
@@ -114,7 +116,7 @@ namespace RESTAURANT.API.Controllers
                 
                 if (!string.IsNullOrEmpty(dessert.DessertImage))
                 {
-                    //FileUpload.DeleteImage(dessert.DessertImage);
+                    fileUpload.DeleteImage(dessert.DessertImage);
                 }
 
                 

@@ -15,7 +15,9 @@ namespace RESTAURANT.API.Controllers
     {
         private readonly DatabaseContext _dbContext;
 
-        public OrderController(DatabaseContext dbContext)
+
+
+        public OrderController(DatabaseContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
             _dbContext = dbContext;
         }
