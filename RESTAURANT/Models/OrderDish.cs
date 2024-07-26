@@ -9,9 +9,12 @@ namespace RESTAURANT.API.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int OrderDishId { get; set; }
 
+        [Column(Order = 1)]
         public int DishId { get; set; }
 
+        [Column(Order = 0)]
         public int OrderId { get; set; }
+
 
         public Order? Order { get; set; }
 

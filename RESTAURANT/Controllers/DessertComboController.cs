@@ -61,7 +61,7 @@ namespace RESTAURANT.API.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> AddComboAppetizer(AddDessertDTO dessertDTO)
+        public async Task<IActionResult> AddComboDessert(AddDessertDTO dessertDTO)
         {
             try
             {
@@ -137,5 +137,48 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+
+        [HttpDelete("{comboId}/{dessertId}")]
+        public async Task<IActionResult> DeleteComboDessert(int comboId, int dessertId)
+        {
+            try
+            {
+                var comboDessert = await _dbContext.ComboDesserts
+                    .FirstOrDefaultAsync(cd => cd.ComboId == comboId && cd.DessertId == dessertId);
+
+                if (comboDessert == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "ComboDessert not found",
+                        Data = null
+                    });
+                }
+
+                _dbContext.ComboDesserts.Remove(comboDessert);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "ComboDessert deleted successfully",
+                    Data = null
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Internal server error",
+                    Data = ex.Message
+                });
+            }
+        }
+
     }
 }
