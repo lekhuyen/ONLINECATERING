@@ -18,11 +18,14 @@ namespace RESTAURANT.API.Controllers
 	{
 		private readonly DatabaseContext _databaseContext;
 		private readonly ILobbyImagesRepository _lobbyImagesRepository;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-		public LobbyImagesController(DatabaseContext databaseContext, ILobbyImagesRepository lobbyImagesRepository)
+
+        public LobbyImagesController(DatabaseContext databaseContext, ILobbyImagesRepository lobbyImagesRepository, IWebHostEnvironment webHostEnvironment)
 		{
 			_databaseContext = databaseContext;
 			_lobbyImagesRepository = lobbyImagesRepository;
+			_webHostEnvironment = webHostEnvironment;
 		}
 		[HttpGet]
 		public async Task<IActionResult> GetAllImages()
@@ -46,8 +49,10 @@ namespace RESTAURANT.API.Controllers
 		[HttpPost]
 		public async Task<IActionResult> AddImages([FromForm] int lobbyId, List<IFormFile> formFiles)
 		{
-			try
-			{
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
+            try
+            {
 				if (formFiles == null || formFiles.Count == 0)
 				{
 					return BadRequest(new ApiResponse
@@ -61,12 +66,12 @@ namespace RESTAURANT.API.Controllers
 				var addedImages = new List<LobbyImages>();
 
 				foreach (var item in formFiles)
-				{
-/*					var imagePath = await FileUploader.SaveImage("Uploads/images", item);
-*/					var lobbyImage = new LobbyImages
+                {
+                    var imagePath = await fileUpload.SaveImage("images", item);
+					var lobbyImage = new LobbyImages
 					{
 						LobbyId = lobbyId,
-						//ImagesUrl = imagePath,
+						ImagesUrl = imagePath,
 					};
 					await _lobbyImagesRepository.CreateLobbyImage(lobbyImage);
 				}

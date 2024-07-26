@@ -14,13 +14,18 @@ namespace RESTAURANT.API.Controllers
     public class RestaurantImagesController : ControllerBase
     {
         private readonly DatabaseContext _databaseContext;
-        public RestaurantImagesController(DatabaseContext databaseContext)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public RestaurantImagesController(DatabaseContext databaseContext, IWebHostEnvironment webHostEnvironment)
         {
             _databaseContext = databaseContext;
+            _webHostEnvironment = webHostEnvironment;
         }
         [HttpPost]
         public async Task<IActionResult> AddImages([FromForm]  int restaurantId, List<IFormFile> formFiles)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 if(formFiles.Count()  == 0)
@@ -34,11 +39,11 @@ namespace RESTAURANT.API.Controllers
                 }
                 foreach (var item in formFiles)
                 {
-                    //var imagePath = await FileUploader.SaveImage("images", item);
+                    var imagePath = await fileUpload.SaveImage("images", item);
                     var restaurantImages = new RestaurantImages
                     {
                         RestaurantId = restaurantId,
-                        //ImagesUrl = imagePath,
+                        ImagesUrl = imagePath,
                     };
                     await _databaseContext.RestaurantImages.AddAsync(restaurantImages);
                     await _databaseContext.SaveChangesAsync();
@@ -98,6 +103,8 @@ namespace RESTAURANT.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteImage(int id)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 var image = await _databaseContext.RestaurantImages.FirstOrDefaultAsync(r => r.Id == id);
@@ -105,7 +112,7 @@ namespace RESTAURANT.API.Controllers
                 {
                     return NotFound();
                 }
-                //FileUpload.DeleteImage(image.ImagesUrl);
+                fileUpload.DeleteImage(image.ImagesUrl);
                 _databaseContext.Remove(image);
                 await _databaseContext.SaveChangesAsync();
                 return Ok(new ApiResponse

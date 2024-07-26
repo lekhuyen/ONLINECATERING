@@ -12,11 +12,15 @@ namespace RESTAURANT.API.Controllers
 	public class ServiceController : ControllerBase
 	{
 		private readonly IServiceRepository _repository;
-		public ServiceController(IServiceRepository repository)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public ServiceController(IServiceRepository repository, IWebHostEnvironment webHostEnvironment)
 		{
 			_repository = repository;
-		}
-		[HttpGet]
+            _webHostEnvironment = webHostEnvironment;
+
+        }
+        [HttpGet]
 		public async Task<IActionResult> GetAllService()
 		{
 			try
@@ -44,8 +48,10 @@ namespace RESTAURANT.API.Controllers
 		[HttpPost]
 		public async Task<IActionResult> CreateService([FromForm] Service service, IFormFile formFile)
 		{
-			try
-			{
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
+            try
+            {
 				if (!ModelState.IsValid)
 				{
 					return BadRequest(new ApiResponse
@@ -55,8 +61,9 @@ namespace RESTAURANT.API.Controllers
 						Message = "Create service failed"
 					});
 				}
-				//service.ImagePath = await FileUploader.SaveImage("images", formFile);
+				service.ImagePath = await fileUpload.SaveImage("images", formFile);
 				var serviceCreated = await _repository.AddServiceAsync(service);
+
 				return Created("success", new
 				{
 					success = true,
@@ -78,8 +85,10 @@ namespace RESTAURANT.API.Controllers
 		[HttpPut("{id}")]
 		public async Task<IActionResult> UpdateService(int id, [FromForm] Service service, IFormFile formFile)
 		{
-			try
-			{
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
+            try
+            {
 				var serviceExisted = await _repository.GetServiceByIdAsync(id);
 				if (serviceExisted == null)
 				{
@@ -97,9 +106,9 @@ namespace RESTAURANT.API.Controllers
 				{
 					if (!string.IsNullOrEmpty(serviceExisted.ImagePath))
 					{
-						//FileUpload.DeleteImage(serviceExisted.ImagePath);
+                        fileUpload.DeleteImage(serviceExisted.ImagePath);
 					}
-					//service.ImagePath = await FileUpload.SaveImage("images", formFile);
+					service.ImagePath = await fileUpload.SaveImage("images", formFile);
 				}
 				else
 				{
@@ -127,8 +136,10 @@ namespace RESTAURANT.API.Controllers
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> DeleteService(int id)
 		{
-			try
-			{
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
+            try
+            {
 				var serviceExisted = await _repository.GetServiceByIdAsync(id);
 				if (serviceExisted == null)
 				{
@@ -142,7 +153,7 @@ namespace RESTAURANT.API.Controllers
 				}
 				if (!string.IsNullOrEmpty(serviceExisted.ImagePath))
 				{
-					//FileUpload.DeleteImage(serviceExisted.ImagePath);
+                    fileUpload.DeleteImage(serviceExisted.ImagePath);
 				}
 				var serviceDelete = await _repository.DeleteServiceAsync(id);
 				return Ok(new
