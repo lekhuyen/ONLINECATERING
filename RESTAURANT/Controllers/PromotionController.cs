@@ -1,7 +1,10 @@
 ﻿using APIRESPONSE.Models;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
+using RESTAURANT.API.Helpers;
 using RESTAURANT.API.Models;
 using System;
 using System.Collections.Generic;
@@ -16,10 +19,12 @@ namespace RESTAURANT.API.Controllers
     public class PromotionController : ControllerBase
     {
         private readonly DatabaseContext _dbContext;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public PromotionController(DatabaseContext dbContext)
+        public PromotionController(DatabaseContext dbContext, IWebHostEnvironment webHostEnvironment)
         {
             _dbContext = dbContext;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: api/Promotion
@@ -112,30 +117,21 @@ namespace RESTAURANT.API.Controllers
 
         // POST: api/Promotion
         [HttpPost]
-        public async Task<ActionResult<ApiResponse>> CreatePromotion([FromForm] PromotionDTO promotionDTO)
+        public async Task<ActionResult<ApiResponse>> CreatePromotion([FromForm] PromotionDTO promotionDTO, IFormFile formFile)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
             try
             {
-
-                // Check if the OrderId exists in the Orders table
-                var existingOrder = await _dbContext.Orders.FindAsync(promotionDTO.OrderId);
-/*                if (existingOrder == null)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "Invalid OrderId. Order does not exist.",
-                        Data = null
-                    });
-                }*/
-
                 // Save image if exists
                 string imagePath = null;
                 if (promotionDTO.ImageFile != null)
                 {
-                    //imagePath = await FileUpload.SaveImage("Images", promotionDTO.ImageFile);
+                    imagePath = await fileUpload.SaveImage("images", formFile);
+
                 }
+
+                // Check if the OrderId exists in the Orders table
+                var existingOrder = await _dbContext.Orders.FindAsync(promotionDTO.OrderId);
 
                 // Map DTO to entity
                 var newPromotion = new Promotion
@@ -159,7 +155,7 @@ namespace RESTAURANT.API.Controllers
                     OrderId = newPromotion.OrderId,
                     Name = newPromotion.Name,
                     Description = newPromotion.Description,
-                    ImagePath = newPromotion.ImagePath,
+                    ImagePath = imagePath,
                     Status = newPromotion.Status,
               
                 };
@@ -186,8 +182,10 @@ namespace RESTAURANT.API.Controllers
 
         // PUT: api/Promotion/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse>> UpdatePromotion(int id, [FromForm] PromotionDTO promotionDTO)
+        public async Task<ActionResult<ApiResponse>> UpdatePromotion(int id, [FromForm] PromotionDTO promotionDTO, IFormFile formFile)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 var existingPromotion = await _dbContext.Promotions.FindAsync(id);
@@ -226,11 +224,11 @@ namespace RESTAURANT.API.Controllers
                     // Delete old image if it exists
                     if (!string.IsNullOrEmpty(existingPromotion.ImagePath))
                     {
-                        //FileUpload.DeleteImage(existingPromotion.ImagePath);
+                        fileUpload.DeleteImage(existingPromotion.ImagePath);
                     }
 
                     // Save new image and update ImagePath
-                    //existingPromotion.ImagePath = await FileUpload.SaveImage("Images", promotionDTO.ImageFile);
+                    existingPromotion.ImagePath = await fileUpload.SaveImage("Images", formFile);
                 }
                 // If promotionDTO.ImageFile is null, do nothing, which will keep the existing image
 
@@ -294,6 +292,8 @@ namespace RESTAURANT.API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponse>> DeletePromotion(int id)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 var promotionToDelete = await _dbContext.Promotions.FindAsync(id);
@@ -311,7 +311,7 @@ namespace RESTAURANT.API.Controllers
                 // Delete associated image if exists
                 if (!string.IsNullOrEmpty(promotionToDelete.ImagePath))
                 {
-                    //FileUpload.DeleteImage(promotionToDelete.ImagePath);
+                    fileUpload.DeleteImage(promotionToDelete.ImagePath);
                 }
 
                 // Remove from DbContext and save changes

@@ -166,8 +166,10 @@ namespace RESTAURANT.API.Controllers
 
         // PUT api/dish/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDish(int id, [FromForm] DishDTO dishDTO)
+        public async Task<IActionResult> UpdateDish(int id, [FromForm] DishDTO dishDTO, IFormFile formFile)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 var existingDish = await _dbContext.Dishes.FindAsync(id);
@@ -199,16 +201,16 @@ namespace RESTAURANT.API.Controllers
                 existingDish.Status = dishDTO.Status;
 
                 // Handle image update
-                if (dishDTO.ImageFile != null)
+                if (formFile!= null)
                 {
                     // Delete old image if it exists
                     if (!string.IsNullOrEmpty(existingDish.ImagePath))
                     {
-                        ////FileUpload.DeleteImage(existingDish.ImagePath);
+                        fileUpload.DeleteImage(existingDish.ImagePath);
                     }
 
                     // Save new image and update ImagePath
-                    //existingDish.ImagePath = await FileUpload.SaveImage("Images", dishDTO.ImageFile);
+                    existingDish.ImagePath = await fileUpload.SaveImage("Images", formFile);
                 }
                 // If diskDTO.ImageFile is null, do nothing, which will keep the existing image
 
@@ -250,6 +252,7 @@ namespace RESTAURANT.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDish(int id)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
             try
             {
                 var dishToDelete = await _dbContext.Dishes.FindAsync(id);
@@ -267,7 +270,7 @@ namespace RESTAURANT.API.Controllers
                 // Delete associated image if exists
                 if (!string.IsNullOrEmpty(dishToDelete.ImagePath))
                 {
-                    //FileUpload.DeleteImage(dishToDelete.ImagePath);
+                    fileUpload.DeleteImage(dishToDelete.ImagePath);
                 }
 
                 // Remove from DbContext and save changes

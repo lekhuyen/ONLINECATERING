@@ -1,6 +1,7 @@
 ﻿using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
@@ -191,8 +192,10 @@ namespace RESTAURANT.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCombo(int id, [FromForm] ComboDTO comboDTO)
+        public async Task<IActionResult> UpdateCombo(int id, [FromForm] ComboDTO comboDTO, IFormFile formFile)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 var existingCombo = await _dbContext.Combos.FindAsync(id);
@@ -225,18 +228,19 @@ namespace RESTAURANT.API.Controllers
                 existingCombo.Type = (int)comboDTO.Type;
 
                 // Handle image update
-                if (comboDTO.ImageFile != null)
+                if (formFile != null)
                 {
                     // Delete old image if it exists
                     if (!string.IsNullOrEmpty(existingCombo.ImagePath))
                     {
-                        //FileUpload.DeleteImage(existingCombo.ImagePath);
+                        // Optionally, you can implement image deletion logic here if necessary
+                        fileUpload.DeleteImage(existingCombo.ImagePath);
                     }
 
                     // Save new image and update ImagePath
-                    //existingCombo.ImagePath = await FileUpload.SaveImage("Images", comboDTO.ImageFile);
+                    existingCombo.ImagePath = await fileUpload.SaveImage("images", formFile);
                 }
-                // If comboDTO.ImageFile is null, do nothing, which will keep the existing image
+                // If imageFile is null, keep the existing image
 
                 // Update entity in DbContext
                 _dbContext.Combos.Update(existingCombo);
@@ -273,9 +277,12 @@ namespace RESTAURANT.API.Controllers
         }
 
 
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCombo(int id)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 var combotoDelete = await _dbContext.Combos.FindAsync(id);
@@ -289,10 +296,9 @@ namespace RESTAURANT.API.Controllers
                     });
                 }
 
-                // Delete associated image if exists
                 if (!string.IsNullOrEmpty(combotoDelete.ImagePath))
                 {
-                    //FileUpload.DeleteImage(combotoDelete.ImagePath);
+                    fileUpload.DeleteImage(combotoDelete.ImagePath);
                 }
 
                 // Remove from DbContext and save changes

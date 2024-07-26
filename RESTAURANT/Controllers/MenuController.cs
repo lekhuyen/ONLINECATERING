@@ -1,4 +1,5 @@
 ﻿using APIRESPONSE.Models;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +17,13 @@ namespace RESTAURANT.API.Controllers
     {
         private readonly IMenu _menu;
         private readonly RedisClient _redisClient;
-        public MenuController(IMenu menu, RedisClient redisClient)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+
+        public MenuController(IMenu menu, RedisClient redisClient, IWebHostEnvironment webHostEnvironment)
         {
             _menu = menu;
             _redisClient = redisClient;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
@@ -69,12 +73,14 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
+                var fileUpload = new FileUpload(_webHostEnvironment);
+
                 if (ModelState.IsValid)
                 {
                     if(formFile != null)
                     {
-                        //var imagePath = await FileUpload.SaveImage("images", formFile);
-                        //menuDTO.MenuImage = imagePath;
+                        var imagePath = await fileUpload.SaveImage("images", formFile);
+                        menuDTO.MenuImage = imagePath;
                     }
                     
                     await _menu.AddMenu(menuDTO);
@@ -114,6 +120,8 @@ namespace RESTAURANT.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateMenu( int id, [FromForm] EditMenuDTO menuDTO, IFormFile formFile)
         {
+            var fileUpload = new FileUpload(_webHostEnvironment);
+
             try
             {
                 if (ModelState.IsValid)
@@ -123,13 +131,13 @@ namespace RESTAURANT.API.Controllers
                     {
                         if (formFile != null)
                         {
-                            //var imagePath = await FileUpload.SaveImage("images", formFile);
-                            //if(menu.MenuImage != null)
-                            //{
-                            //    FileUpload.DeleteImage(menu.MenuImage);
-                            //}
+                            var imagePath = await fileUpload.SaveImage("images", formFile);
+                            if(menu.MenuImage != null)
+                            {
+                                fileUpload.DeleteImage(menu.MenuImage);
+                            }
 
-                            //menu.MenuImage = imagePath;
+                            menu.MenuImage = imagePath;
                         }
 
                         menu.MenuName = menuDTO.MenuName;
