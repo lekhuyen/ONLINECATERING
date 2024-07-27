@@ -166,7 +166,7 @@ namespace RESTAURANT.API.Controllers
 
         // PUT api/dish/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDish(int id, [FromForm] DishDTO dishDTO, IFormFile formFile)
+        public async Task<IActionResult> UpdateDish(int id, [FromForm] DishDTO dishDTO, IFormFile? formFile)
         {
             var fileUpload = new FileUpload(_webHostEnvironment);
 
