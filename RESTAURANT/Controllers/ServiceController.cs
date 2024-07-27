@@ -46,7 +46,7 @@ namespace RESTAURANT.API.Controllers
 			}
 		}
 		[HttpPost]
-		public async Task<IActionResult> CreateService([FromForm] Service service, IFormFile formFile)
+		public async Task<IActionResult> CreateService([FromForm] Service service, IFormFile? formFile)
 		{
             var fileUpload = new FileUpload(_webHostEnvironment);
 
@@ -83,7 +83,7 @@ namespace RESTAURANT.API.Controllers
 			}
 		}
 		[HttpPut("{id}")]
-		public async Task<IActionResult> UpdateService(int id, [FromForm] Service service, IFormFile formFile)
+		public async Task<IActionResult> UpdateService(int id, [FromForm] Service service, IFormFile? formFile)
 		{
             var fileUpload = new FileUpload(_webHostEnvironment);
 
