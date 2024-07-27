@@ -192,7 +192,7 @@ namespace RESTAURANT.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCombo(int id, [FromForm] ComboDTO comboDTO, IFormFile formFile)
+        public async Task<IActionResult> UpdateCombo(int id, [FromForm] ComboDTO comboDTO, IFormFile? formFile)
         {
             var fileUpload = new FileUpload(_webHostEnvironment);
 

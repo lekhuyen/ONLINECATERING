@@ -104,6 +104,115 @@ namespace RESTAURANT.API.Controllers
             return orderDishDTO;
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateOrderDish(int id, [FromBody] UpdateOrderDishDTO updateDTO)
+        {
+            try
+            {
+                // Find the existing OrderDish entry by its primary key
+                var existingOrderDish = await _dbContext.OrderDishes
+                    .FirstOrDefaultAsync(od => od.OrderDishId == id);
+
+                if (existingOrderDish == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "OrderDish not found",
+                        Data = null
+                    });
+                }
+
+                // Verify that the new OrderId and DishId exist
+                var order = await _dbContext.Orders.FindAsync(updateDTO.OrderId);
+                if (order == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Invalid OrderId. Order does not exist.",
+                        Data = null
+                    });
+                }
+
+                var dish = await _dbContext.Dishes.FindAsync(updateDTO.DishId);
+                if (dish == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Invalid DishId. Dish does not exist.",
+                        Data = null
+                    });
+                }
+
+                // Remove the existing OrderDish entry
+                _dbContext.OrderDishes.Remove(existingOrderDish);
+                await _dbContext.SaveChangesAsync();
+
+                // Add the new OrderDish entry with updated values
+                var newOrderDish = new OrderDish
+                {
+                    OrderId = updateDTO.OrderId,
+                    DishId = updateDTO.DishId
+                };
+
+                _dbContext.OrderDishes.Add(newOrderDish);
+                await _dbContext.SaveChangesAsync();
+
+                // Return the updated OrderDishDTO
+                var updatedOrderDishDTO = new OrderDishDTO
+                {
+                    OrderDishId = newOrderDish.OrderDishId,
+                    OrderId = newOrderDish.OrderId,
+                    DishId = newOrderDish.DishId,
+                    Order = new OrderDTO
+                    {
+                        Id = order.Id,
+                        UserId = order.UserId,
+                        CustomComboId = order.CustomComboId,
+                        TotalPrice = order.TotalPrice,
+                        QuantityTable = order.QuantityTable,
+                        StatusPayment = order.StatusPayment,
+                        Deposit = order.Deposit,
+                        Oganization = order.Oganization,
+                    },
+                    Dish = new DishDTO
+                    {
+                        Id = dish.Id,
+                        Name = dish.Name,
+                        Price = dish.Price,
+                        Status = dish.Status,
+                        ImagePath = dish.ImagePath
+                    }
+                };
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "OrderDish updated successfully",
+                    Data = updatedOrderDishDTO
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Internal server error",
+                    Data = ex.Message
+                });
+            }
+        }
+
+
+
+
         // POST: api/OrderDish
         [HttpPost]
         public async Task<ActionResult<OrderDishDTO>> CreateOrderDish([FromBody] OrderDishCreateDTO orderDishCreateDTO)

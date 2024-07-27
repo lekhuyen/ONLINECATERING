@@ -35,6 +35,7 @@ namespace RESTAURANT.API.Controllers
                     lobby.Description,
                     lobby.Area,
                     lobby.Type,
+					lobby.Price,
                     LobbyImages = lobby.LobbyImages?.Select(image => new
                     {
                         image.Id,

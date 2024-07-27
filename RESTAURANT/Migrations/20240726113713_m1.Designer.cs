@@ -12,8 +12,8 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240726025307_ResTable")]
-    partial class ResTable
+    [Migration("20240726113713_m1")]
+    partial class m1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
