@@ -1,5 +1,4 @@
 ﻿using APIRESPONSE.Models;
-using INFORMATION.API.Helper;
 using INFORMATION.API.Models;
 using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,12 +18,12 @@ namespace INFORMATIONAPI.Controllers
     public class AboutController : ControllerBase
     {
         private readonly IAboutRepositories _aboutRepository;
-        private readonly FileUpload _fileUpload;
+        private readonly IWebHostEnvironment _env;
 
-        public AboutController(IAboutRepositories aboutRepository, IWebHostEnvironment env, FileUpload fileUpload)
+        public AboutController(IAboutRepositories aboutRepository, IWebHostEnvironment env)
         {
             _aboutRepository = aboutRepository;
-            _fileUpload = fileUpload;
+            _env = env ?? throw new ArgumentNullException(nameof(env));
         }
 
         [HttpGet]
@@ -32,6 +32,8 @@ namespace INFORMATIONAPI.Controllers
             try
             {
                 var aboutContent = await _aboutRepository.GetAllAsync();
+
+                // Retrieve all about types to map ids to names
                 var aboutTypes = await _aboutRepository.GetAllAboutTypesAsync();
                 var AboutTypeMap = aboutTypes.ToDictionary(nt => nt.Id, nt => nt.AboutTypeName);
 
@@ -54,7 +56,6 @@ namespace INFORMATIONAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
@@ -64,6 +65,7 @@ namespace INFORMATIONAPI.Controllers
                 });
             }
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOneById(string id)
@@ -82,9 +84,11 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
+                // Retrieve all about types to map ids to names
                 var AboutType = await _aboutRepository.GetAboutTypeByIdAsync(about.AboutTypeId);
                 string aboutTypeName = AboutType != null ? AboutType.AboutTypeName : "";
 
+                // Ensure imagePath is not null
                 var imagePaths = about.ImagePaths != null && about.ImagePaths.Count > 0 ? about.ImagePaths : new List<string>();
                 var formattedAbout = new
                 {
@@ -92,20 +96,19 @@ namespace INFORMATIONAPI.Controllers
                     title = about.Title,
                     content = about.Content,
                     aboutTypeName = aboutTypeName,
-                    imagePaths = imagePaths
+                    imagePaths = about.ImagePaths != null && about.ImagePaths.Count > 0 ? about.ImagePaths : new List<string>()
                 };
 
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "About Content found Successfully",
+                    Message = "About Content founded Successfully",
                     Data = formattedAbout
                 });
             }
             catch (Exception ex)
             {
-                // Log exception here
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
@@ -115,6 +118,7 @@ namespace INFORMATIONAPI.Controllers
                 });
             }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateContent([FromForm] About abt, [FromForm] List<IFormFile>? imageFiles)
@@ -142,13 +146,11 @@ namespace INFORMATIONAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Create About Content failed",
-                    Data = null
+                    Message = "Create About Content failed"
                 });
             }
         }
@@ -169,6 +171,7 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
+                // Check if imageFiles contains more than 5 files
                 if (imageFiles != null && imageFiles.Count > 5)
                 {
                     return BadRequest(new ApiResponse
@@ -179,8 +182,8 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
-                string subFolder = "images"; // Adjust this as necessary
-                var updated = await _aboutRepository.UpdateAsync(id, abt, imageFiles, subFolder);
+                // Update with new data and image files
+                var updated = await _aboutRepository.UpdateAsync(id, abt, imageFiles);
                 if (!updated)
                 {
                     return NotFound(new ApiResponse
@@ -191,16 +194,20 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
+                // Retrieve the updated About object after update
                 var updatedAbout = await _aboutRepository.GetByIdAsync(id);
+
+                // Retrieve all about types to map ids to names
                 var AboutType = await _aboutRepository.GetAboutTypeByIdAsync(updatedAbout.AboutTypeId);
                 string aboutTypeName = AboutType != null ? AboutType.AboutTypeName : "";
 
+                // Prepare response data
                 var response = new
                 {
                     id = updatedAbout.Id,
                     title = updatedAbout.Title,
                     content = updatedAbout.Content,
-                    aboutTypeName = aboutTypeName,
+                    newsTypeName = aboutTypeName,
                     imagePaths = updatedAbout.ImagePaths ?? new List<string>()
                 };
 
@@ -214,7 +221,6 @@ namespace INFORMATIONAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
@@ -237,19 +243,18 @@ namespace INFORMATIONAPI.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "About Content not found",
+                        Message = "About Content is not found",
                     });
                 }
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Delete About Content Successfully",
+                    Message = "Delete about content successfully",
                 });
             }
             catch (Exception ex)
             {
-                // Log exception here
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
@@ -260,7 +265,7 @@ namespace INFORMATIONAPI.Controllers
             }
         }
 
-        // About Types
+        // About Types (About Us, Our History, Our Mission etc.)
 
         [HttpGet("abouttypes")]
         public async Task<IActionResult> GetAllAboutTypes()
@@ -278,7 +283,6 @@ namespace INFORMATIONAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
@@ -314,7 +318,6 @@ namespace INFORMATIONAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
@@ -330,6 +333,7 @@ namespace INFORMATIONAPI.Controllers
         {
             try
             {
+                // Check if a AboutType with the same name already exists
                 var existingType = await _aboutRepository.GetAboutTypeByNameAsync(aboutType.AboutTypeName);
                 if (existingType != null)
                 {
@@ -353,7 +357,6 @@ namespace INFORMATIONAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
@@ -369,6 +372,7 @@ namespace INFORMATIONAPI.Controllers
         {
             try
             {
+                // Ensure the Id in the news type object matches the id parameter
                 if (aboutType.Id != id)
                 {
                     return BadRequest(new ApiResponse
@@ -380,6 +384,7 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
+                // Check if a AboutType with the same name already exists (excluding the current type being updated)
                 var existingType = await _aboutRepository.GetAboutTypeByNameAsync(aboutType.AboutTypeName);
                 if (existingType != null && existingType.Id != id)
                 {
@@ -392,6 +397,7 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
+                // Update about type
                 var updated = await _aboutRepository.UpdateAboutTypeAsync(id, aboutType);
                 if (!updated)
                 {
@@ -403,6 +409,7 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
+                // Retrieve the updated AboutType object after update
                 var updatedAboutType = await _aboutRepository.GetAboutTypeByIdAsync(id);
 
                 return Ok(new ApiResponse
@@ -415,7 +422,6 @@ namespace INFORMATIONAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
@@ -425,6 +431,7 @@ namespace INFORMATIONAPI.Controllers
                 });
             }
         }
+
 
         [HttpDelete("abouttypes/{id}")]
         public async Task<IActionResult> DeleteAboutType(string id)
@@ -450,7 +457,6 @@ namespace INFORMATIONAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
