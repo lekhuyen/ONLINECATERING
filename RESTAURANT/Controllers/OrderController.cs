@@ -40,6 +40,8 @@ namespace RESTAURANT.API.Controllers
                     StatusPayment = o.StatusPayment,
                     Deposit = o.Deposit,
                     Oganization = o.Oganization,
+                    LobbyId = o.LobbyId,
+                    
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -90,6 +92,7 @@ namespace RESTAURANT.API.Controllers
                     StatusPayment = order.StatusPayment,
                     Deposit = order.Deposit,
                     Oganization = order.Oganization,
+                    LobbyId = order.LobbyId,
                 };
 
                 return Ok(new ApiResponse
@@ -133,6 +136,7 @@ namespace RESTAURANT.API.Controllers
                     QuantityTable = orderDTO.QuantityTable,
                     Deposit = orderDTO.Deposit,
                     Oganization = orderDTO.Oganization,
+                    LobbyId = orderDTO.LobbyId,
                 };
 
                 // Add to database
