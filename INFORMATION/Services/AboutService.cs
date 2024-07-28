@@ -1,13 +1,12 @@
-﻿using INFORMATION.API.Models;
+﻿using INFORMATION.API.Helper;
+using INFORMATION.API.Models;
 using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace INFORMATIONAPI.Service
@@ -16,11 +15,12 @@ namespace INFORMATIONAPI.Service
     {
         private readonly DatabaseContext _dbContext;
         private readonly IWebHostEnvironment _env;
+        private readonly FileUpload _fileUpload; // Add FileUpload dependency
 
         public AboutService(DatabaseContext dbContext, IWebHostEnvironment env)
         {
             _dbContext = dbContext;
-            _env = env;
+            _fileUpload = new FileUpload(env); // Initialize FileUpload
         }
 
         public async Task<IEnumerable<About>> GetAllAsync()
@@ -52,7 +52,6 @@ namespace INFORMATIONAPI.Service
             try
             {
                 await HandleImageUpload(about, imageFiles);
-
                 await _dbContext.About.InsertOneAsync(about);
             }
             catch (Exception ex)
@@ -61,26 +60,22 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-        public async Task<bool> UpdateAsync(string id, About about, List<IFormFile>? imageFiles)
+        public async Task<bool> UpdateAsync(string id, About about, List<IFormFile>? imageFiles, string subFolder)
         {
             try
             {
+                // Fetch the existing About document from the database
                 var existingAbout = await _dbContext.About.Find(a => a.Id == id).FirstOrDefaultAsync();
 
                 if (existingAbout == null)
                 {
-                    return false; // Return false if the about document with the given id doesn't exist
+                    return false; // Return false if no document is found
                 }
 
-                if (about.Id != id)
-                {
-                    throw new Exception("Mismatched ID in about object and parameter");
-                }
-
-                // Update the AboutTypeName with the new value
+                // Store the existing image paths to delete if necessary
                 var existingImagePaths = existingAbout.ImagePaths ?? new List<string>();
 
-                // Update title and content
+                // Update scalar properties
                 existingAbout.Title = about.Title;
                 existingAbout.Content = about.Content;
                 existingAbout.AboutTypeId = about.AboutTypeId;
@@ -88,33 +83,14 @@ namespace INFORMATIONAPI.Service
                 // Handle image update
                 if (imageFiles != null && imageFiles.Count > 0)
                 {
-                    var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+                    // Clear existing image paths
+                    existingAbout.ImagePaths = new List<string>();
 
-                    // Delete old images from the folder
-                    foreach (var imagePath in existingAbout.ImagePaths)
-                    {
-                        var fullPath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
-                        if (File.Exists(fullPath))
-                        {
-                            File.Delete(fullPath);
-                        }
-                    }
-
-                    // Clear existing image paths before adding new ones
-                    existingAbout.ImagePaths.Clear();
-
-                    // Add new images
+                    // Process each image file
                     foreach (var imageFile in imageFiles)
                     {
-                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await imageFile.CopyToAsync(stream);
-                        }
-
-                        existingAbout.ImagePaths.Add("/uploads/" + uniqueFileName);
+                        var imagePath = await _fileUpload.SaveImage(subFolder, imageFile); // Save image to specified subfolder
+                        existingAbout.ImagePaths.Add(imagePath); // Add new image path to existingAbout
                     }
                 }
 
@@ -122,16 +98,12 @@ namespace INFORMATIONAPI.Service
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
                 await _dbContext.About.ReplaceOneAsync(a => a.Id == id, existingAbout, options);
 
-                // Delete the old image files if the image paths were updated and previously existed
+                // Delete old images if they are no longer referenced
                 foreach (var imagePath in existingImagePaths)
                 {
                     if (!existingAbout.ImagePaths.Contains(imagePath))
                     {
-                        var oldFilePath = Path.Combine(_env.WebRootPath, imagePath.TrimStart('/'));
-                        if (File.Exists(oldFilePath))
-                        {
-                            File.Delete(oldFilePath);
-                        }
+                        _fileUpload.DeleteImage(imagePath);
                     }
                 }
 
@@ -143,11 +115,14 @@ namespace INFORMATIONAPI.Service
             }
         }
 
+
+
         public async Task<bool> DeleteAsync(string id)
         {
             try
             {
                 var aboutToDelete = await _dbContext.About.Find(a => a.Id == id).FirstOrDefaultAsync();
+
                 if (aboutToDelete == null)
                 {
                     return false;
@@ -155,21 +130,19 @@ namespace INFORMATIONAPI.Service
 
                 var imagePathsToDelete = aboutToDelete.ImagePaths;
 
+                // Delete the document from the database
                 var result = await _dbContext.About.DeleteOneAsync(a => a.Id == id);
                 if (result.DeletedCount == 0)
                 {
                     return false;
                 }
 
+                // Delete associated images
                 if (imagePathsToDelete != null)
                 {
-                    foreach (var path in imagePathsToDelete)
+                    foreach (var imagePath in imagePathsToDelete)
                     {
-                        var filePath = Path.Combine(_env.WebRootPath, path.TrimStart('/'));
-                        if (File.Exists(filePath))
-                        {
-                            File.Delete(filePath);
-                        }
+                        _fileUpload.DeleteImage(imagePath);
                     }
                 }
 
@@ -183,47 +156,28 @@ namespace INFORMATIONAPI.Service
 
         private async Task HandleImageUpload(About about, List<IFormFile>? imageFiles)
         {
-            // Define the maximum number of images allowed
-            int maxImageCount = 5;  // Example: Limiting to 5 images
+            int maxImageCount = 5;
 
-            // Ensure ImagePaths is initialized
             if (about.ImagePaths == null)
             {
                 about.ImagePaths = new List<string>();
             }
 
-            // Count existing images
             int existingImageCount = about.ImagePaths.Count;
-
-            // Calculate how many more images can be added
             int remainingImageSlots = maxImageCount - existingImageCount;
 
             if (imageFiles != null && imageFiles.Count > 0)
             {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
                 foreach (var imageFile in imageFiles)
                 {
                     if (remainingImageSlots > 0)
                     {
-                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await imageFile.CopyToAsync(stream);
-                        }
-
-                        about.ImagePaths.Add("/uploads/" + uniqueFileName);
+                        var imagePath = await _fileUpload.SaveImage("images", imageFile); // Save to Uploads/images folder
+                        about.ImagePaths.Add(imagePath);
                         remainingImageSlots--;
                     }
                     else
                     {
-                        // Handle case where maximum image count is exceeded
                         throw new Exception($"Cannot add more than {maxImageCount} images.");
                     }
                 }
@@ -293,25 +247,14 @@ namespace INFORMATIONAPI.Service
                 // Ensure the Id in the existingAboutType matches the id parameter
                 if (existingAboutType.Id != id)
                 {
-                    throw new Exception("Mismatched ID in existingAboutType and parameter");
+                    throw new Exception("Mismatched ID in AboutType object and parameter");
                 }
 
-                // Update the AboutTypeName with the new value
-                existingAboutType.AboutTypeName = aboutType.AboutTypeName;
-
-                // Define options for the ReplaceOneAsync operation
+                // Replace the entire document in MongoDB
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
+                await _dbContext.AboutType.ReplaceOneAsync(nt => nt.Id == id, aboutType, options);
 
-                // Perform the update operation using ReplaceOneAsync
-                var result = await _dbContext.AboutType.ReplaceOneAsync(nt => nt.Id == id, existingAboutType, options);
-
-                // Check if the update was successful
-                if (result.ModifiedCount == 0 && result.MatchedCount == 0)
-                {
-                    return false; // Return false if no documents were modified
-                }
-
-                return true; // Return true indicating successful update
+                return true;
             }
             catch (Exception ex)
             {
@@ -319,19 +262,23 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-
         public async Task<bool> DeleteAboutTypeAsync(string id)
         {
             try
             {
                 var result = await _dbContext.AboutType.DeleteOneAsync(nt => nt.Id == id);
-                return result.DeletedCount > 0;
+
+                if (result.DeletedCount == 0)
+                {
+                    return false;
+                }
+
+                return true;
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error while deleting AboutType: {ex.Message}");
             }
         }
-
     }
 }

@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Uploads\images\14b48cd9-455e-42ef-a2d2-601efb8bcddd_Bird1.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />
 	  <PackageReference Include="MongoDB.Driver" Version="2.27.0" />
@@ -15,6 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Uploads\" />
+    <Folder Include="Uploads\images\" />
     <Folder Include="wwwroot\uploads\" />
   </ItemGroup>
 

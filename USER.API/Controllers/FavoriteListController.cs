@@ -37,7 +37,7 @@ namespace USER.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
+                    Message = "Error from server",
                     Data = null
                 });
             }
@@ -61,7 +61,7 @@ namespace USER.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
+                    Message = "Error from server",
                     Data = null
                 });
             }
@@ -85,7 +85,7 @@ namespace USER.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
+                    Message = "Error from server",
                     Data = null
                 });
             }

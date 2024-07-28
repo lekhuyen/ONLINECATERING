@@ -21,291 +21,293 @@ using USER.API.Service;
 
 namespace USER.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UserController : ControllerBase
-    {
-        private readonly IRepositories _repository;
-        private IConfiguration _configuration;
-        private readonly IAuthUser _authUser;
-        private readonly RedisClient _redisClient;
+	[Route("api/[controller]")]
+	[ApiController]
+	public class UserController : ControllerBase
+	{
+		private readonly IRepositories _repository;
+		private IConfiguration _configuration;
+		private readonly IAuthUser _authUser;
+		private readonly RedisClient _redisClient;
 
-        private readonly DatabaseContext _databaseContext;
-        private readonly EmailServices _emailServices;
+		private readonly DatabaseContext _databaseContext;
+		private readonly EmailServices _emailServices;
 
-        public UserController(IAuthUser authUser,
-                                IRepositories repositories, 
-                                IConfiguration configuration, 
-                                DatabaseContext databaseContext,
-                                EmailServices emailServices,
-                                RedisClient redisClient)
-        {
-            _repository = repositories;
-            _configuration = configuration;
-            _authUser = authUser;
-            _redisClient = redisClient;
-            _databaseContext = databaseContext;
-            _emailServices = emailServices;
-        }
+		public UserController(IAuthUser authUser,
+								IRepositories repositories,
+								IConfiguration configuration,
+								DatabaseContext databaseContext,
+								EmailServices emailServices,
+								RedisClient redisClient)
+		{
+			_repository = repositories;
+			_configuration = configuration;
+			_authUser = authUser;
+			_redisClient = redisClient;
+			_databaseContext = databaseContext;
+			_emailServices = emailServices;
+		}
 
-        [HttpGet]
-        //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllUser()
-        {
-            try
-            {
-                var users = await _repository.GetAllUserAsync();
+		[HttpGet]
+		//[Authorize(Roles = "Admin")]
+		public async Task<IActionResult> GetAllUser()
+		{
+			try
+			{
+				var users = await _repository.GetAllUserAsync();
 
-                return Ok(new ApiResponse
-                {
-                    Success = true,
-                    Status = 0,
-                    Message = "Get Users Successfully",
-                    Data = users
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Error from service",
-                    Data = null
-                });
-            }
-            
-        }
-        [HttpPost]
-        public async Task<IActionResult> AddUser(User user)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    var userRes = await _repository.AddUserAsync(user);
-                    //await _databaseContext.Users.InsertOneAsync(user);
-                    if (userRes == 1)
-                    {
-                        return Ok(new ApiResponse
-                        {
-                            Success = false,
-                            Status = 1,
-                            Message = "Email da ton tai"
-                        });
-                    }
-                    else if (userRes == 2)
-                    {
-                        return Ok(new ApiResponse
-                        {
-                            Success = false,
-                            Status = 1,
-                            Message = "Phone da ton tai"
-                        });
-                    }
+				return Ok(new ApiResponse
+				{
+					Success = true,
+					Status = 0,
+					Message = "Get Users Successfully",
+					Data = users
+				});
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Error getting user list",
+					Data = null
+				});
+			}
 
-                    //reids
-                    var userDTO = new UserDTO
-                    {
-                        UserName = user.UserName,
-                        UserEmail = user.UserEmail,
-                        Phone = user.Phone,
-                    };
-                    var userJson = JsonConvert.SerializeObject(userDTO);
-                    _redisClient.Publish("user_created", userJson);
+		}
+		[HttpPost]
+		public async Task<IActionResult> AddUser(User user)
+		{
+			try
+			{
+				if (ModelState.IsValid)
+				{
+					var userRes = await _repository.AddUserAsync(user);
+					//await _databaseContext.Users.InsertOneAsync(user);
+					if (userRes == 1)
+					{
+						return Ok(new ApiResponse
+						{
+							Success = false,
+							Status = 1,
+							Message = "Email is already existed"
+						});
+					}
+					else if (userRes == 2)
+					{
+						return Ok(new ApiResponse
+						{
+							Success = false,
+							Status = 1,
+							Message = "Phone is already existed"
+						});
+					}
 
-                    return Created("success", new ApiResponse
-                    {
-                        Success = true,
-                        Status = 0,
-                        Message = "User added successfully"
-                    });
-                }
-                return Ok(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Create Users failed"
-                });
-            }catch(Exception ex) {
-                return Ok(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Server something wrong"
-                });
-            }
-        }
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
-        {
-            var user = await _repository.GetByIdAsync(id);
-            
-            if(user == null)
-            {
-                
-                return NotFound(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Get Users failed"
-                });
-            }
+					//reids
+					var userDTO = new UserDTO
+					{
+						UserName = user.UserName,
+						UserEmail = user.UserEmail,
+						Phone = user.Phone,
+					};
+					var userJson = JsonConvert.SerializeObject(userDTO);
+					_redisClient.Publish("user_created", userJson);
 
-            return Ok(new ApiResponse
-            {
-                Success = true,
-                Status = 0,
-                Message = "Get Users Successfully",
-                Data = user
-            });
-        }
+					return Created("success", new ApiResponse
+					{
+						Success = true,
+						Status = 0,
+						Message = "Create user successfully"
+					});
+				}
+				return Ok(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Create user failed"
+				});
+			}
+			catch (Exception ex)
+			{
+				return Ok(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Error creating user"
+				});
+			}
+		}
+		[HttpGet("{id}")]
+		public async Task<IActionResult> GetById(int id)
+		{
+			var user = await _repository.GetByIdAsync(id);
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, User user)
-        {
-            if (id != user.Id)
-            {
-                return BadRequest("Id khong trung nhau");
-            }
+			if (user == null)
+			{
 
-            try
-            {
-                var userExisted = await _repository.GetOneByIdAsync(id);
-                if (userExisted != null)
-                {
-                    if (ModelState.IsValid)
-                    {
-                        userExisted.UserEmail = user.UserEmail;
-                        userExisted.UserName = user.UserName;
-                        userExisted.Phone = user.Phone;
-                        userExisted.Role = user.Role;
-                        userExisted.Status = user.Status;
-                        userExisted.Password = PasswordBcrypt.HashPassword(user.Password);
+				return NotFound(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Get user failed"
+				});
+			}
 
-                        var userRes = await _repository.UpdateUserAsync(userExisted);
+			return Ok(new ApiResponse
+			{
+				Success = true,
+				Status = 0,
+				Message = "Get user Successfully",
+				Data = user
+			});
+		}
 
-                        if (userRes == 1)
-                        {
-                            return BadRequest(new ApiResponse
-                            {
-                                Success = false,
-                                Status = 1,
-                                Message = "Email da ton tai"
-                            });
-                        }
-                        else if (userRes == 2)
-                        {
-                            return BadRequest(new ApiResponse
-                            {
-                                Success = false,
-                                Status = 1,
-                                Message = "Phone da ton tai"
-                            });
-                        }
+		[HttpPut("{id}")]
+		public async Task<IActionResult> UpdateUser(int id, User user)
+		{
+			if (id != user.Id)
+			{
+				return BadRequest("Id is mismatched");
+			}
 
-                        //reids
-                        var userDTO = new UserDTO
-                        {
-                            Id = id,
-                            UserName = user.UserName,
-                            UserEmail = user.UserEmail,
-                            Phone = user.Phone,
-                        };
-                        var userJson = JsonConvert.SerializeObject(userDTO);
-                        _redisClient.Publish("user_update", userJson);
+			try
+			{
+				var userExisted = await _repository.GetOneByIdAsync(id);
+				if (userExisted != null)
+				{
+					if (ModelState.IsValid)
+					{
+						userExisted.UserEmail = user.UserEmail;
+						userExisted.UserName = user.UserName;
+						userExisted.Phone = user.Phone;
+						userExisted.Role = user.Role;
+						userExisted.Status = user.Status;
+						userExisted.Password = PasswordBcrypt.HashPassword(user.Password);
 
-                        return Ok(new ApiResponse
-                        {
-                            Success = true,
-                            Status = 0,
-                            Message = "Update Users Successfully",
-                            Data = user
-                        });
+						var userRes = await _repository.UpdateUserAsync(userExisted);
 
-                    }
-                    
-                }
+						if (userRes == 1)
+						{
+							return BadRequest(new ApiResponse
+							{
+								Success = false,
+								Status = 1,
+								Message = "Email is already existed"
+							});
+						}
+						else if (userRes == 2)
+						{
+							return BadRequest(new ApiResponse
+							{
+								Success = false,
+								Status = 1,
+								Message = "Phone is already existed"
+							});
+						}
 
-                return NotFound(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "User not found",
-                });
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Error from service",
-                    Data = null
-                });
-            }
-        }
+						//reids
+						var userDTO = new UserDTO
+						{
+							Id = id,
+							UserName = user.UserName,
+							UserEmail = user.UserEmail,
+							Phone = user.Phone,
+						};
+						var userJson = JsonConvert.SerializeObject(userDTO);
+						_redisClient.Publish("user_update", userJson);
 
-        [HttpDelete("id")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            try
-            {
-                var userExisted = await _repository.GetByIdAsync(id);
-                if(userExisted != null)
-                {
-                    await _repository.DeleteUserAsync(id);
-                    return Ok(new ApiResponse
-                    {
-                        Success = true,
-                        Status = 0,
-                        Message = "Delete user successfully",
-                    });
-                }
-                return NotFound(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "User is not userExist",
-                });
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Error from service",
-                    Data = null
-                });
-            }
-        }
+						return Ok(new ApiResponse
+						{
+							Success = true,
+							Status = 0,
+							Message = "Update user Successfully",
+							Data = user
+						});
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login(Login login)
-        {
-            var userLogin = await _authUser.Login(login);
-            if (userLogin == null)
-            {
-                return Ok(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Email or Password is wrong"
-                });
-            }
+					}
 
+				}
 
-            //token ------------  refeshToken
-            var token = GenerateToken(userLogin);
+				return NotFound(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "User not found",
+				});
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Error updating user",
+					Data = null
+				});
+			}
+		}
 
-            var refeshToken = Guid.NewGuid().ToString();
-            var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
+		[HttpDelete("id")]
+		public async Task<IActionResult> DeleteUser(int id)
+		{
+			try
+			{
+				var userExisted = await _repository.GetByIdAsync(id);
+				if (userExisted != null)
+				{
+					await _repository.DeleteUserAsync(id);
+					return Ok(new ApiResponse
+					{
+						Success = true,
+						Status = 0,
+						Message = "Delete user successfully",
+					});
+				}
+				return NotFound(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "User is not existed",
+				});
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Error deleting user",
+					Data = null
+				});
+			}
+		}
+
+		[HttpPost("login")]
+		public async Task<IActionResult> Login(Login login)
+		{
+			var userLogin = await _authUser.Login(login);
+			if (userLogin == null)
+			{
+				return Ok(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Wrong Email or Password"
+				});
+			}
 
 
-            userLogin.RefeshToken = refeshToken;
-            userLogin.RefreshTokenExpiryTime = refreshTokenExpiryTime;
-            await _repository.UpdateUserAsync(userLogin);
+			//token ------------  refeshToken
+			var token = GenerateToken(userLogin);
+
+			var refeshToken = Guid.NewGuid().ToString();
+			var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
+
+
+			userLogin.RefeshToken = refeshToken;
+			userLogin.RefreshTokenExpiryTime = refreshTokenExpiryTime;
+			await _repository.UpdateUserAsync(userLogin);
 
             var userDTO = new UserDTO
             {
@@ -318,79 +320,79 @@ namespace USER.API.Controllers
                 RefeshToken = refeshToken
             };
 
-            return Ok(new ApiResponse
-            {
-                Success = true,
-                Status = 0,
-                Message = "Logged in successfully",
-                //AccessToken = token,
-                //RefreshToken = refeshToken,
-                Data = userDTO
-            });
+			return Ok(new ApiResponse
+			{
+				Success = true,
+				Status = 0,
+				Message = "Login successfully",
+				//AccessToken = token,
+				//RefreshToken = refeshToken,
+				Data = userDTO
+			});
 
-        }
+		}
 
-        private string GenerateToken(User user)
-        {
-            var jwtSettings = _configuration.GetSection("Jwt");
+		private string GenerateToken(User user)
+		{
+			var jwtSettings = _configuration.GetSection("Jwt");
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+			var tokenHandler = new JwtSecurityTokenHandler();
+			var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
-            var tokenDescription = new SecurityTokenDescriptor
-            {
-                Subject = new System.Security.Claims.ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Role, user.Role),
-                    new Claim(ClaimTypes.Email, user.UserEmail),
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            };
-            var token = tokenHandler.CreateToken(tokenDescription);
-            return tokenHandler.WriteToken(token);
-        }
+			var tokenDescription = new SecurityTokenDescriptor
+			{
+				Subject = new System.Security.Claims.ClaimsIdentity(new Claim[]
+				{
+					new Claim(ClaimTypes.Name, user.UserName),
+					new Claim(ClaimTypes.Role, user.Role),
+					new Claim(ClaimTypes.Email, user.UserEmail),
+				}),
+				Expires = DateTime.UtcNow.AddMinutes(1),
+				SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+			};
+			var token = tokenHandler.CreateToken(tokenDescription);
+			return tokenHandler.WriteToken(token);
+		}
 
 
-        
-        [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken(string tokenRefresh)
-        {
-            var user = await _repository.GetByIdRefeshToken(tokenRefresh);
-            if(user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-            {
-                return BadRequest(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Login timeout, please log in again",
-                });
-            }
-            var tokenString = GenerateToken(user);
 
-            var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
-            var refeshToken = Guid.NewGuid().ToString();
+		[HttpPost("refresh-token")]
+		public async Task<IActionResult> RefreshToken(string tokenRefresh)
+		{
+			var user = await _repository.GetByIdRefeshToken(tokenRefresh);
+			if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+			{
+				return BadRequest(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Login timeout, please login again",
+				});
+			}
+			var tokenString = GenerateToken(user);
 
-            user.RefeshToken = refeshToken;
-            user.RefreshTokenExpiryTime = refreshTokenExpiryTime;
-            await _repository.UpdateUserAsync(user);
+			var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
+			var refeshToken = Guid.NewGuid().ToString();
 
-            return Ok(new ApiResponse
-            {
-                Data = user,
-                AccessToken = tokenString,
-                RefreshToken = refeshToken
-            });
+			user.RefeshToken = refeshToken;
+			user.RefreshTokenExpiryTime = refreshTokenExpiryTime;
+			await _repository.UpdateUserAsync(user);
 
-        }
-        private string RandomString(int length)
-        {
-            var random = new Random();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
+			return Ok(new ApiResponse
+			{
+				Data = user,
+				AccessToken = tokenString,
+				RefreshToken = refeshToken
+			});
+
+		}
+		private string RandomString(int length)
+		{
+			var random = new Random();
+			const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			return new string(Enumerable.Repeat(chars, length)
+				.Select(s => s[random.Next(s.Length)]).ToArray());
+		}
 
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(Login useEmail)
@@ -401,48 +403,48 @@ namespace USER.API.Controllers
                 {
                     var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == useEmail.UserEmail);
 
-                    if (user != null)
-                    {
-                        var otp = RandomString(6);
+					if (user != null)
+					{
+						var otp = RandomString(6);
 
-                        var emailRequest = new EmailRequest
-                        {
-                            HtmlContent = $"Your OTP is {otp}",
-                            ToMail = useEmail.UserEmail!,
-                            Subject = "ForgotPassword"
-                        };
+						var emailRequest = new EmailRequest
+						{
+							HtmlContent = $"Your OTP is {otp}",
+							ToMail = useEmail.UserEmail!,
+							Subject = "ForgotPassword"
+						};
 
-                        await _emailServices.SendEmailAsync(emailRequest);
+						await _emailServices.SendEmailAsync(emailRequest);
 
-                        user.Otp = otp;
-                        user.OtpExpired = DateTime.UtcNow.AddMinutes(1);
-                        _databaseContext.Users.Update(user);
-                        await _databaseContext.SaveChangesAsync();
+						user.Otp = otp;
+						user.OtpExpired = DateTime.UtcNow.AddMinutes(1);
+						_databaseContext.Users.Update(user);
+						await _databaseContext.SaveChangesAsync();
 
-                        return Ok(new ApiResponse
-                        {
-                            Success = true,
-                            Status = 0,
-                            Message = "Otp has been sent to your mail",
-                            Data = user.UserEmail
-                        });
-                    }
-                    else
-                    {
-                        return Ok(new ApiResponse
-                        {
-                            Success = false,
-                            Status = 1,
-                            Message = "Email is incorrect or does not exist "
-                        });
-                    }
-                }
-                return Ok(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Email is empty"
-                });
+						return Ok(new ApiResponse
+						{
+							Success = true,
+							Status = 0,
+							Message = "OTP has been sent to your mail",
+							Data = user.UserEmail
+						});
+					}
+					else
+					{
+						return Ok(new ApiResponse
+						{
+							Success = false,
+							Status = 1,
+							Message = "Email is incorrect or does not exist "
+						});
+					}
+				}
+				return Ok(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Email is empty"
+				});
 
             }
             catch(Exception ex)
@@ -456,109 +458,109 @@ namespace USER.API.Controllers
             }
         }
 
-        [HttpPost("otp")]
-        public async Task<IActionResult> Otp(Login login)
-        {
-            try
-            {
-                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
+		[HttpPost("otp")]
+		public async Task<IActionResult> Otp(Login login)
+		{
+			try
+			{
+				var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
 
-                if (user != null)
-                {
-                    if (user.Otp != login.Otp)
-                    {
-                        return Ok(new ApiResponse
-                        {
-                            Success = false,
-                            Status = 1,
-                            Message = "OTP is incorrect"
-                        });
-                    }
-                    if (user.OtpExpired <= DateTime.UtcNow)
-                    {
-                        return Ok(new ApiResponse
-                        {
-                            Success = false,
-                            Status = 1,
-                            Message = "OTP has expired"
-                        });
-                    }
-                    user.Otp = "";
-                    user.OtpExpired = null;
+				if (user != null)
+				{
+					if (user.Otp != login.Otp)
+					{
+						return Ok(new ApiResponse
+						{
+							Success = false,
+							Status = 1,
+							Message = "OTP is incorrect"
+						});
+					}
+					if (user.OtpExpired <= DateTime.UtcNow)
+					{
+						return Ok(new ApiResponse
+						{
+							Success = false,
+							Status = 1,
+							Message = "OTP has expired"
+						});
+					}
+					user.Otp = "";
+					user.OtpExpired = null;
 
 
-                    _databaseContext.Users.Update(user);
-                    await _databaseContext.SaveChangesAsync();
+					_databaseContext.Users.Update(user);
+					await _databaseContext.SaveChangesAsync();
 
-                    return Ok(new ApiResponse
-                    {
-                        Success = true,
-                        Status = 0,
-                        Data = user.UserEmail
-                    });
-                }
-                else
-                {
-                    return Ok(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "Otp is incorrect or Expired otp"
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Ok(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Servder something wrong "
-                });
-            }
-        }
+					return Ok(new ApiResponse
+					{
+						Success = true,
+						Status = 0,
+						Data = user.UserEmail
+					});
+				}
+				else
+				{
+					return Ok(new ApiResponse
+					{
+						Success = false,
+						Status = 1,
+						Message = "OTP is incorrect or expired"
+					});
+				}
+			}
+			catch (Exception ex)
+			{
+				return Ok(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Error from server"
+				});
+			}
+		}
 
-        [HttpPost("update-password")]
-        public async Task<IActionResult> UpdatePassword(Login login)
-        {
-            try
-            {
-                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
+		[HttpPost("update-password")]
+		public async Task<IActionResult> UpdatePassword(Login login)
+		{
+			try
+			{
+				var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
 
-                if (user != null)
-                {
+				if (user != null)
+				{
 
-                    user.Password = PasswordBcrypt.HashPassword(login.Password);
+					user.Password = PasswordBcrypt.HashPassword(login.Password);
 
-                    _databaseContext.Users.Update(user);
-                    await _databaseContext.SaveChangesAsync();
+					_databaseContext.Users.Update(user);
+					await _databaseContext.SaveChangesAsync();
 
-                    return Ok(new ApiResponse
-                    {
-                        Success = true,
-                        Status = 0,
-                        Message = "Password has been changed, please log in again"
-                    });
-                }
-                else
-                {
-                    return Ok(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "Servder something wrong "
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Ok(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Servder something wrong "
-                });
-            }
-        }
-    }
+					return Ok(new ApiResponse
+					{
+						Success = true,
+						Status = 0,
+						Message = "Password has been changed, please login again"
+					});
+				}
+				else
+				{
+					return Ok(new ApiResponse
+					{
+						Success = false,
+						Status = 1,
+						Message = "Error from server"
+					});
+				}
+			}
+			catch (Exception ex)
+			{
+				return Ok(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Error from server"
+				});
+			}
+		}
+	}
 }
