@@ -266,7 +266,7 @@ namespace INFORMATIONAPI.Controllers
             }
         }
 
-        // News Types
+        // News Types (Food&Beverages, Venues, Recent News, etc.)
 
         [HttpGet("newtypes")]
         public async Task<IActionResult> GetAllNewTypes()
