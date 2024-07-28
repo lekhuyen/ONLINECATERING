@@ -122,7 +122,7 @@ namespace INFORMATIONAPI.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> CreateContent([FromForm] News news, List<IFormFile>? imageFiles)
+        public async Task<IActionResult> CreateContent([FromForm] News news, [FromForm] List<IFormFile>? imageFiles)
         {
             try
             {
