@@ -265,7 +265,7 @@ namespace INFORMATIONAPI.Controllers
             }
         }
 
-        // About Types
+        // About Types (About Us, Our History, Our Mission etc.)
 
         [HttpGet("abouttypes")]
         public async Task<IActionResult> GetAllAboutTypes()
@@ -397,7 +397,7 @@ namespace INFORMATIONAPI.Controllers
                     });
                 }
 
-                // Update the news type
+                // Update about type
                 var updated = await _aboutRepository.UpdateAboutTypeAsync(id, aboutType);
                 if (!updated)
                 {
