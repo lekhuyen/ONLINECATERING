@@ -96,9 +96,10 @@ namespace RESTAURANT.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     LobbyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Area = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Type = table.Column<int>(type: "int", nullable: false)
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Area = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Type = table.Column<int>(type: "int", nullable: true),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -457,7 +458,7 @@ namespace RESTAURANT.API.Migrations
                     QuantityTable = table.Column<int>(type: "int", nullable: false),
                     StatusPayment = table.Column<bool>(type: "bit", nullable: false),
                     Deposit = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Oganization = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Oganization = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -538,8 +539,8 @@ namespace RESTAURANT.API.Migrations
                 name: "OrderDishes",
                 columns: table => new
                 {
-                    DishId = table.Column<int>(type: "int", nullable: false),
                     OrderId = table.Column<int>(type: "int", nullable: false),
+                    DishId = table.Column<int>(type: "int", nullable: false),
                     OrderDishId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1")
                 },

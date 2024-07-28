@@ -309,6 +309,7 @@ namespace USER.API.Controllers
 
             var userDTO = new UserDTO
             {
+                Id= userLogin.Id,
                 UserEmail = userLogin.UserEmail,
                 UserName = userLogin.UserName,
                 Phone = userLogin.Phone,
@@ -391,11 +392,6 @@ namespace USER.API.Controllers
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        //public async Task SendMail(EmailRequest emailRequest)
-        //{
-        //    await _emailServices.SendEmailAsync(emailRequest);
-        //}
-
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(Login useEmail)
         {
@@ -455,7 +451,7 @@ namespace USER.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Servder something wrong "
+                    Message = "Server something wrong "
                 });
             }
         }

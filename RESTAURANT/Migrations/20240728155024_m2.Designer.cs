@@ -12,8 +12,8 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240726113713_m1")]
-    partial class m1
+    [Migration("20240728155024_m2")]
+    partial class m2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -365,18 +365,20 @@ namespace RESTAURANT.API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Area")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("LobbyName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Type")
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("Type")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -475,8 +477,12 @@ namespace RESTAURANT.API.Migrations
                     b.Property<decimal>("Deposit")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("Oganization")
-                        .HasColumnType("datetime2");
+                    b.Property<int?>("LobbyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Oganization")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PromotionId")
                         .HasColumnType("int");
@@ -497,6 +503,8 @@ namespace RESTAURANT.API.Migrations
 
                     b.HasIndex("ComboId");
 
+                    b.HasIndex("LobbyId");
+
                     b.HasIndex("PromotionId")
                         .IsUnique()
                         .HasFilter("[PromotionId] IS NOT NULL");
@@ -509,10 +517,12 @@ namespace RESTAURANT.API.Migrations
             modelBuilder.Entity("RESTAURANT.API.Models.OrderDish", b =>
                 {
                     b.Property<int>("DishId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
 
                     b.Property<int>("OrderId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
 
                     b.Property<int>("OrderDishId")
                         .ValueGeneratedOnAdd()
@@ -919,6 +929,10 @@ namespace RESTAURANT.API.Migrations
                         .WithMany("Order")
                         .HasForeignKey("ComboId");
 
+                    b.HasOne("RESTAURANT.API.Models.Lobby", "Lobby")
+                        .WithMany("Order")
+                        .HasForeignKey("LobbyId");
+
                     b.HasOne("RESTAURANT.API.Models.Promotion", "Promotion")
                         .WithOne("Order")
                         .HasForeignKey("RESTAURANT.API.Models.Order", "PromotionId");
@@ -929,6 +943,8 @@ namespace RESTAURANT.API.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Combo");
+
+                    b.Navigation("Lobby");
 
                     b.Navigation("Promotion");
 
@@ -1052,6 +1068,8 @@ namespace RESTAURANT.API.Migrations
             modelBuilder.Entity("RESTAURANT.API.Models.Lobby", b =>
                 {
                     b.Navigation("LobbyImages");
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>
