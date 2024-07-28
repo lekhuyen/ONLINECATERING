@@ -8,7 +8,7 @@ namespace INFORMATION.API.Helper
 {
     public class FileUpload
     {
-        static readonly string baseFolder = "Uploads"; // Directory inside wwwroot or elsewhere
+        static readonly string baseFolder = "Uploads"; // Base folder
         static readonly string rootUrl = "http://localhost:5034/";
 
         private readonly IWebHostEnvironment _webHostEnvironment;
@@ -20,7 +20,7 @@ namespace INFORMATION.API.Helper
 
         public async Task<string> SaveImage(string subFolder, IFormFile formFile)
         {
-            // Ensure the base folder path is inside wwwroot
+            // Ensure the base folder path is inside the current working directory
             var imagePath = Path.Combine(Directory.GetCurrentDirectory(), baseFolder, subFolder);
 
             if (!Directory.Exists(imagePath))
@@ -39,13 +39,14 @@ namespace INFORMATION.API.Helper
             }
 
             // Return the URL to access the file
-            return Path.Combine(baseFolder, subFolder, fileName).Replace("\\", "/");
+            return $"{rootUrl}{baseFolder}/{subFolder}/{fileName}".Replace("\\", "/");
         }
 
-        public void DeleteImage(string imagePath)
+        public void DeleteImage(string imageUrl)
         {
-            var exactPath = imagePath.Substring(rootUrl.Length);
-            var filePath = Path.Combine(exactPath);
+            // Convert URL to relative file path
+            var fileRelativePath = imageUrl.Substring(rootUrl.Length).Replace("/", "\\");
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), fileRelativePath);
 
             if (File.Exists(filePath))
             {

@@ -36,42 +36,6 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-        public async Task<bool> DeleteAsync(string id)
-        {
-            try
-            {
-                var existingNews = await _dbContext.News.Find(a => a.Id == id).FirstOrDefaultAsync();
-                if (existingNews == null)
-                {
-                    return false;
-                }
-
-                var imagePathsToDelete = existingNews.ImagePaths;
-
-                var result = await _dbContext.News.DeleteOneAsync(a => a.Id == id);
-                if (result.DeletedCount == 0)
-                {
-                    return false;
-                }
-
-                // Delete associated images
-                if (imagePathsToDelete != null)
-                {
-                    foreach (var imagePath in imagePathsToDelete)
-                    {
-                        _fileUpload.DeleteImage(imagePath);
-                    }
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error while deleting news content: {ex.Message}");
-            }
-        }
-
-
         public async Task<IEnumerable<News>> GetAllAsync()
         {
             try
@@ -123,7 +87,7 @@ namespace INFORMATIONAPI.Service
                 if (imageFiles != null && imageFiles.Count > 0)
                 {
                     // Clear existing image paths
-                    existingNews.ImagePaths.Clear();
+                    existingNews.ImagePaths = new List<string>();
 
                     // Process new image files
                     foreach (var imageFile in imageFiles)
@@ -131,6 +95,7 @@ namespace INFORMATIONAPI.Service
                         var imagePath = await _fileUpload.SaveImage(subFolder, imageFile);
                         existingNews.ImagePaths.Add(imagePath);
                     }
+
                 }
 
                 // Update the document
@@ -152,6 +117,41 @@ namespace INFORMATIONAPI.Service
             {
                 // Handle exceptions
                 throw new Exception($"Error while updating news content: {ex.Message}");
+            }
+        }
+
+        public async Task<bool> DeleteAsync(string id)
+        {
+            try
+            {
+                var existingNews = await _dbContext.News.Find(a => a.Id == id).FirstOrDefaultAsync();
+                if (existingNews == null)
+                {
+                    return false;
+                }
+
+                var imagePathsToDelete = existingNews.ImagePaths;
+
+                var result = await _dbContext.News.DeleteOneAsync(a => a.Id == id);
+                if (result.DeletedCount == 0)
+                {
+                    return false;
+                }
+
+                // Delete associated images
+                if (imagePathsToDelete != null)
+                {
+                    foreach (var imagePath in imagePathsToDelete)
+                    {
+                        _fileUpload.DeleteImage(imagePath);
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error while deleting news content: {ex.Message}");
             }
         }
 
