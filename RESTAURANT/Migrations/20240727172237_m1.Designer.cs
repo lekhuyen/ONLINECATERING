@@ -12,8 +12,13 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
+<<<<<<<< HEAD:RESTAURANT/Migrations/20240727172237_m1.Designer.cs
+    [Migration("20240727172237_m1")]
+    partial class m1
+========
     [Migration("20240728133618_RestTable")]
     partial class RestTable
+>>>>>>>> 0bec61c7018c9a0adf0678912da0b82eac8fd536:RESTAURANT/Migrations/20240728133618_RestTable.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -477,8 +482,9 @@ namespace RESTAURANT.API.Migrations
                     b.Property<decimal>("Deposit")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("Oganization")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("Oganization")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PromotionId")
                         .HasColumnType("int");

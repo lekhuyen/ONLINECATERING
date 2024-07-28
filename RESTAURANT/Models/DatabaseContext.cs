@@ -169,6 +169,11 @@ namespace RESTAURANT.API.Models
                 .WithOne(c => c.Combo)
                 .HasForeignKey(c => c.ComboId);
 
+            modelBuilder.Entity<Lobby>()
+                .HasMany(c => c.Order)
+                .WithOne(c => c.Lobby)
+                .HasForeignKey(c => c.LobbyId);
+
 
         }
 

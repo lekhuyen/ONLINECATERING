@@ -19,6 +19,8 @@ namespace RESTAURANT.API.Models
         public decimal? Price { get; set; }
         public ICollection<LobbyImages>? LobbyImages { get; set; }
 
-        
+        public ICollection<Order>? Order { get; set; }
+
+
     }
 }

@@ -128,10 +128,9 @@ namespace RESTAURANT.API.Controllers
                 var order = new Order
                 {
                     UserId = orderDTO?.UserId,
-                    CustomComboId = orderDTO?.CustomComboId,
+                    ComboId = orderDTO.ComboId,
                     TotalPrice = orderDTO.TotalPrice,
                     QuantityTable = orderDTO.QuantityTable,
-                    StatusPayment = orderDTO.StatusPayment,
                     Deposit = orderDTO.Deposit,
                     Oganization = orderDTO.Oganization,
                 };
@@ -198,7 +197,7 @@ namespace RESTAURANT.API.Controllers
                 // Update specific fields from orderDTO
                 order.TotalPrice = orderDTO.TotalPrice;
                 order.QuantityTable = orderDTO.QuantityTable;
-                order.StatusPayment = orderDTO.StatusPayment;
+                order.StatusPayment = (bool)orderDTO.StatusPayment;
                 order.Deposit = orderDTO.Deposit;
                 order.Oganization = orderDTO.Oganization;
 

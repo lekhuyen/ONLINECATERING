@@ -458,7 +458,7 @@ namespace RESTAURANT.API.Migrations
                     QuantityTable = table.Column<int>(type: "int", nullable: false),
                     StatusPayment = table.Column<bool>(type: "bit", nullable: false),
                     Deposit = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Oganization = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Oganization = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
