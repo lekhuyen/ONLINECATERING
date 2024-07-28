@@ -19,13 +19,16 @@ namespace RESTAURANT.API.Models
         public int? ComboId { get; set; }
         public Combo? Combo { get; set; }
 
+        public int? LobbyId { get; set; }
+        public Lobby? Lobby { get; set; }
+
         public int? PromotionId { get; set; }
         public Promotion? Promotion { get; set; }
         public decimal TotalPrice { get; set; }
         public int QuantityTable { get; set; }
         public bool StatusPayment { get; set; } = false;
         public decimal Deposit { get; set; }
-        public DateTime Oganization { get; set; }
+        public string Oganization { get; set; }
         public Payment? Payment { get; set; }
 
         public ICollection<OrderDish>? OrderDishes { get; set; }

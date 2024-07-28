@@ -12,8 +12,8 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240726120705_m2")]
-    partial class m2
+    [Migration("20240727172237_m1")]
+    partial class RestTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -477,8 +477,9 @@ namespace RESTAURANT.API.Migrations
                     b.Property<decimal>("Deposit")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("Oganization")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("Oganization")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PromotionId")
                         .HasColumnType("int");
@@ -511,10 +512,12 @@ namespace RESTAURANT.API.Migrations
             modelBuilder.Entity("RESTAURANT.API.Models.OrderDish", b =>
                 {
                     b.Property<int>("DishId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
 
                     b.Property<int>("OrderId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
 
                     b.Property<int>("OrderDishId")
                         .ValueGeneratedOnAdd()

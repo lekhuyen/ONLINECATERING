@@ -4,11 +4,9 @@ using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace INFORMATIONAPI.Service
@@ -23,7 +21,6 @@ namespace INFORMATIONAPI.Service
         {
             _dbContext = dbContext;
             _fileUpload = new FileUpload(env); // Initialize FileUpload
-
         }
 
         public async Task<IEnumerable<About>> GetAllAsync()
@@ -75,11 +72,6 @@ namespace INFORMATIONAPI.Service
                     return false; // Return false if no document is found
                 }
 
-                if (about.Id != id)
-                {
-                    throw new Exception("Mismatched ID in about object and parameter");
-                }
-
                 // Store the existing image paths to delete if necessary
                 var existingImagePaths = existingAbout.ImagePaths ?? new List<string>();
 
@@ -92,7 +84,7 @@ namespace INFORMATIONAPI.Service
                 if (imageFiles != null && imageFiles.Count > 0)
                 {
                     // Clear existing image paths
-                    existingAbout.ImagePaths.Clear();
+                    existingAbout.ImagePaths = new List<string>();
 
                     // Process each image file
                     foreach (var imageFile in imageFiles)
@@ -122,6 +114,7 @@ namespace INFORMATIONAPI.Service
                 throw new Exception($"Error while updating about content: {ex.Message}");
             }
         }
+
 
 
         public async Task<bool> DeleteAsync(string id)
@@ -161,7 +154,6 @@ namespace INFORMATIONAPI.Service
             }
         }
 
-
         private async Task HandleImageUpload(About about, List<IFormFile>? imageFiles)
         {
             int maxImageCount = 5;
@@ -180,7 +172,7 @@ namespace INFORMATIONAPI.Service
                 {
                     if (remainingImageSlots > 0)
                     {
-                        var imagePath = await _fileUpload.SaveImage("images", imageFile); // Save to root Uploads folder
+                        var imagePath = await _fileUpload.SaveImage("images", imageFile); // Save to Uploads/images folder
                         about.ImagePaths.Add(imagePath);
                         remainingImageSlots--;
                     }
@@ -255,25 +247,14 @@ namespace INFORMATIONAPI.Service
                 // Ensure the Id in the existingAboutType matches the id parameter
                 if (existingAboutType.Id != id)
                 {
-                    throw new Exception("Mismatched ID in existingAboutType and parameter");
+                    throw new Exception("Mismatched ID in AboutType object and parameter");
                 }
 
-                // Update the AboutTypeName with the new value
-                existingAboutType.AboutTypeName = aboutType.AboutTypeName;
-
-                // Define options for the ReplaceOneAsync operation
+                // Replace the entire document in MongoDB
                 ReplaceOptions options = new ReplaceOptions { IsUpsert = true };
+                await _dbContext.AboutType.ReplaceOneAsync(nt => nt.Id == id, aboutType, options);
 
-                // Perform the update operation using ReplaceOneAsync
-                var result = await _dbContext.AboutType.ReplaceOneAsync(nt => nt.Id == id, existingAboutType, options);
-
-                // Check if the update was successful
-                if (result.ModifiedCount == 0 && result.MatchedCount == 0)
-                {
-                    return false; // Return false if no documents were modified
-                }
-
-                return true; // Return true indicating successful update
+                return true;
             }
             catch (Exception ex)
             {
@@ -286,7 +267,13 @@ namespace INFORMATIONAPI.Service
             try
             {
                 var result = await _dbContext.AboutType.DeleteOneAsync(nt => nt.Id == id);
-                return result.DeletedCount > 0;
+
+                if (result.DeletedCount == 0)
+                {
+                    return false;
+                }
+
+                return true;
             }
             catch (Exception ex)
             {

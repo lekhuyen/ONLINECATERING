@@ -309,15 +309,16 @@ namespace USER.API.Controllers
 			userLogin.RefreshTokenExpiryTime = refreshTokenExpiryTime;
 			await _repository.UpdateUserAsync(userLogin);
 
-			var userDTO = new UserDTO
-			{
-				UserEmail = userLogin.UserEmail,
-				UserName = userLogin.UserName,
-				Phone = userLogin.Phone,
-				Role = userLogin.Role,
-				AccessToken = token,
-				RefeshToken = refeshToken
-			};
+            var userDTO = new UserDTO
+            {
+                Id= userLogin.Id,
+                UserEmail = userLogin.UserEmail,
+                UserName = userLogin.UserName,
+                Phone = userLogin.Phone,
+                Role = userLogin.Role,
+                AccessToken = token,
+                RefeshToken = refeshToken
+            };
 
 			return Ok(new ApiResponse
 			{
@@ -393,19 +394,14 @@ namespace USER.API.Controllers
 				.Select(s => s[random.Next(s.Length)]).ToArray());
 		}
 
-		//public async Task SendMail(EmailRequest emailRequest)
-		//{
-		//    await _emailServices.SendEmailAsync(emailRequest);
-		//}
-
-		[HttpPost("forgot-password")]
-		public async Task<IActionResult> ForgotPassword(Login useEmail)
-		{
-			try
-			{
-				if (ModelState.IsValid)
-				{
-					var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == useEmail.UserEmail);
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(Login useEmail)
+        {
+            try
+            {
+                if(ModelState.IsValid)
+                {
+                    var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == useEmail.UserEmail);
 
 					if (user != null)
 					{
@@ -450,17 +446,17 @@ namespace USER.API.Controllers
 					Message = "Email is empty"
 				});
 
-			}
-			catch (Exception ex)
-			{
-				return Ok(new ApiResponse
-				{
-					Success = false,
-					Status = 1,
-					Message = "Error from server"
-				});
-			}
-		}
+            }
+            catch(Exception ex)
+            {
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Server something wrong "
+                });
+            }
+        }
 
 		[HttpPost("otp")]
 		public async Task<IActionResult> Otp(Login login)
