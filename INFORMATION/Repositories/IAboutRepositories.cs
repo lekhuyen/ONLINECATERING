@@ -1,5 +1,8 @@
 ﻿using INFORMATION.API.Models;
 using INFORMATIONAPI.Models;
+using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace INFORMATIONAPI.Repositories
 {
@@ -8,7 +11,7 @@ namespace INFORMATIONAPI.Repositories
         Task<IEnumerable<About>> GetAllAsync();
         Task<About> GetByIdAsync(string id);
         Task CreateAsync(About about, List<IFormFile>? imageFiles);
-        Task<bool> UpdateAsync(string id, About about, List<IFormFile>? imageFiles);
+        Task<bool> UpdateAsync(string id, About about, List<IFormFile>? imageFiles, string subFolder); 
         Task<bool> DeleteAsync(string id);
 
         // AboutType CRUD operations

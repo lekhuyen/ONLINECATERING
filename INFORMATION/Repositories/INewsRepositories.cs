@@ -8,7 +8,8 @@ namespace INFORMATIONAPI.Repositories
         Task<IEnumerable<News>> GetAllAsync();
         Task<News> GetByIdAsync(string id);
         Task CreateAsync(News news, List<IFormFile>? imageFiles);
-        Task<bool> UpdateAsync(string id, News news, List<IFormFile>? imageFiles);
+        Task<bool> UpdateAsync(string id, News news, List<IFormFile>? imageFiles, string subFolder);
+
         Task<bool> DeleteAsync(string id);
 
         // NewsType CRUD operations
