@@ -1,10 +1,12 @@
 
 
+using INFORMATION.API.Helper;
 using INFORMATION.API.Services;
 using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
 using INFORMATIONAPI.Service;
 using INFORMATIONAPI.Services;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 
 namespace INFORMATION
@@ -21,7 +23,7 @@ namespace INFORMATION
             builder.Services.AddScoped<INewsRepositories, NewsService>();
             builder.Services.AddScoped<IContactRepositories, ContactService>();
             builder.Services.AddSingleton<EmailService>();
-
+            builder.Services.AddScoped<FileUpload>();
 
             // Add services to the container.
 
@@ -63,10 +65,15 @@ namespace INFORMATION
             // Use CORS middleware
             app.UseCors("AllowSpecificOrigin");
 
-            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+                RequestPath = "/Uploads"
+            });
 
 
-			app.UseAuthorization();
+            app.UseAuthorization();
 
 
             app.MapControllers();

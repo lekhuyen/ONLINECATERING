@@ -1,4 +1,5 @@
 ﻿using APIRESPONSE.Models;
+using INFORMATION.API.Helper;
 using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
 using Microsoft.AspNetCore.Hosting;
@@ -17,12 +18,12 @@ namespace INFORMATIONAPI.Controllers
     public class NewsController : ControllerBase
     {
         private readonly INewsRepositories _newsRepositories;
-        private readonly IWebHostEnvironment _env;
+        private readonly FileUpload _fileUpload;
 
-        public NewsController(INewsRepositories newsRepositories, IWebHostEnvironment env)
+        public NewsController(INewsRepositories newsRepositories, IWebHostEnvironment env, FileUpload fileUpload)
         {
             _newsRepositories = newsRepositories ?? throw new ArgumentNullException(nameof(newsRepositories));
-            _env = env ?? throw new ArgumentNullException(nameof(env));
+            _fileUpload = fileUpload;
         }
 
         [HttpGet]
@@ -182,8 +183,8 @@ namespace INFORMATIONAPI.Controllers
                         Message = "You can upload up to 5 images."
                     });
                 }
-
-                var updated = await _newsRepositories.UpdateAsync(id, news, imageFiles);
+                string subFolder = "images"; // Adjust this as necessary
+                var updated = await _newsRepositories.UpdateAsync(id, news, imageFiles, subFolder);
                 if (!updated)
                 {
                     return NotFound(new ApiResponse
