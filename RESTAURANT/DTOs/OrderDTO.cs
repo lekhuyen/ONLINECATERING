@@ -16,6 +16,7 @@
         public string Oganization { get; set; }
         
         public int PromotionId { get; set; }
+        public int? LobbyId { get; set; }
         //public List<ComboDTO>? ComboId { get; set; }
 
     }
