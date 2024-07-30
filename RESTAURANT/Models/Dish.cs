@@ -13,6 +13,8 @@ namespace RESTAURANT.API.Models
 
         public decimal Price { get; set; }
 
+        public int Quantity { get; set; }
+
         public bool Status { get; set; }
 
         public ICollection<ComboDish>? ComboDishes { get; set; }
@@ -21,9 +23,6 @@ namespace RESTAURANT.API.Models
 
 
         public string? ImagePath { get; set; }
-
-        [NotMapped]
-        public IFormFile ImageFile { get; set; }
 
         public ICollection<OrderDish>? OrderDishes { get; set; }
     }
