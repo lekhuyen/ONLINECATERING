@@ -2,6 +2,7 @@
 {
     public class AddComboAppetizerDTO
     {
+        public int ComboAppetizerId { get; set; }
         public int? ComboId { get; set; }
         public int? AppetizerId { get; set; }
     }
