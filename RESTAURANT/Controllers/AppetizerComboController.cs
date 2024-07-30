@@ -141,6 +141,51 @@ namespace RESTAURANT.API.Controllers
                     });
                 }
 
+                // Check if ComboId exists
+                var comboExists = await _dbContext.Combos
+                    .AnyAsync(c => c.Id == dto.ComboId);
+
+                if (!comboExists)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "ComboId does not exist",
+                        Data = null
+                    });
+                }
+
+                // Check if AppetizerId exists
+                var appetizerExists = await _dbContext.Appetizers
+                    .AnyAsync(a => a.Id == dto.AppetizerId);
+
+                if (!appetizerExists)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "AppetizerId does not exist",
+                        Data = null
+                    });
+                }
+
+                // Check if a ComboAppetizer with the same ComboId and AppetizerId already exists
+                var existingComboAppetizer = await _dbContext.ComboAppetizers
+                    .AnyAsync(ca => ca.ComboId == dto.ComboId && ca.AppetizerId == dto.AppetizerId);
+
+                if (existingComboAppetizer)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "A ComboAppetizer with the same ComboId and AppetizerId already exists",
+                        Data = null
+                    });
+                }
+
                 var comboAppetizer = new ComboAppetizer
                 {
                     Id = dto.ComboAppetizerId,
@@ -170,6 +215,8 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComboAppetizer(int id)
