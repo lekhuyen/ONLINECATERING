@@ -88,7 +88,7 @@ namespace USER.API.Controllers
 					//var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 					var token = RandomString(6);
 					user.ConfirmationToken = token;
-					user.ConfirmationTokenExpiry = DateTime.UtcNow.AddSeconds(30); // Set token expiry
+					user.ConfirmationTokenExpiry = DateTime.UtcNow.AddMinutes(2); // Set token expiry
 
 					var userRes = await _repository.AddUserAsync(user);
 					//await _databaseContext.Users.InsertOneAsync(user);
