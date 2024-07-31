@@ -94,6 +94,8 @@ namespace USER.API.Repositories
                 Password = u.Password,
                 Otp = u.Otp,
                 OtpExpired = u.OtpExpired,
+                EmailConfirmed = u.EmailConfirmed,
+                ConfirmationToken = u.ConfirmationToken,
                 //Restaurants = u.Restaurants.Select(u => new RestaurantDTO
                 //{
                 //    Id = u.Id,

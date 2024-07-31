@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BOOKING.API.Migrations
 {
     /// <inheritdoc />
-    public partial class BookingTable : Migration
+    public partial class b3 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

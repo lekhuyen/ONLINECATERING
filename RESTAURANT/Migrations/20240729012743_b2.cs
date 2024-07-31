@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RESTAURANT.API.Migrations
 {
     /// <inheritdoc />
-    public partial class RestTable : Migration
+    public partial class b2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -453,6 +453,7 @@ namespace RESTAURANT.API.Migrations
                     UserId = table.Column<int>(type: "int", nullable: true),
                     CustomComboId = table.Column<int>(type: "int", nullable: true),
                     ComboId = table.Column<int>(type: "int", nullable: true),
+                    LobbyId = table.Column<int>(type: "int", nullable: true),
                     PromotionId = table.Column<int>(type: "int", nullable: true),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     QuantityTable = table.Column<int>(type: "int", nullable: false),
@@ -467,6 +468,11 @@ namespace RESTAURANT.API.Migrations
                         name: "FK_Orders_Combos_ComboId",
                         column: x => x.ComboId,
                         principalTable: "Combos",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Orders_Lobbies_LobbyId",
+                        column: x => x.LobbyId,
+                        principalTable: "Lobbies",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Orders_Promotions_PromotionId",
@@ -657,6 +663,11 @@ namespace RESTAURANT.API.Migrations
                 column: "ComboId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_LobbyId",
+                table: "Orders",
+                column: "LobbyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_PromotionId",
                 table: "Orders",
                 column: "PromotionId",
@@ -753,9 +764,6 @@ namespace RESTAURANT.API.Migrations
                 name: "Comments");
 
             migrationBuilder.DropTable(
-                name: "Lobbies");
-
-            migrationBuilder.DropTable(
                 name: "Dishes");
 
             migrationBuilder.DropTable(
@@ -763,6 +771,9 @@ namespace RESTAURANT.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "Restaurants");
+
+            migrationBuilder.DropTable(
+                name: "Lobbies");
 
             migrationBuilder.DropTable(
                 name: "Promotions");

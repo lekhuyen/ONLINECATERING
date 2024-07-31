@@ -22,7 +22,10 @@ namespace USER.API.Models
         public string? Otp { get; set; }
         public DateTime? OtpExpired { get; set; }
         public ICollection<Booking>? UserBookings { get; set; }
-        //public ICollection<Restaurant>? Restaurants { get; set; }
-    }
+		//public ICollection<Restaurant>? Restaurants { get; set; }
+		public string? ConfirmationToken { get; set; }
+		public DateTime? ConfirmationTokenExpiry { get; set; }
+        public bool? EmailConfirmed { get; set; } = false;
+	}
     
 }
