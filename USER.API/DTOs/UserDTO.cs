@@ -18,7 +18,7 @@
         public List<FavoriteListDTO>? FavoriteList { get; set; }
         public List<BookingDTO>? Booking { get; set; }
         public List<RestaurantDTO>? Restaurants { get; set; }
-        
-
-    }
+		public string? ConfirmationToken { get; set; }
+		public bool? EmailConfirmed { get; set; }
+	}
 }
