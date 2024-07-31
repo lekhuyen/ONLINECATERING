@@ -25,5 +25,6 @@ namespace RESTAURANT.API.Models
         public string? ImagePath { get; set; }
 
         public ICollection<OrderDish>? OrderDishes { get; set; }
+        public ICollection<Comment>? Comments { get; set; }
     }
 }

@@ -12,8 +12,8 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240729012743_b2")]
-    partial class b2
+    [Migration("20240731180641_m1")]
+    partial class m1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -194,6 +194,12 @@ namespace RESTAURANT.API.Migrations
                     b.Property<int>("ComboId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.HasKey("DishId", "ComboId");
 
                     b.HasIndex("ComboId");
@@ -209,11 +215,17 @@ namespace RESTAURANT.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AppetizerId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RestaurantId")
+                    b.Property<int?>("DishId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RestaurantId")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
@@ -221,7 +233,13 @@ namespace RESTAURANT.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AppetizerId");
+
+                    b.HasIndex("DishId");
+
                     b.HasIndex("RestaurantId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Comments");
                 });
@@ -247,6 +265,8 @@ namespace RESTAURANT.API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CommentId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("CommentChildren");
                 });
@@ -347,6 +367,9 @@ namespace RESTAURANT.API.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
@@ -845,13 +868,31 @@ namespace RESTAURANT.API.Migrations
 
             modelBuilder.Entity("RESTAURANT.API.Models.Comment", b =>
                 {
+                    b.HasOne("RESTAURANT.API.Models.Appetizer", "Appetizer")
+                        .WithMany("Comments")
+                        .HasForeignKey("AppetizerId");
+
+                    b.HasOne("RESTAURANT.API.Models.Dish", "Dish")
+                        .WithMany("Comments")
+                        .HasForeignKey("DishId");
+
                     b.HasOne("RESTAURANT.API.Models.Restaurant", "Restaurant")
                         .WithMany("Comment")
-                        .HasForeignKey("RestaurantId")
+                        .HasForeignKey("RestaurantId");
+
+                    b.HasOne("RESTAURANT.API.Models.User", "User")
+                        .WithMany("Comments")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Appetizer");
+
+                    b.Navigation("Dish");
+
                     b.Navigation("Restaurant");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.CommentChild", b =>
@@ -862,7 +903,15 @@ namespace RESTAURANT.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("RESTAURANT.API.Models.User", "User")
+                        .WithMany("CommentChildren")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Comment");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.CustomCombo", b =>
@@ -1026,6 +1075,8 @@ namespace RESTAURANT.API.Migrations
             modelBuilder.Entity("RESTAURANT.API.Models.Appetizer", b =>
                 {
                     b.Navigation("ComboAppetizers");
+
+                    b.Navigation("Comments");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Category", b =>
@@ -1059,6 +1110,8 @@ namespace RESTAURANT.API.Migrations
             modelBuilder.Entity("RESTAURANT.API.Models.Dish", b =>
                 {
                     b.Navigation("ComboDishes");
+
+                    b.Navigation("Comments");
 
                     b.Navigation("CustomCombos");
 
@@ -1104,6 +1157,10 @@ namespace RESTAURANT.API.Migrations
             modelBuilder.Entity("RESTAURANT.API.Models.User", b =>
                 {
                     b.Navigation("Booking");
+
+                    b.Navigation("CommentChildren");
+
+                    b.Navigation("Comments");
 
                     b.Navigation("CustomCombos");
 

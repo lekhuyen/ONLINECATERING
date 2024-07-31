@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RESTAURANT.API.Migrations
 {
     /// <inheritdoc />
-    public partial class b2 : Migration
+    public partial class m1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -81,6 +81,7 @@ namespace RESTAURANT.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<bool>(type: "bit", nullable: false),
                     ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -265,7 +266,9 @@ namespace RESTAURANT.API.Migrations
                 columns: table => new
                 {
                     DishId = table.Column<int>(type: "int", nullable: false),
-                    ComboId = table.Column<int>(type: "int", nullable: false)
+                    ComboId = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1")
                 },
                 constraints: table =>
                 {
@@ -346,15 +349,32 @@ namespace RESTAURANT.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RestaurantId = table.Column<int>(type: "int", nullable: false)
+                    RestaurantId = table.Column<int>(type: "int", nullable: true),
+                    DishId = table.Column<int>(type: "int", nullable: true),
+                    AppetizerId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Comments", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Comments_Appetizers_AppetizerId",
+                        column: x => x.AppetizerId,
+                        principalTable: "Appetizers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Comments_Dishes_DishId",
+                        column: x => x.DishId,
+                        principalTable: "Dishes",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_Comments_Restaurants_RestaurantId",
                         column: x => x.RestaurantId,
                         principalTable: "Restaurants",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Comments_User_UserId",
+                        column: x => x.UserId,
+                        principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -506,6 +526,12 @@ namespace RESTAURANT.API.Migrations
                         principalTable: "Comments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CommentChildren_User_UserId",
+                        column: x => x.UserId,
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -621,9 +647,29 @@ namespace RESTAURANT.API.Migrations
                 column: "CommentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CommentChildren_UserId",
+                table: "CommentChildren",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comments_AppetizerId",
+                table: "Comments",
+                column: "AppetizerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comments_DishId",
+                table: "Comments",
+                column: "DishId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Comments_RestaurantId",
                 table: "Comments",
                 column: "RestaurantId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comments_UserId",
+                table: "Comments",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CustomCombos_OrderId",
@@ -755,19 +801,19 @@ namespace RESTAURANT.API.Migrations
                 name: "Services");
 
             migrationBuilder.DropTable(
-                name: "Appetizers");
-
-            migrationBuilder.DropTable(
                 name: "Desserts");
 
             migrationBuilder.DropTable(
                 name: "Comments");
 
             migrationBuilder.DropTable(
-                name: "Dishes");
+                name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Orders");
+                name: "Appetizers");
+
+            migrationBuilder.DropTable(
+                name: "Dishes");
 
             migrationBuilder.DropTable(
                 name: "Restaurants");
