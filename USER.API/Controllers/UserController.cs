@@ -12,6 +12,7 @@ using REDISCLIENT;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using USER.API.DTOs;
 using USER.API.Helpers;
@@ -83,6 +84,12 @@ namespace USER.API.Controllers
 			{
 				if (ModelState.IsValid)
 				{
+					// Generate confirmation token
+					//var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+					var token = RandomString(6);
+					user.ConfirmationToken = token;
+					user.ConfirmationTokenExpiry = DateTime.UtcNow.AddSeconds(30); // Set token expiry
+
 					var userRes = await _repository.AddUserAsync(user);
 					//await _databaseContext.Users.InsertOneAsync(user);
 					if (userRes == 1)
@@ -114,6 +121,18 @@ namespace USER.API.Controllers
 					var userJson = JsonConvert.SerializeObject(userDTO);
 					_redisClient.Publish("user_created", userJson);
 
+					// Send confirmation email
+					//var confirmationLink = Url.Action("ConfirmEmail", "User", new { token }, Request.Scheme);
+					var confirmationLink = $"http://localhost:3000/login/{token}";
+					var confirmationMessage = $"Dear {user.UserName},<br><br>Thank you for registering. Please confirm your email by clicking the link below:<br><br><a href='{confirmationLink}'>Confirm Email</a>";
+					var emailRequest = new EmailRequest
+					{
+						ToMail = user.UserEmail,
+						Subject = "Confirm your email",
+						HtmlContent = confirmationMessage
+					};
+					await _emailServices.SendEmailAsync(emailRequest);
+
 					return Created("success", new ApiResponse
 					{
 						Success = true,
@@ -138,6 +157,46 @@ namespace USER.API.Controllers
 				});
 			}
 		}
+
+		[HttpGet("ConfirmEmail")]
+		public async Task<IActionResult> ConfirmEmail(string token)
+		{
+			if (string.IsNullOrEmpty(token))
+			{
+				return BadRequest(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Invalid token"
+				});
+			}
+
+			var user = await _repository.GetByIdRefeshToken(token);
+			if (user == null || user.ConfirmationTokenExpiry < DateTime.UtcNow)
+			{
+				return BadRequest(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Invalid or expired token"
+				});
+			}
+
+			user.EmailConfirmed = true;
+			user.ConfirmationToken = null;
+			user.ConfirmationTokenExpiry = null;
+
+			await _repository.UpdateUserAsync(user);
+
+			return Ok(new ApiResponse
+			{
+				Success = true,
+				Status = 0,
+				Message = "Email confirmed successfully"
+			});
+		}
+
+
 		[HttpGet("{id}")]
 		public async Task<IActionResult> GetById(int id)
 		{
@@ -319,6 +378,55 @@ namespace USER.API.Controllers
                 AccessToken = token,
                 RefeshToken = refeshToken
             };
+
+			return Ok(new ApiResponse
+			{
+				Success = true,
+				Status = 0,
+				Message = "Login successfully",
+				//AccessToken = token,
+				//RefreshToken = refeshToken,
+				Data = userDTO
+			});
+
+		}
+
+		[HttpPost("login-token")]
+		public async Task<IActionResult> LoginToken(Login login)
+		{
+			var userLogin = await _authUser.Login(login);
+			if (userLogin == null)
+			{
+				return Ok(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Wrong Email or Password"
+				});
+			}
+
+
+			//token ------------  refeshToken
+			var token = GenerateToken(userLogin);
+
+			var refeshToken = Guid.NewGuid().ToString();
+			var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
+
+
+			userLogin.RefeshToken = refeshToken;
+			userLogin.RefreshTokenExpiryTime = refreshTokenExpiryTime;
+			await _repository.UpdateUserAsync(userLogin);
+
+			var userDTO = new UserDTO
+			{
+				Id = userLogin.Id,
+				UserEmail = userLogin.UserEmail,
+				UserName = userLogin.UserName,
+				Phone = userLogin.Phone,
+				Role = userLogin.Role,
+				AccessToken = token,
+				RefeshToken = refeshToken
+			};
 
 			return Ok(new ApiResponse
 			{
