@@ -1,4 +1,5 @@
-﻿using RESTAURANT.API.Models;
+﻿using RESTAURANT.API.DTOs;
+using RESTAURANT.API.Models;
 
 namespace RESTAURANT.API.Repositories
 {
@@ -6,6 +7,6 @@ namespace RESTAURANT.API.Repositories
     {
         Task DeleteComment(int userId, int commentId);
         Task<string> UpdateComment(int userId, int commentId, string comment);
-        Task<Comment> AddComment(Comment comment);
+        Task<CommentDTO> AddComment(CommentDTO comment);
     }
 }

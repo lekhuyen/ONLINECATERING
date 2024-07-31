@@ -12,5 +12,6 @@ namespace RESTAURANT.API.Models
         public int UserId { get; set; }
         public string Content { get; set; }
         public Comment? Comment { get; set; }
+        public User? User { get; set; }
     }
 }

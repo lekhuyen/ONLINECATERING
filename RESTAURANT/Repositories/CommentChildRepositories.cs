@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
 using System.ComponentModel.Design;
 
@@ -11,15 +12,15 @@ namespace RESTAURANT.API.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<CommentChild> AddCommentReply(CommentChild commentReply)
+        public async Task<CommentChildDTO> AddCommentReply(CommentChildDTO commentReply)
         {
-            //var commReply = new CommentChild
-            //{
-            //    UserId = commentReply.UserId,
-            //    CommentId = commentReply.CommentId,
-            //    Content = commentReply.Content,
-            //};
-            await _dbContext.CommentChildren.AddAsync(commentReply);
+            var commReply = new CommentChild
+            {
+                UserId = commentReply.UserId,
+                CommentId = (int)commentReply.CommentId,
+                Content = commentReply.Content,
+            };
+            await _dbContext.CommentChildren.AddAsync(commReply);
             await _dbContext.SaveChangesAsync();
             return commentReply;
         }

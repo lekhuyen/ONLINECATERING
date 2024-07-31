@@ -11,8 +11,14 @@ namespace RESTAURANT.API.Models
         public int Id { get; set; }
         public int UserId { get; set; }
         public string Content { get; set; }
-        public int RestaurantId { get; set; }
+        public int? RestaurantId { get; set; }
         public Restaurant? Restaurant { get; set; }
+        public int? DishId { get; set; }
+        public Dish? Dish { get; set; }
         public ICollection<CommentChild>? CommentChildren { get; set; }
+
+        public int? AppetizerId { get; set; }
+        public Appetizer? Appetizer { get; set; }
+        public User? User { get; set; }
     }
 }

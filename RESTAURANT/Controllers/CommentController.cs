@@ -1,6 +1,8 @@
 ﻿using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
 using RESTAURANT.API.Repositories;
 
@@ -11,12 +13,21 @@ namespace RESTAURANT.API.Controllers
     public class CommentController : ControllerBase
     {
         private readonly IComment _comment;
-        public CommentController(IComment comment)
+        private readonly DatabaseContext _databaseContext;
+        public CommentController(IComment comment, DatabaseContext databaseContext)
         {
+            _databaseContext = databaseContext;
             _comment = comment;
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllComment()
+        {
+            var comments = await _databaseContext.Comments.ToListAsync();
+            return Ok(comments);
+        }
         [HttpPost]
-        public async Task<IActionResult> AddComment(Comment comment)
+        public async Task<IActionResult> AddComment(CommentDTO comment)
         {
             try
             {

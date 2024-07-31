@@ -12,6 +12,7 @@ namespace RESTAURANT.API.Models
         public decimal Price { get; set; }
         public int Quantity { get; set; }
         public string? AppetizerImage { get; set; }
+        public ICollection<Comment>? Comments { get; set; }
         public ICollection<ComboAppetizer>? ComboAppetizers { get; set; }
     }
 }
