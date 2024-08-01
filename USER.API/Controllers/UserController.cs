@@ -137,7 +137,7 @@ namespace USER.API.Controllers
 					{
 						Success = true,
 						Status = 0,
-						Message = "Create user successfully"
+						Message = "Create user successfully, please confirm your email to continue login"
 					});
 				}
 				return Ok(new ApiResponse
