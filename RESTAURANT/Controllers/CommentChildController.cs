@@ -1,6 +1,7 @@
 ﻿using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
 using RESTAURANT.API.Repositories;
 using System.Xml.Linq;
@@ -18,7 +19,7 @@ namespace RESTAURANT.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCommentChild(CommentChild commentChild)
+        public async Task<IActionResult> AddCommentChild(CommentChildDTO commentChild)
         {
             try
             {

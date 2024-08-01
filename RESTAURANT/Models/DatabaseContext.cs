@@ -174,6 +174,25 @@ namespace RESTAURANT.API.Models
                 .WithOne(c => c.Lobby)
                 .HasForeignKey(c => c.LobbyId);
 
+            modelBuilder.Entity<Dish>()
+                .HasMany(c => c.Comments)
+                .WithOne(c => c.Dish)
+                .HasForeignKey(c => c.DishId);
+            modelBuilder.Entity<Appetizer>()
+                .HasMany(c => c.Comments)
+                .WithOne(c => c.Appetizer)
+                .HasForeignKey(c => c.AppetizerId);
+
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.User)
+                .WithMany(c => c.Comments)
+                .HasForeignKey(c => c.UserId);
+
+            modelBuilder.Entity<CommentChild>()
+                .HasOne(c => c.User)
+                .WithMany(c => c.CommentChildren)
+                .HasForeignKey(c => c.UserId)
+                 .OnDelete(DeleteBehavior.Restrict);
 
         }
 
