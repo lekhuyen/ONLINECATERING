@@ -16,6 +16,8 @@ namespace RESTAURANT.API.Models
 
         public ICollection<Order>? Orders { get; set; }
         public ICollection<CustomCombo>? CustomCombos { get; set; }
+        public ICollection<Comment>? Comments { get; set; }
+        public ICollection<CommentChild>? CommentChildren { get; set; }
 
 
     }

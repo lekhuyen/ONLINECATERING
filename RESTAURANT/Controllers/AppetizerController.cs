@@ -51,9 +51,37 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                // Retrieve the appetizer with the specified id
-                var appetizer = await _dbContext.Appetizers.FindAsync(id);
+                var appet = await _dbContext.Appetizers
+                    .Include(x => x.Comments)
+                    .ThenInclude(x => x.User)
+                    .ThenInclude(x => x.CommentChildren)
+                    .FirstOrDefaultAsync(x => x.Id == id);
 
+                var appetizer = new AppetizerDTO
+                {
+                    AppetizerId = appet.Id,
+                    AppetizerName = appet.AppetizerName,
+                    AppetizerImage = appet.AppetizerImage,
+                    AppetizerPrice = appet.Price,
+                    Comments = appet.Comments.Select(x => new CommentDTO
+                    {
+                        Id = x.Id,
+                        Content = x.Content,
+                        User = new UserDTO
+                        {
+                            Id = x.User.Id,
+                            UserName = x.User.UserName,
+                                                    },
+                        AppetizerId = x.AppetizerId,
+                        CommentChildren = x?.CommentChildren?.Select(x => new CommentChildDTO
+                        {
+                            Id = x.Id,
+                            Content = x.Content,
+                            UserId = x.UserId,
+                            CommentId = x.CommentId,
+                        }).ToList(),
+                    }).ToList(),
+                };
                 if (appetizer == null)
                 {
                     return NotFound(new ApiResponse
