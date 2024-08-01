@@ -7,6 +7,6 @@ namespace RESTAURANT.API.Repositories
     {
         Task DeleteComment(int userId, int commentId);
         Task<string> UpdateComment(EditCommentDTO editCommentDTO);
-        Task<CommentDTO> AddComment(CommentDTO comment);
+        Task<Comment> AddComment(CommentDTO comment);
     }
 }
