@@ -83,11 +83,11 @@ namespace RESTAURANT.API.Controllers
             }
         }
         [HttpPut("{userId}/{commentId}")]
-        public async Task<IActionResult> UpdateComment(int userId,int commentId, string comment)
+        public async Task<IActionResult> UpdateComment(EditCommentDTO editCommentDTO)
         {
             try
             {
-                var comm = await _comment.UpdateComment(userId, commentId, comment);
+                var comm = await _comment.UpdateComment(editCommentDTO);
                 return Ok(new ApiResponse
                 {
                     Success = true,
