@@ -37,17 +37,17 @@ namespace RESTAURANT.API.Repositories
 
         
 
-        public async Task<string> UpdateComment(int userId, int commentId, string comment)
+        public async Task<string> UpdateComment(EditCommentDTO editCommentDTO)
         {
             var comm = await _dbContext.Comments
-                .FirstOrDefaultAsync(c => c.Id == commentId && c.UserId == userId);
+                .FirstOrDefaultAsync(c => c.Id == editCommentDTO.CommentId && c.UserId == editCommentDTO.UserId);
             if(comm != null)
             {
-                comm.Content = comment;
+               comm.Content = editCommentDTO.Comment;
             }
-            _dbContext.Update(comm);
+            _dbContext?.Update(comm);
             await _dbContext.SaveChangesAsync();
-            return comment;
+            return editCommentDTO.Comment;
         }
     }
 }
