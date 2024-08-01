@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
 using System.ComponentModel.Design;
@@ -12,7 +13,8 @@ namespace RESTAURANT.API.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<CommentChildDTO> AddCommentReply(CommentChildDTO commentReply)
+        
+        public async Task<CommentChild> AddCommentReply(CommentChildDTO commentReply)
         {
             var commReply = new CommentChild
             {
@@ -22,7 +24,7 @@ namespace RESTAURANT.API.Repositories
             };
             await _dbContext.CommentChildren.AddAsync(commReply);
             await _dbContext.SaveChangesAsync();
-            return commentReply;
+            return commReply;
         }
 
         public async Task DeleteCommentReply(int userId, int commentReplyId)
@@ -36,17 +38,17 @@ namespace RESTAURANT.API.Repositories
             }
         }
 
-        public async Task<string> UpdateCommentReply(int userId, int commentReplyId, string commentReply)
+        public async Task<string> UpdateCommentReply(EditCommentReplyDTO commentChildDTO)
         {
             var comm = await _dbContext.CommentChildren
-                .FirstOrDefaultAsync(c => c.Id == commentReplyId && c.UserId == userId);
+                .FirstOrDefaultAsync(c => c.Id == commentChildDTO.ReplyId && c.UserId == commentChildDTO.UserId);
             if (comm != null)
             {
-                comm.Content = commentReply;
+                comm.Content = commentChildDTO.Content;
             }
             _dbContext.Update(comm);
             await _dbContext.SaveChangesAsync();
-            return commentReply;
+            return comm.Content;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
 using RESTAURANT.API.Repositories;
@@ -13,9 +14,17 @@ namespace RESTAURANT.API.Controllers
     public class CommentChildController : ControllerBase
     {
         private readonly ICommentChild _commentChild;
-        public CommentChildController(ICommentChild commentChild)
+        private readonly DatabaseContext _dbContext;
+        public CommentChildController(ICommentChild commentChild, DatabaseContext dbContext)
         {
             _commentChild = commentChild;
+            _dbContext = dbContext;
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetAllCommentReply()
+        {
+            var replies = await _dbContext.CommentChildren.ToListAsync();
+            return Ok(replies);
         }
 
         [HttpPost]
@@ -74,12 +83,12 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
-        [HttpPut("{userId}/{commentId}")]
-        public async Task<IActionResult> UpdateComment(int userId, int commentId, string comment)
+        [HttpPut("{userId}/{replyId}")]
+        public async Task<IActionResult> UpdateComment(EditCommentReplyDTO commentChildDTO)
         {
             try
             {
-                var comm = await _commentChild.UpdateCommentReply(userId, commentId, comment);
+                var comm = await _commentChild.UpdateCommentReply(commentChildDTO);
                 return Ok(new ApiResponse
                 {
                     Success = true,
