@@ -57,6 +57,17 @@ namespace RESTAURANT.API.Controllers
                     .ThenInclude(x => x.CommentChildren)
                     .FirstOrDefaultAsync(x => x.Id == id);
 
+                if (appet == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 404,
+                        Message = "Appetizer not found",
+                        Data = null
+                    });
+                }
+
                 var appetizer = new AppetizerDTO
                 {
                     AppetizerId = appet.Id,
@@ -70,33 +81,23 @@ namespace RESTAURANT.API.Controllers
                         User = new UserDTO
                         {
                             Id = x.User.Id,
-                            UserName = x.User.UserName,
-                                                    },
+                            UserName = x.User.UserName
+                        },
                         AppetizerId = x.AppetizerId,
-                        CommentChildren = x?.CommentChildren?.Select(x => new CommentChildDTO
+                        CommentChildren = x?.CommentChildren?.Select(cc => new CommentChildDTO
                         {
-                            Id = x.Id,
-                            Content = x.Content,
-                            UserId = x.UserId,
-                            CommentId = x.CommentId,
-                        }).ToList(),
-                    }).ToList(),
+                            Id = cc.Id,
+                            Content = cc.Content,
+                            UserId = cc.UserId,
+                            CommentId = cc.CommentId
+                        }).ToList()
+                    }).ToList()
                 };
-                if (appetizer == null)
-                {
-                    return NotFound(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "Appetizer not found",
-                        Data = null
-                    });
-                }
 
                 return Ok(new ApiResponse
                 {
                     Success = true,
-                    Status = 0,
+                    Status = 200,
                     Message = "Appetizer retrieved successfully",
                     Data = appetizer
                 });
@@ -106,12 +107,13 @@ namespace RESTAURANT.API.Controllers
                 return StatusCode(500, new ApiResponse
                 {
                     Success = false,
-                    Status = 1,
+                    Status = 500,
                     Message = "Internal server error",
-                    Data = null
+                    Data = ex.Message
                 });
             }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> AddAppetizer([FromForm] Appetizer appetizer, IFormFile formFile)
