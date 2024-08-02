@@ -5,7 +5,6 @@ namespace RESTAURANT.API.DTOs
 {
     public class ComboAppetizerDTO
     {
-        public int ComboAppetizerId { get; set; }
         public int? AppetizerId { get; set; }
         public string AppetizerName { get; set; }
         public decimal AppetizerPrice { get; set; }
