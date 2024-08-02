@@ -1,69 +1,92 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using REDISCLIENT;
+//using RESTAURANT.API.Data;
 using RESTAURANT.API.Models;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace RESTAURANT.API.Repositories
 {
-	public class LobbyRepository : ILobbyRepository
-	{
-		private readonly RedisClient _redis;
-		private readonly DatabaseContext _dbContext;
-		public LobbyRepository(DatabaseContext dbContext, RedisClient redisClient)
-		{
-			_dbContext = dbContext;
-			_redis = redisClient;
-		}
+    public class LobbyRepository : ILobbyRepository
+    {
+        private readonly DatabaseContext _dbContext;
 
-		public async Task<Lobby> CreateLobby(Lobby lobby)
-		{
-			await _dbContext.Lobbies.AddAsync(lobby);
-			await _dbContext.SaveChangesAsync();
-			return lobby;
-		}
+        public LobbyRepository(DatabaseContext databaseContext)
+        {
+            _dbContext = databaseContext;
+        }
 
-        public async Task<Lobby> DeleteLobby(int id)
+        public async Task<IEnumerable<Lobby>> GetAllLobbies()
+        {
+            return await _dbContext.Lobbies.ToListAsync();
+        }
+
+        public async Task<Lobby> GetLobbyById(int id)
+        {
+            return await _dbContext.Lobbies
+                .Include(l => l.LobbyImages)
+                .FirstOrDefaultAsync(l => l.Id == id);
+        }
+
+        public async Task<Lobby> CreateLobby(Lobby lobby, IEnumerable<LobbyImages> images)
+        {
+            // Initialize LobbyImages collection if it's null
+            lobby.LobbyImages ??= new List<LobbyImages>();
+
+            foreach (var image in images)
+            {
+                lobby.LobbyImages.Add(image);
+            }
+
+            _dbContext.Lobbies.Add(lobby);
+            await _dbContext.SaveChangesAsync();
+
+            return lobby;
+        }
+
+        public async Task<Lobby> UpdateLobby(int id, Lobby lobby, IEnumerable<LobbyImages> images)
+        {
+            var existingLobby = await _dbContext.Lobbies
+                .Include(l => l.LobbyImages)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (existingLobby != null)
+            {
+                // Update properties of the lobby entity
+                existingLobby.LobbyName = lobby.LobbyName;
+                existingLobby.Description = lobby.Description;
+                existingLobby.Area = lobby.Area;
+                existingLobby.Type = lobby.Type;
+                existingLobby.Price = lobby.Price;
+
+                // Handle images
+                if (images != null && images.Any())
+                {
+                    // Clear existing images
+                    existingLobby.LobbyImages.Clear();
+
+                    // Add new images
+                    foreach (var image in images)
+                    {
+                        existingLobby.LobbyImages.Add(image);
+                    }
+                }
+
+                await _dbContext.SaveChangesAsync();
+            }
+
+            return existingLobby;
+        }
+
+
+        public async Task DeleteLobby(int id)
         {
             var lobby = await _dbContext.Lobbies.FindAsync(id);
             if (lobby != null)
             {
                 _dbContext.Lobbies.Remove(lobby);
-                try
-                {
-                    await _dbContext.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    // Log the exception for debugging purposes
-                    Console.WriteLine($"Error deleting lobby with ID {id}: {ex.Message}");
-                    throw; // Re-throw the exception to propagate it
-                }
+                await _dbContext.SaveChangesAsync();
             }
-            return lobby;
         }
-
-        public async Task<IEnumerable<Lobby>> GetAllLobbies()
-        {
-            var lobbies = await _dbContext.Lobbies
-                .Include(l => l.LobbyImages) // Eager loading LobbyImages
-                .ToListAsync();
-
-            return lobbies;
-        }
-
-        public async Task<Lobby> GetLobbyById(int id)
-        {
-            var lobby = await _dbContext.Lobbies
-                .Include(l => l.LobbyImages) // Eager loading LobbyImages
-                .FirstOrDefaultAsync(l => l.Id == id);
-
-            return lobby;
-        }
-
-        public async Task<Lobby> UpdateLobby(Lobby lobby)
-		{
-			_dbContext.Entry(lobby).State = EntityState.Modified;
-			await _dbContext.SaveChangesAsync();
-			return lobby;
-		}
-	}
+    }
 }
