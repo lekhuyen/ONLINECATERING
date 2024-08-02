@@ -2,6 +2,7 @@
 {
     public class ComboDessertDTO
     {
+        public int ComboDessertId { get; set; }
         public int? DessertId { get; set; }
         public string DessertName { get; set; }
         public decimal DessertPrice { get; set; }

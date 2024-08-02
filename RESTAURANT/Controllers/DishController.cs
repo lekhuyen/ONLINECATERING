@@ -17,7 +17,7 @@ namespace RESTAURANT.API.Controllers
     [ApiController]
     public class DishController : ControllerBase
     {
-        
+
         private readonly DatabaseContext _dbContext; // Replace DatabaseContext with your DbContext
         private readonly IWebHostEnvironment _webHostEnvironment;
 
