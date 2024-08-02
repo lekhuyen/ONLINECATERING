@@ -1,4 +1,4 @@
-﻿using APIRESPONSE.Models;
+using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
