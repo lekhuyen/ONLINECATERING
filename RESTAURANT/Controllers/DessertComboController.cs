@@ -66,49 +66,29 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetComboDessertById(int id)
+        [HttpGet("{comboid}")]
+        public async Task<IActionResult> GetComboDessert(int comboid)
         {
             try
             {
-                var comboDessert = await _dbContext.ComboDesserts
-                    .Include(cd => cd.Combo)
-                    .Include(cd => cd.Dessert)
-                    .FirstOrDefaultAsync(cd => cd.Id == id);
+                var dessert = await _dbContext.ComboDesserts
+                    .Include(c => c.Combo)
+                    .Include(c => c.Dessert)
+                    .Where(x => x.ComboId == comboid).ToListAsync();
 
-                if (comboDessert == null)
+                var dessertDTO = dessert.Select(s => new DessertDTO
                 {
-                    return NotFound(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "ComboDessert not found",
-                        Data = null
-                    });
-                }
-
-                var comboDessertDTO = new ComboDessertDTO
-                {
-                    ComboDessertId = comboDessert.Id,
-                    DessertId = comboDessert.Dessert.Id,
-                    DessertName = comboDessert.Dessert.DessertName,
-                    DessertPrice = comboDessert.Dessert.Price,
-                    DessertQuantity = comboDessert.Dessert.Quantity,
-                    DessertImage = comboDessert.Dessert.DessertImage,
-
-                    ComboId = comboDessert.Combo.Id,
-                    ComboName = comboDessert.Combo.Name,
-                    ComboPrice = comboDessert.Combo.Price,
-                    ComboImagePath = comboDessert.Combo.ImagePath,
-                    ComboType = comboDessert.Combo.Type
-                };
-
+                    Id = s.Dessert.Id,
+                    DessertName = s.Dessert.DessertName,
+                    Price = s.Dessert.Price,
+                    DessertImage = s.Dessert.DessertImage,
+                }).ToList();
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Successfully retrieved the combo dessert",
-                    Data = comboDessertDTO
+                    Message = "Get dessert successfully",
+                    Data = dessertDTO
                 });
             }
             catch (Exception e)
@@ -117,7 +97,7 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = $"Internal server error: {e.Message}",
+                    Message = "Internal server error",
                     Data = null
                 });
             }

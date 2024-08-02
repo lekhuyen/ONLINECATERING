@@ -37,7 +37,7 @@ namespace RESTAURANT.API.Controllers
                     DishId = cd.Dish.Id,
                     DishName = cd.Dish.Name,
                     DishPrice = cd.Dish.Price,
-                    DishQuantity = cd.Dish.Quantity,
+
                     DishImagePath = cd.Dish.ImagePath,
 
                     ComboId = cd.Combo.Id,
@@ -67,50 +67,29 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetComboDishById(int id)
+        [HttpGet("{comboid}")]
+        public async Task<IActionResult> GetComboDessert(int comboid)
         {
             try
             {
-                var comboDish = await _dbContext.ComboDishes
-                    .Include(cd => cd.Combo)
-                    .Include(cd => cd.Dish)
-                    .FirstOrDefaultAsync(cd => cd.Id == id);
+                var dish = await _dbContext.ComboDishes
+                    .Include(c => c.Combo)
+                    .Include(c => c.Dish)
+                    .Where(x => x.ComboId == comboid).ToListAsync();
 
-                if (comboDish == null)
+                var dishDTO = dish.Select(s => new DishDTO
                 {
-                    return NotFound(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "ComboDish not found",
-                        Data = null
-                    });
-                }
-
-                var comboDishDTO = new ComboDishDTO
-                {
-                    ComboDishId = comboDish.Id,
-                    DishId = comboDish.Dish.Id,
-                    DishName = comboDish.Dish.Name,
-                    DishPrice = comboDish.Dish.Price,
-                    DishQuantity = comboDish.Dish.Quantity,
-                    DishImagePath = comboDish.Dish.ImagePath,
-                    
-
-                    ComboId = comboDish.Combo.Id,
-                    ComboName = comboDish.Combo.Name,
-                    ComboPrice = comboDish.Combo.Price,
-                    ComboImagePath = comboDish.Combo.ImagePath,
-                    ComboType = comboDish.Combo.Type,
-                };
-
+                    Id = s.Dish.Id,
+                    Name = s.Dish.Name,
+                    Price = s.Dish.Price,
+                    ImagePath = s.Dish.ImagePath,
+                }).ToList();
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Successfully retrieved the combo dish",
-                    Data = comboDishDTO
+                    Message = "Get dish successfully",
+                    Data = dishDTO
                 });
             }
             catch (Exception e)
@@ -119,11 +98,13 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = $"Internal server error: {e.Message}",
+                    Message = "Internal server error",
                     Data = null
                 });
             }
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> CreateComboDish([FromBody] AddComboDishDTO dto)
