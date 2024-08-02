@@ -11,18 +11,17 @@ namespace RESTAURANT.API.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<CommentDTO> AddComment(CommentDTO comment)
+        public async Task<Comment> AddComment(CommentDTO comment)
         {
             var comm = new Comment
             {
-                Id = comment.Id,
                 UserId = comment.UserId,
                 AppetizerId = comment.AppetizerId,
                 Content = comment.Content
             };
             await _dbContext.AddAsync(comm);
             await _dbContext.SaveChangesAsync();
-            return comment;
+            return comm;
         }
 
         public async Task DeleteComment(int userId, int commentId)

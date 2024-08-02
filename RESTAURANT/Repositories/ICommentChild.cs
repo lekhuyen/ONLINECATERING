@@ -6,7 +6,7 @@ namespace RESTAURANT.API.Repositories
     public interface ICommentChild
     {
         Task DeleteCommentReply(int userId, int commentReplyId);
-        Task<string> UpdateCommentReply(int userId, int commentReplyId, string commentReply);
-        Task<CommentChildDTO> AddCommentReply(CommentChildDTO commentReply);
+        Task<string> UpdateCommentReply(EditCommentReplyDTO commentChildDTO);
+        Task<CommentChild> AddCommentReply(CommentChildDTO commentReply);
     }
 }
