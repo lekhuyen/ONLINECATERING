@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RESTAURANT.API.Migrations
 {
     /// <inheritdoc />
-    public partial class m1 : Migration
+    public partial class resTB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
