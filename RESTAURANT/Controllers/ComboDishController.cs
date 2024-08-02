@@ -40,7 +40,7 @@ namespace RESTAURANT.API.Controllers
                     DishId = cd.Dish.Id,
                     DishName = cd.Dish.Name,
                     DishPrice = cd.Dish.Price,
-                    DishStatus = cd.Dish.Status,
+
                     DishImagePath = cd.Dish.ImagePath,
 
                     ComboId = cd.Combo.Id,
@@ -48,7 +48,7 @@ namespace RESTAURANT.API.Controllers
                     ComboPrice = cd.Combo.Price,
                     ComboStatus = cd.Combo.Status,
                     ComboType = cd.Combo.Type,
-                    ComboImagePath = cd.Combo.ImagePath
+
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -79,10 +79,36 @@ namespace RESTAURANT.API.Controllers
             {
                  var createdComboDish= new ComboDish
                 {
+
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "ComboDish not found",
+                        Data = null
+                    });
+                }
+
+                var comboDishDTO = new ComboDishDTO
+                {
+                    ComboDishId = comboDish.Id,
+                    DishId = comboDish.Dish.Id,
+                    DishName = comboDish.Dish.Name,
+                    DishPrice = comboDish.Dish.Price,
+                    DishImagePath = comboDish.Dish.ImagePath,
+
+                    ComboId = comboDish.Combo.Id,
+                    ComboName = comboDish.Combo.Name,
+                    ComboPrice = comboDish.Combo.Price,
+                    ComboImagePath = comboDish.Combo.ImagePath,
+                    ComboType = comboDish.Combo.Type,
+
+
                     DishId = comboDishDTO.DishId,
                     
                     ComboId = comboDishDTO.ComboId,
                     
+
                 };
                 _dbContext.ComboDishes.Add(createdComboDish);
                 await _dbContext.SaveChangesAsync();
@@ -118,11 +144,21 @@ namespace RESTAURANT.API.Controllers
 
                 var dishDTO = dish.Select(s => new DishDTO
                 {
+
+                    Id = dto.ComboDishId,
+                    ComboId = dto.ComboId,
+                    DishId = dto.DishId
+                };
+
+                await _dbContext.ComboDishes.AddAsync(comboDish);
+                await _dbContext.SaveChangesAsync();
+
                     Id = s.Dish.Id,
                     Name = s.Dish.Name,
                     Price = s.Dish.Price,
                     ImagePath = s.Dish.ImagePath,
                 }).ToList();
+
                 return Ok(new ApiResponse
                 {
                     Success = true,

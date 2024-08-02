@@ -10,6 +10,7 @@ public class ComboDishDTO
     public string? DishImagePath { get; set; }
     public IFormFile? DishImageFile { get; set; }
 
+
     // Combo properties
     public int ComboId { get; set; }
     public string? ComboName { get; set; }
