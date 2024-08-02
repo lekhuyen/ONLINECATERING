@@ -1,8 +1,7 @@
 ﻿namespace RESTAURANT.API.DTOs
 {
-    public class AddComboDessertDTO
+    public class AddDessertDTO
     {
-        public int ComboDessertId { get; set; }
         public int? ComboId { get; set; }
         public int? DessertId { get; set; }
     }
