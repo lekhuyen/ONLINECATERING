@@ -161,9 +161,8 @@ namespace RESTAURANT.API.Controllers
 				existingLobby.Description = lobby.Description;
 				existingLobby.Area = lobby.Area;
 				existingLobby.Type = lobby.Type;
-                existingLobby.Price = lobby.Price;
 
-                await _lobbyRepository.UpdateLobby(existingLobby);
+				await _lobbyRepository.UpdateLobby(existingLobby);
 
 				return Ok(new ApiResponse
 				{
