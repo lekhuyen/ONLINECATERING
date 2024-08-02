@@ -1,13 +1,12 @@
-﻿using APIRESPONSE.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RESTAURANT.API.DTOs;
-using RESTAURANT.API.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static Azure.Core.HttpHeader;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using RESTAURANT.API.DTOs;
+using RESTAURANT.API.Models;
+using APIRESPONSE.Models;
 
 namespace RESTAURANT.API.Controllers
 {
@@ -22,86 +21,48 @@ namespace RESTAURANT.API.Controllers
             _dbContext = dbContext;
         }
 
-        // GET: api/ComboDish/Index
-        // GET: api/ComboDish/Index
         [HttpGet]
-        public async Task<IActionResult> GetAllComboDish()
+        public async Task<IActionResult> GetAllComboDishes()
         {
             try
             {
                 var comboDishes = await _dbContext.ComboDishes
-                    .Include(cd => cd.Dish)
-                        .ThenInclude(d => d.CustomCombos)
                     .Include(cd => cd.Combo)
+                    .Include(cd => cd.Dish)
                     .ToListAsync();
 
-                var list = comboDishes.Select(cd => new ComboDishDTO
+                var comboDishesDTO = comboDishes.Select(cd => new ComboDishDTO
                 {
+                    ComboDishId = cd.Id,
                     DishId = cd.Dish.Id,
                     DishName = cd.Dish.Name,
                     DishPrice = cd.Dish.Price,
-                    DishStatus = cd.Dish.Status,
+
                     DishImagePath = cd.Dish.ImagePath,
 
                     ComboId = cd.Combo.Id,
                     ComboName = cd.Combo.Name,
                     ComboPrice = cd.Combo.Price,
-                    ComboStatus = cd.Combo.Status,
+                    ComboImagePath = cd.Combo.ImagePath,
                     ComboType = cd.Combo.Type,
-                    ComboImagePath = cd.Combo.ImagePath
                 }).ToList();
 
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Get ComboDishes successfully",
-                    Data = list
+                    Message = "Successfully retrieved all combo dishes",
+                    Data = comboDishesDTO
                 });
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return BadRequest(new ApiResponse
+                return StatusCode(500, new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
-                    Data = ex.Message
-                });
-            }
-        }
-
-
-        [HttpPost("Create")]
-        public async Task<IActionResult> Create(AddComboDishDTO comboDishDTO)
-        {
-            try
-            {
-                 var createdComboDish= new ComboDish
-                {
-                    DishId = comboDishDTO.DishId,
-                    
-                    ComboId = comboDishDTO.ComboId,
-                    
-                };
-                _dbContext.ComboDishes.Add(createdComboDish);
-                await _dbContext.SaveChangesAsync();
-
-                return Ok(new ApiResponse
-                {
-                    Success = true,
-                    Status = 0,
-                    Message = "ComboDish created successfully",
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = "Error occurred while creating ComboDish",
-                    Data = ex.Message
+                    Message = $"Internal server error: {e.Message}",
+                    Data = null
                 });
             }
         }
@@ -143,14 +104,106 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
-        [HttpDelete("Delete/{comboId}/{dishId}")]
-        public async Task<IActionResult> DeleteComboDish(int comboId, int dishId)
+
+
+        [HttpPost]
+        public async Task<IActionResult> CreateComboDish([FromBody] AddComboDishDTO dto)
         {
             try
             {
-                // Find the ComboDish entry with the specified ComboId and DishId
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Invalid data",
+                        Data = null
+                    });
+                }
+
+                // Check if ComboId exists
+                var comboExists = await _dbContext.Combos
+                    .AnyAsync(c => c.Id == dto.ComboId);
+
+                if (!comboExists)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "ComboId does not exist",
+                        Data = null
+                    });
+                }
+
+                // Check if DishId exists
+                var dishExists = await _dbContext.Dishes
+                    .AnyAsync(d => d.Id == dto.DishId);
+
+                if (!dishExists)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "DishId does not exist",
+                        Data = null
+                    });
+                }
+
+                // Check if a ComboDish with the same ComboId and DishId already exists
+                var existingComboDish = await _dbContext.ComboDishes
+                    .AnyAsync(cd => cd.ComboId == dto.ComboId && cd.DishId == dto.DishId);
+
+                if (existingComboDish)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "A ComboDish with the same ComboId and DishId already exists",
+                        Data = null
+                    });
+                }
+
+                var comboDish = new ComboDish
+                {
+                    ComboId = dto.ComboId,
+                    DishId = dto.DishId,
+
+                };
+
+                await _dbContext.ComboDishes.AddAsync(comboDish);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "ComboDish created successfully",
+                    Data = null
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = $"Error occurred: {e.Message}",
+                    Data = null
+                });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteComboDish(int id)
+        {
+            try
+            {
                 var comboDish = await _dbContext.ComboDishes
-                    .FirstOrDefaultAsync(cd => cd.ComboId == comboId && cd.DishId == dishId);
+                    .FirstOrDefaultAsync(cd => cd.Id == id);
 
                 if (comboDish == null)
                 {
@@ -163,7 +216,6 @@ namespace RESTAURANT.API.Controllers
                     });
                 }
 
-                // Remove the ComboDish entry from the database
                 _dbContext.ComboDishes.Remove(comboDish);
                 await _dbContext.SaveChangesAsync();
 
@@ -175,19 +227,16 @@ namespace RESTAURANT.API.Controllers
                     Data = null
                 });
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
                 return StatusCode(500, new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Internal server error",
-                    Data = ex.Message
+                    Message = $"Internal server error: {e.Message}",
+                    Data = null
                 });
             }
         }
-
-
     }
-
 }
