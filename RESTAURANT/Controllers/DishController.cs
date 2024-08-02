@@ -43,9 +43,9 @@ namespace RESTAURANT.API.Controllers
                     Id = dish.Id,
                     Name = dish.Name,
                     Price = dish.Price,
-                    Quantity = dish.Quantity, // Added Quantity
                     Status = dish.Status,
                     ImagePath = dish.ImagePath,
+
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -67,7 +67,6 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
-
 
         // GET api/dish/{id}
         [HttpGet("{id}")]
@@ -92,7 +91,6 @@ namespace RESTAURANT.API.Controllers
                     Id = dish.Id,
                     Name = dish.Name,
                     Price = dish.Price,
-                    Quantity = dish.Quantity, // Added Quantity
                     Status = dish.Status,
                     ImagePath = dish.ImagePath,
                 };
@@ -117,7 +115,6 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
-
         // POST api/dish
         [HttpPost]
         public async Task<IActionResult> CreateDish([FromForm] DishDTO dishDTO, IFormFile formFile)
@@ -125,11 +122,13 @@ namespace RESTAURANT.API.Controllers
             var fileUpload = new FileUpload(_webHostEnvironment);
             try
             {
+
                 // Save image if exists
                 string result = null;
                 if (formFile != null)
                 {
-                    result = await fileUpload.SaveImage("images", formFile);
+                     result = await fileUpload.SaveImage("images",formFile);
+
                 }
 
                 // Map DTO to entity
@@ -137,7 +136,6 @@ namespace RESTAURANT.API.Controllers
                 {
                     Name = dishDTO.Name,
                     Price = dishDTO.Price,
-                    Quantity = dishDTO.Quantity, // Added Quantity
                     Status = dishDTO.Status,
                     ImagePath = result
                 };
@@ -150,7 +148,7 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Add Dish Successfully",
+                    Message = "Add Disk Successfully",
                     Data = newDish
                 });
             }
@@ -166,7 +164,7 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
-
+        // PUT api/dish/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDish(int id, [FromForm] DishDTO dishDTO, IFormFile? formFile)
         {
@@ -197,14 +195,13 @@ namespace RESTAURANT.API.Controllers
                     });
                 }
 
-                // Update properties
+                // Update scalar properties
                 existingDish.Name = dishDTO.Name;
                 existingDish.Price = dishDTO.Price;
-                existingDish.Quantity = dishDTO.Quantity; // Added Quantity
                 existingDish.Status = dishDTO.Status;
 
                 // Handle image update
-                if (formFile != null)
+                if (formFile!= null)
                 {
                     // Delete old image if it exists
                     if (!string.IsNullOrEmpty(existingDish.ImagePath))
@@ -215,6 +212,8 @@ namespace RESTAURANT.API.Controllers
                     // Save new image and update ImagePath
                     existingDish.ImagePath = await fileUpload.SaveImage("Images", formFile);
                 }
+                // If diskDTO.ImageFile is null, do nothing, which will keep the existing image
+
 
                 // Update entity in DbContext
                 _dbContext.Dishes.Update(existingDish);
@@ -225,7 +224,6 @@ namespace RESTAURANT.API.Controllers
                     Id = existingDish.Id,
                     Name = existingDish.Name,
                     Price = existingDish.Price,
-                    Quantity = existingDish.Quantity, // Added Quantity
                     Status = existingDish.Status,
                     ImagePath = existingDish.ImagePath,
                 };
@@ -249,7 +247,6 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
-
 
         // DELETE api/dish/{id}
         [HttpDelete("{id}")]

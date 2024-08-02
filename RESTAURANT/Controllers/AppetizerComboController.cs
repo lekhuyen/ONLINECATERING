@@ -1,11 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Threading.Tasks;
+﻿using APIRESPONSE.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
-using APIRESPONSE.Models;
 
 namespace RESTAURANT.API.Controllers
 {
@@ -19,40 +17,35 @@ namespace RESTAURANT.API.Controllers
         {
             _dbContext = dbContext;
         }
-
         [HttpGet]
-        public async Task<IActionResult> GetAllAppetizerCombos()
+        public async Task<IActionResult> GetAllAppetizerCombo()
         {
             try
             {
-                var combos = await _dbContext.ComboAppetizers
+                var appetizers = await _dbContext.ComboAppetizers
                     .Include(c => c.Combo)
                     .Include(c => c.Appetizer)
                     .ToListAsync();
 
-                var combosDTO = combos.Select(ca => new ComboAppetizerDTO
+                var appetizersDTO = appetizers.Select(s => new ComboAppetizerDTO
                 {
-                    ComboAppetizerId = ca.Id,
-                    AppetizerId = ca.Appetizer.Id,
-                    AppetizerName = ca.Appetizer.AppetizerName,
-                    AppetizerPrice = ca.Appetizer.Price,
-                    AppetizerQuantity = ca.Appetizer.Quantity,
-                    AppetizerImage = ca.Appetizer.AppetizerImage,
+                    AppetizerId = s.Appetizer.Id,
+                    AppetizerName = s.Appetizer.AppetizerName,
+                    AppetizerPrice = s.Appetizer.Price,
+                    AppetizerImage = s.Appetizer.AppetizerImage,
 
-                    ComboId = ca.Combo.Id,
-                    ComboName = ca.Combo.Name,
-                    ComboPrice = ca.Combo.Price,
-                    ComboImagePath = ca.Combo.ImagePath,
-                    ComboType = ca.Combo.Type,
-                    Status = ca.Combo.Status
+                    ComboId = s.Combo.Id,
+                    ComboPrice = s.Combo.Price,
+                    ComboName = s.Combo.Name,
+                    ComboImagePath = s.Combo.ImagePath,
+                    ComboType = s.Combo.Type,
                 }).ToList();
-
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Successfully retrieved all combos",
-                    Data = combosDTO
+                    Message = "Get appetizers successfully",
+                    Data = appetizersDTO
                 });
             }
             catch (Exception e)
@@ -61,56 +54,75 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = $"Internal server error: {e.Message}",
+                    Message = "Internal server error",
+                    Data = null
+                });
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddComboAppetizer(AddComboAppetizerDTO comboAppetizerDTO)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var comboAppetizer = new ComboAppetizer
+                    {
+                        ComboId = comboAppetizerDTO.ComboId,
+                        AppetizerId = comboAppetizerDTO.AppetizerId
+                    };
+                    await _dbContext.ComboAppetizers.AddAsync(comboAppetizer);
+                    await _dbContext.SaveChangesAsync();
+
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Status = 0,
+                        Message = "Create comboAppetizer Successfully",
+                    });
+                }
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Empty",
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from service",
                     Data = null
                 });
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetComboAppetizerById(int id)
+        [HttpGet("{comboid}")]
+        public async Task<IActionResult> GetComboAppetizer(int comboid)
         {
             try
             {
-                var comboAppetizer = await _dbContext.ComboAppetizers
+                var appetizers = await _dbContext.ComboAppetizers
                     .Include(c => c.Combo)
                     .Include(c => c.Appetizer)
-                    .FirstOrDefaultAsync(ca => ca.Id == id);
+                    .Where(x => x.ComboId == comboid).ToListAsync();
 
-                if (comboAppetizer == null)
+                var appetizersDTO = appetizers.Select(s => new AppetizerDTO
                 {
-                    return NotFound(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "ComboAppetizer not found",
-                        Data = null
-                    });
-                }
-
-                var comboAppetizerDTO = new ComboAppetizerDTO
-                {
-                    
-                    AppetizerId = comboAppetizer.Appetizer.Id,
-                    AppetizerName = comboAppetizer.Appetizer.AppetizerName,
-                    AppetizerPrice = comboAppetizer.Appetizer.Price,
-                    AppetizerQuantity = comboAppetizer.Appetizer.Quantity,
-                    AppetizerImage = comboAppetizer.Appetizer.AppetizerImage,
-
-                    ComboId = comboAppetizer.Combo.Id,
-                    ComboName = comboAppetizer.Combo.Name,
-                    ComboPrice = comboAppetizer.Combo.Price,
-                    ComboImagePath = comboAppetizer.Combo.ImagePath,
-                    ComboType = comboAppetizer.Combo.Type,
-                    Status = comboAppetizer.Combo.Status
-                };
-
+                    AppetizerId = s.Appetizer.Id,
+                    AppetizerName = s.Appetizer.AppetizerName,
+                    AppetizerPrice = s.Appetizer.Price,
+                    AppetizerImage = s.Appetizer.AppetizerImage,
+                }).ToList();
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Successfully retrieved the combo appetizer",
-                    Data = comboAppetizerDTO
+                    Message = "Get appetizers successfully",
+                    Data = appetizersDTO
                 });
             }
             catch (Exception e)
@@ -119,112 +131,20 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = $"Internal server error: {e.Message}",
+                    Message = "Internal server error",
                     Data = null
                 });
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateComboAppetizer([FromBody] AddComboAppetizerDTO dto)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteComboAppetizer([FromQuery] int comboId, [FromQuery] int appetizerId)
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "Invalid data",
-                        Data = null
-                    });
-                }
-
-                // Check if ComboId exists
-                var comboExists = await _dbContext.Combos
-                    .AnyAsync(c => c.Id == dto.ComboId);
-
-                if (!comboExists)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "ComboId does not exist",
-                        Data = null
-                    });
-                }
-
-                // Check if AppetizerId exists
-                var appetizerExists = await _dbContext.Appetizers
-                    .AnyAsync(a => a.Id == dto.AppetizerId);
-
-                if (!appetizerExists)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "AppetizerId does not exist",
-                        Data = null
-                    });
-                }
-
-                // Check if a ComboAppetizer with the same ComboId and AppetizerId already exists
-                var existingComboAppetizer = await _dbContext.ComboAppetizers
-                    .AnyAsync(ca => ca.ComboId == dto.ComboId && ca.AppetizerId == dto.AppetizerId);
-
-                if (existingComboAppetizer)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "A ComboAppetizer with the same ComboId and AppetizerId already exists",
-                        Data = null
-                    });
-                }
-
-                var comboAppetizer = new ComboAppetizer
-                {
-                    Id = dto.ComboAppetizerId,
-                    ComboId = dto.ComboId,
-                    AppetizerId = dto.AppetizerId
-                };
-
-                await _dbContext.ComboAppetizers.AddAsync(comboAppetizer);
-                await _dbContext.SaveChangesAsync();
-
-                return Ok(new ApiResponse
-                {
-                    Success = true,
-                    Status = 0,
-                    Message = "ComboAppetizer created successfully",
-                    Data = null
-                });
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new ApiResponse
-                {
-                    Success = false,
-                    Status = 1,
-                    Message = $"Error occurred: {e.Message}",
-                    Data = null
-                });
-            }
-        }
-
-
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteComboAppetizer(int id)
-        {
-            try
-            {
+                // Find the ComboAppetizer with the specified ComboId and AppetizerId
                 var comboAppetizer = await _dbContext.ComboAppetizers
-                    .FirstOrDefaultAsync(ca => ca.Id == id);
+                    .FirstOrDefaultAsync(ca => ca.ComboId == comboId && ca.AppetizerId == appetizerId);
 
                 if (comboAppetizer == null)
                 {
@@ -237,6 +157,7 @@ namespace RESTAURANT.API.Controllers
                     });
                 }
 
+                // Remove the ComboAppetizer from the database
                 _dbContext.ComboAppetizers.Remove(comboAppetizer);
                 await _dbContext.SaveChangesAsync();
 
@@ -248,16 +169,17 @@ namespace RESTAURANT.API.Controllers
                     Data = null
                 });
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 return StatusCode(500, new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = $"Internal server error: {e.Message}",
+                    Message = "Internal server error",
                     Data = null
                 });
             }
         }
+
     }
 }
