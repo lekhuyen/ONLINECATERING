@@ -12,8 +12,8 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240801094412_resTB")]
-    partial class resTB
+    [Migration("20240803042658_m1")]
+    partial class m1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -222,6 +222,9 @@ namespace RESTAURANT.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("DessertId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("DishId")
                         .HasColumnType("int");
 
@@ -234,6 +237,8 @@ namespace RESTAURANT.API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AppetizerId");
+
+                    b.HasIndex("DessertId");
 
                     b.HasIndex("DishId");
 
@@ -367,9 +372,6 @@ namespace RESTAURANT.API.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
@@ -872,6 +874,10 @@ namespace RESTAURANT.API.Migrations
                         .WithMany("Comments")
                         .HasForeignKey("AppetizerId");
 
+                    b.HasOne("RESTAURANT.API.Models.Dessert", "Dessert")
+                        .WithMany("Comments")
+                        .HasForeignKey("DessertId");
+
                     b.HasOne("RESTAURANT.API.Models.Dish", "Dish")
                         .WithMany("Comments")
                         .HasForeignKey("DishId");
@@ -887,6 +893,8 @@ namespace RESTAURANT.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Appetizer");
+
+                    b.Navigation("Dessert");
 
                     b.Navigation("Dish");
 
@@ -1105,6 +1113,8 @@ namespace RESTAURANT.API.Migrations
             modelBuilder.Entity("RESTAURANT.API.Models.Dessert", b =>
                 {
                     b.Navigation("ComboDesserts");
+
+                    b.Navigation("Comments");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Dish", b =>

@@ -53,7 +53,7 @@ namespace RESTAURANT.API.Controllers
                     Name = od.Dish.Name,
                     Price = od.Dish.Price,
                     Status = od.Dish.Status,
-                    ImagePath = od.Dish.ImagePath
+                    Image = od.Dish.ImagePath
                 }
             }).ToList();
 
@@ -97,7 +97,7 @@ namespace RESTAURANT.API.Controllers
                     Name = orderDish.Dish.Name,
                     Price = orderDish.Dish.Price,
                     Status = orderDish.Dish.Status,
-                    ImagePath = orderDish.Dish.ImagePath
+                    Image = orderDish.Dish.ImagePath
                 }
             };
 
@@ -186,7 +186,7 @@ namespace RESTAURANT.API.Controllers
                         Name = dish.Name,
                         Price = dish.Price,
                         Status = dish.Status,
-                        ImagePath = dish.ImagePath
+                        Image = dish.ImagePath
                     }
                 };
 
@@ -264,7 +264,7 @@ namespace RESTAURANT.API.Controllers
                         Name = dish.Name,
                         Price = dish.Price,
                         Status = dish.Status,
-                        ImagePath = dish.ImagePath
+                        Image = dish.ImagePath
                     }
                 };
 

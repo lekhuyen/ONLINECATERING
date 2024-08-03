@@ -17,7 +17,9 @@ namespace RESTAURANT.API.Repositories
             {
                 UserId = comment.UserId,
                 AppetizerId = comment.AppetizerId,
-                Content = comment.Content
+                Content = comment.Content,
+                DessertId = comment.DessertId,
+                DishId = comment.DishId,
             };
             await _dbContext.AddAsync(comm);
             await _dbContext.SaveChangesAsync();

@@ -55,7 +55,11 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                var dessert = await _dbContext.Desserts.FindAsync(id);
+                var dessert = await _dbContext.Desserts
+                    .Include(x => x.Comments)
+                    .ThenInclude(x => x.User)
+                    .ThenInclude(x => x.CommentChildren)
+                    .FirstOrDefaultAsync(x => x.Id == id);
 
                 if (dessert == null)
                 {
@@ -68,12 +72,38 @@ namespace RESTAURANT.API.Controllers
                     });
                 }
 
+                var dess = new DessertDTO
+                {
+                    Id = dessert.Id,
+                    Name = dessert.DessertName,
+                    Image = dessert.DessertImage,
+                    Price = dessert.Price,
+                    Comments = dessert.Comments.Select(x => new CommentDTO
+                    {
+                        Id = x.Id,
+                        Content = x.Content,
+                        User = new UserDTO
+                        {
+                            Id = x.User.Id,
+                            UserName = x.User.UserName
+                        },
+                        AppetizerId = x.AppetizerId,
+                        CommentChildren = x?.CommentChildren?.Select(cc => new CommentChildDTO
+                        {
+                            Id = cc.Id,
+                            Content = cc.Content,
+                            UserId = cc.UserId,
+                            CommentId = cc.CommentId
+                        }).ToList()
+                    }).ToList()
+                };
+
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
                     Message = "Dessert retrieved successfully",
-                    Data = dessert
+                    Data = dess
                 });
             }
             catch (Exception ex)

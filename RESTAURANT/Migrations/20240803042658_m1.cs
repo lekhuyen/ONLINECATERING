@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RESTAURANT.API.Migrations
 {
     /// <inheritdoc />
-    public partial class resTB : Migration
+    public partial class m1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -81,7 +81,6 @@ namespace RESTAURANT.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<bool>(type: "bit", nullable: false),
                     ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -351,7 +350,8 @@ namespace RESTAURANT.API.Migrations
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RestaurantId = table.Column<int>(type: "int", nullable: true),
                     DishId = table.Column<int>(type: "int", nullable: true),
-                    AppetizerId = table.Column<int>(type: "int", nullable: true)
+                    AppetizerId = table.Column<int>(type: "int", nullable: true),
+                    DessertId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -360,6 +360,11 @@ namespace RESTAURANT.API.Migrations
                         name: "FK_Comments_Appetizers_AppetizerId",
                         column: x => x.AppetizerId,
                         principalTable: "Appetizers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Comments_Desserts_DessertId",
+                        column: x => x.DessertId,
+                        principalTable: "Desserts",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Comments_Dishes_DishId",
@@ -657,6 +662,11 @@ namespace RESTAURANT.API.Migrations
                 column: "AppetizerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Comments_DessertId",
+                table: "Comments",
+                column: "DessertId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Comments_DishId",
                 table: "Comments",
                 column: "DishId");
@@ -801,9 +811,6 @@ namespace RESTAURANT.API.Migrations
                 name: "Services");
 
             migrationBuilder.DropTable(
-                name: "Desserts");
-
-            migrationBuilder.DropTable(
                 name: "Comments");
 
             migrationBuilder.DropTable(
@@ -811,6 +818,9 @@ namespace RESTAURANT.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "Appetizers");
+
+            migrationBuilder.DropTable(
+                name: "Desserts");
 
             migrationBuilder.DropTable(
                 name: "Dishes");

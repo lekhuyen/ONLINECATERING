@@ -2,11 +2,11 @@
 {
     public class AppetizerDTO
     {
-        public int? AppetizerId { get; set; }
-        public string AppetizerName { get; set; }
-        public decimal AppetizerPrice { get; set; }
-        public int? AppetizerQuantity { get; set; }
-        public string? AppetizerImage { get; set; }
+        public int? Id { get; set; }
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public int? Quantity { get; set; }
+        public string? Image { get; set; }
         public List<CommentDTO>? Comments { get; set; }
     }
 }
