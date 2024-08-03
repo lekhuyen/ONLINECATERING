@@ -79,10 +79,10 @@ namespace RESTAURANT.API.Controllers
 
                 var appetizersDTO = appetizers.Select(s => new AppetizerDTO
                 {
-                    AppetizerId = s.Appetizer.Id,
-                    AppetizerName = s.Appetizer.AppetizerName,
-                    AppetizerPrice = s.Appetizer.Price,
-                    AppetizerImage = s.Appetizer.AppetizerImage,
+                    Id = s.Appetizer.Id,
+                    Name = s.Appetizer.AppetizerName,
+                    Price = s.Appetizer.Price,
+                    Image = s.Appetizer.AppetizerImage,
                 }).ToList();
                 return Ok(new ApiResponse
                 {

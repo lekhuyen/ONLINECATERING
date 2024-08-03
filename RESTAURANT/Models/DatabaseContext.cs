@@ -183,6 +183,11 @@ namespace RESTAURANT.API.Models
                 .WithOne(c => c.Appetizer)
                 .HasForeignKey(c => c.AppetizerId);
 
+            modelBuilder.Entity<Dessert>()
+                .HasMany(c => c.Comments)
+                .WithOne(c => c.Dessert)
+                .HasForeignKey(c => c.DessertId);
+
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.User)
                 .WithMany(c => c.Comments)

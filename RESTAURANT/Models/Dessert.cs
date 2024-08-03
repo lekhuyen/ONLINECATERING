@@ -13,6 +13,6 @@ namespace RESTAURANT.API.Models
         public int Quantity { get; set; }
         public string? DessertImage { get; set; }
         public ICollection<ComboDessert>? ComboDesserts { get; set; }
-
+        public ICollection<Comment>? Comments { get; set; }
     }
 }

@@ -70,10 +70,10 @@ namespace RESTAURANT.API.Controllers
 
                 var appetizer = new AppetizerDTO
                 {
-                    AppetizerId = appet.Id,
-                    AppetizerName = appet.AppetizerName,
-                    AppetizerImage = appet.AppetizerImage,
-                    AppetizerPrice = appet.Price,
+                    Id = appet.Id,
+                    Name = appet.AppetizerName,
+                    Image = appet.AppetizerImage,
+                    Price = appet.Price,
                     Comments = appet.Comments.Select(x => new CommentDTO
                     {
                         Id = x.Id,
@@ -97,7 +97,7 @@ namespace RESTAURANT.API.Controllers
                 return Ok(new ApiResponse
                 {
                     Success = true,
-                    Status = 200,
+                    Status = 0,
                     Message = "Appetizer retrieved successfully",
                     Data = appetizer
                 });
