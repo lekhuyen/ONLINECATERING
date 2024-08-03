@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using REDISCLIENT;
+using RESTAURANT.API.Helpers;
 using RESTAURANT.API.Models;
 using RESTAURANT.API.Repositories;
 using RESTAURANT.API.Servicer;
@@ -41,8 +42,9 @@ namespace RESTAURANT
 			builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 			builder.Services.AddScoped<ILobbyRepository, LobbyRepository>();
 			builder.Services.AddScoped<ILobbyImagesRepository, LobbyImagesRepository>();
+			builder.Services.AddTransient<FileUpload>();
 
-			builder.Services.AddSingleton<RedisClient>(sp =>
+            builder.Services.AddSingleton<RedisClient>(sp =>
 
 				new RedisClient(builder.Configuration.GetValue<string>("Redis:ConnectionStrings")!)
 			);

@@ -1,4 +1,4 @@
-﻿using APIRESPONSE.Models;
+using APIRESPONSE.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +17,7 @@ namespace RESTAURANT.API.Controllers
     [ApiController]
     public class DishController : ControllerBase
     {
-        
+
         private readonly DatabaseContext _dbContext; // Replace DatabaseContext with your DbContext
         private readonly IWebHostEnvironment _webHostEnvironment;
 
@@ -43,7 +43,7 @@ namespace RESTAURANT.API.Controllers
                     Id = dish.Id,
                     Name = dish.Name,
                     Price = dish.Price,
-                    Quantity = dish.Quantity, // Added Quantity
+
                     Status = dish.Status,
                     ImagePath = dish.ImagePath,
                 }).ToList();
@@ -92,7 +92,7 @@ namespace RESTAURANT.API.Controllers
                     Id = dish.Id,
                     Name = dish.Name,
                     Price = dish.Price,
-                    Quantity = dish.Quantity, // Added Quantity
+
                     Status = dish.Status,
                     ImagePath = dish.ImagePath,
                 };
@@ -137,7 +137,7 @@ namespace RESTAURANT.API.Controllers
                 {
                     Name = dishDTO.Name,
                     Price = dishDTO.Price,
-                    Quantity = dishDTO.Quantity, // Added Quantity
+
                     Status = dishDTO.Status,
                     ImagePath = result
                 };
@@ -200,7 +200,7 @@ namespace RESTAURANT.API.Controllers
                 // Update properties
                 existingDish.Name = dishDTO.Name;
                 existingDish.Price = dishDTO.Price;
-                existingDish.Quantity = dishDTO.Quantity; // Added Quantity
+
                 existingDish.Status = dishDTO.Status;
 
                 // Handle image update
@@ -225,7 +225,7 @@ namespace RESTAURANT.API.Controllers
                     Id = existingDish.Id,
                     Name = existingDish.Name,
                     Price = existingDish.Price,
-                    Quantity = existingDish.Quantity, // Added Quantity
+
                     Status = existingDish.Status,
                     ImagePath = existingDish.ImagePath,
                 };

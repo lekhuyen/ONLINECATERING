@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RESTAURANT.API.DTOs
@@ -12,7 +12,7 @@ namespace RESTAURANT.API.DTOs
         public string DishName { get; set; }
         public decimal DishPrice { get; set; }
         public string DishImagePath { get; set; }
-        public int DishQuantity { get; set; } // Added Quantity
+
 
         // Combo properties
         public int ComboId { get; set; }
