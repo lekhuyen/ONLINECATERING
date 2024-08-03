@@ -90,6 +90,7 @@ namespace USER.API.Repositories
                 UserEmail = u.UserEmail,
                 UserName = u.UserName,
                 Phone = u.Phone,
+                Status = u.Status,
                 Role = u.Role,
                 Password = u.Password,
                 Otp = u.Otp,
@@ -272,6 +273,28 @@ namespace USER.API.Repositories
             _dbContext.Users.Update(user);
             await _dbContext.SaveChangesAsync();
             return 0;
+        }
+
+        //Update User Status for Admin
+
+        public async Task<bool> EditUserForAdmin(int userId, bool newStatus)
+        {
+            try
+            {
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (user != null)
+                {
+                    user.Status = newStatus;
+                    await _dbContext.SaveChangesAsync();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as needed
+                return false;
+            }
         }
     }
 }

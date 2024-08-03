@@ -12,5 +12,6 @@ namespace USER.API.Repositories
         Task<int> AddUserAsync(User user);
         Task<int> UpdateUserAsync(User user);
         Task DeleteUserAsync(int id);
+        Task<bool> EditUserForAdmin(int userId, bool newStatus);
     }
 }
