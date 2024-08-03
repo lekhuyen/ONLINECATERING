@@ -79,9 +79,9 @@ namespace RESTAURANT.API.Controllers
                 var dessertDTO = dessert.Select(s => new DessertDTO
                 {
                     Id = s.Dessert.Id,
-                    DessertName = s.Dessert.DessertName,
+                    Name = s.Dessert.DessertName,
                     Price = s.Dessert.Price,
-                    DessertImage = s.Dessert.DessertImage,
+                    Image = s.Dessert.DessertImage,
                 }).ToList();
                 return Ok(new ApiResponse
                 {

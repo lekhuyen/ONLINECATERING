@@ -82,7 +82,7 @@ namespace RESTAURANT.API.Controllers
                     Id = s.Dish.Id,
                     Name = s.Dish.Name,
                     Price = s.Dish.Price,
-                    ImagePath = s.Dish.ImagePath,
+                    Image = s.Dish.ImagePath,
                 }).ToList();
                 return Ok(new ApiResponse
                 {

@@ -45,7 +45,7 @@ namespace RESTAURANT.API.Controllers
                     Price = dish.Price,
 
                     Status = dish.Status,
-                    ImagePath = dish.ImagePath,
+                    Image = dish.ImagePath,
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -75,7 +75,11 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                var dish = await _dbContext.Dishes.FirstOrDefaultAsync(d => d.Id == id);
+                var dish = await _dbContext.Dishes
+                    .Include(x => x.Comments)
+                    .ThenInclude(x => x.User)
+                    .ThenInclude(x => x.CommentChildren)
+                    .FirstOrDefaultAsync(d => d.Id == id);
 
                 if (dish == null)
                 {
@@ -92,9 +96,26 @@ namespace RESTAURANT.API.Controllers
                     Id = dish.Id,
                     Name = dish.Name,
                     Price = dish.Price,
-
                     Status = dish.Status,
-                    ImagePath = dish.ImagePath,
+                    Image = dish.ImagePath,
+
+                    Comments = dish?.Comments?.Select(x => new CommentDTO
+                    {
+                        Id = x.Id,
+                        Content = x.Content,
+                        User = new UserDTO
+                        {
+                            Id = x.User.Id,
+                            UserName = x.User.UserName
+                        },
+                        CommentChildren = x?.CommentChildren?.Select(cc => new CommentChildDTO
+                        {
+                            Id = cc.Id,
+                            Content = cc.Content,
+                            UserId = cc.UserId,
+                            CommentId = cc.CommentId
+                        }).ToList()
+                    }).ToList()
                 };
 
                 return Ok(new ApiResponse
@@ -138,7 +159,7 @@ namespace RESTAURANT.API.Controllers
                     Name = dishDTO.Name,
                     Price = dishDTO.Price,
 
-                    Status = dishDTO.Status,
+                    Status = (bool)dishDTO.Status,
                     ImagePath = result
                 };
 
@@ -201,7 +222,7 @@ namespace RESTAURANT.API.Controllers
                 existingDish.Name = dishDTO.Name;
                 existingDish.Price = dishDTO.Price;
 
-                existingDish.Status = dishDTO.Status;
+                existingDish.Status = (bool)dishDTO.Status;
 
                 // Handle image update
                 if (formFile != null)
@@ -227,7 +248,7 @@ namespace RESTAURANT.API.Controllers
                     Price = existingDish.Price,
 
                     Status = existingDish.Status,
-                    ImagePath = existingDish.ImagePath,
+                    Image = existingDish.ImagePath,
                 };
 
                 return Ok(new ApiResponse

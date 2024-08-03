@@ -19,6 +19,8 @@ namespace RESTAURANT.API.Models
 
         public int? AppetizerId { get; set; }
         public Appetizer? Appetizer { get; set; }
+        public int? DessertId { get; set; }
+        public Dessert? Dessert { get; set; }
         public User? User { get; set; }
     }
 }
