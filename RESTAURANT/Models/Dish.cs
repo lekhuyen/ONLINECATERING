@@ -13,7 +13,7 @@ namespace RESTAURANT.API.Models
 
         public decimal Price { get; set; }
 
-        public bool Status { get; set; }
+        public bool Status { get; set; } = false;
 
         public ICollection<ComboDish>? ComboDishes { get; set; }
 
