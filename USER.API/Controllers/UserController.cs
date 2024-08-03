@@ -670,5 +670,37 @@ namespace USER.API.Controllers
 				});
 			}
 		}
-	}
+
+        //Edit User Status for Admin
+        [HttpPut("admin-edit/{id}")]
+        public async Task<IActionResult> AdminEditUserStatus(int id, [FromQuery] int userId, [FromQuery] bool newStatus)
+        {
+            if (id != userId)
+            {
+                return BadRequest("User ID mismatch.");
+            }
+
+            try
+            {
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (user != null)
+                {
+                    user.Status = newStatus;
+                    await _databaseContext.SaveChangesAsync();
+                    return Ok(user); // Return the updated user object
+                }
+
+                return NotFound("User not found.");
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from server"
+                });
+            }
+        }
+    }
 }
