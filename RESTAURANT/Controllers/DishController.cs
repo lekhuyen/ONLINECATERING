@@ -77,6 +77,7 @@ namespace RESTAURANT.API.Controllers
             {
                 var dish = await _dbContext.Dishes
                     .Include(x => x.Comments)
+                    .Include(x => x.Rating)
                     .ThenInclude(x => x.User)
                     .ThenInclude(x => x.CommentChildren)
                     .FirstOrDefaultAsync(d => d.Id == id);
@@ -98,24 +99,36 @@ namespace RESTAURANT.API.Controllers
                     Price = dish.Price,
                     Status = dish.Status,
                     Image = dish.ImagePath,
-
+                    TotalRating = dish.TotalRating,
+                    CountRatings = dish.CountRatings,
                     Comments = dish?.Comments?.Select(x => new CommentDTO
                     {
                         Id = x.Id,
                         Content = x.Content,
-                        User = new UserDTO
+                        User = x.User != null ? new UserDTO
                         {
                             Id = x.User.Id,
                             UserName = x.User.UserName
-                        },
+                        } : null,
                         CommentChildren = x?.CommentChildren?.Select(cc => new CommentChildDTO
                         {
                             Id = cc.Id,
                             Content = cc.Content,
                             UserId = cc.UserId,
                             CommentId = cc.CommentId
-                        }).ToList()
-                    }).ToList()
+                        }).ToList() ?? new List<CommentChildDTO>()
+                    }).ToList(),
+                    Ratings = dish.Rating.Select(x => new RatingDTO
+                    {
+                        Id = x.Id,
+                        Point = x.Point,
+                        UserId = x.UserId,
+                        User = new UserDTO
+                        {
+                            Id = x.User.Id,
+                            UserName = x.User.UserName,
+                        }
+                    }).ToList() ?? new List<RatingDTO>(),
                 };
 
                 return Ok(new ApiResponse

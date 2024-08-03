@@ -8,5 +8,9 @@ namespace RESTAURANT.API.DTOs
         public int Point { get; set; }
         public int UserId { get; set; }
         public int? RestaurantId { get; set; }
+        public int? AppetizerId { get; set; }
+        public int? DishId { get; set; }
+        public int? DessertId { get; set; }
+        public UserDTO? User { get; set; }
     }
 }

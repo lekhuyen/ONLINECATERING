@@ -56,6 +56,7 @@ namespace RESTAURANT.API.Controllers
             try
             {
                 var dessert = await _dbContext.Desserts
+                    .Include(x => x.Rating)
                     .Include(x => x.Comments)
                     .ThenInclude(x => x.User)
                     .ThenInclude(x => x.CommentChildren)
@@ -78,7 +79,9 @@ namespace RESTAURANT.API.Controllers
                     Name = dessert.DessertName,
                     Image = dessert.DessertImage,
                     Price = dessert.Price,
-                    Comments = dessert.Comments.Select(x => new CommentDTO
+                    TotalRating = dessert.TotalRating,
+                    CountRatings = dessert.CountRatings,
+                    Comments = dessert.Comments?.Select(x => new CommentDTO
                     {
                         Id = x.Id,
                         Content = x.Content,
@@ -95,7 +98,18 @@ namespace RESTAURANT.API.Controllers
                             UserId = cc.UserId,
                             CommentId = cc.CommentId
                         }).ToList()
-                    }).ToList()
+                    }).ToList(),
+                    Ratings = dessert?.Rating?.Select(x => new RatingDTO
+                    {
+                        Id = x.Id,
+                        Point = x.Point,
+                        UserId = x.UserId,
+                        User = x.User != null ? new UserDTO
+                        {
+                            Id = x.User.Id,
+                            UserName = x.User.UserName,
+                        } : null
+                    }).ToList() ?? new List<RatingDTO>(),
                 };
 
                 return Ok(new ApiResponse

@@ -19,6 +19,8 @@ namespace RESTAURANT.API.Models
         public ICollection<Comment>? Comments { get; set; }
         public ICollection<CommentChild>? CommentChildren { get; set; }
 
+        public ICollection<Rating>? Ratings { get; set; }
+
 
     }
 }

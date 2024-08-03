@@ -20,7 +20,8 @@ namespace RESTAURANT.API.Migrations
                     AppetizerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
-                    AppetizerImage = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    AppetizerImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TotalRating = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -66,7 +67,8 @@ namespace RESTAURANT.API.Migrations
                     DessertName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
-                    DessertImage = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    DessertImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TotalRating = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -82,7 +84,8 @@ namespace RESTAURANT.API.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Status = table.Column<bool>(type: "bit", nullable: false),
-                    ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    ImagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TotalRating = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -436,11 +439,29 @@ namespace RESTAURANT.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Point = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    RestaurantId = table.Column<int>(type: "int", nullable: false)
+                    RestaurantId = table.Column<int>(type: "int", nullable: false),
+                    AppetizerId = table.Column<int>(type: "int", nullable: true),
+                    DishId = table.Column<int>(type: "int", nullable: true),
+                    DessertId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Ratings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Ratings_Appetizers_AppetizerId",
+                        column: x => x.AppetizerId,
+                        principalTable: "Appetizers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Ratings_Desserts_DessertId",
+                        column: x => x.DessertId,
+                        principalTable: "Desserts",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Ratings_Dishes_DishId",
+                        column: x => x.DishId,
+                        principalTable: "Dishes",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Ratings_Restaurants_RestaurantId",
                         column: x => x.RestaurantId,
@@ -745,6 +766,21 @@ namespace RESTAURANT.API.Migrations
                 name: "IX_Promotions_ComboId",
                 table: "Promotions",
                 column: "ComboId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ratings_AppetizerId",
+                table: "Ratings",
+                column: "AppetizerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ratings_DessertId",
+                table: "Ratings",
+                column: "DessertId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ratings_DishId",
+                table: "Ratings",
+                column: "DishId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Ratings_RestaurantId",
