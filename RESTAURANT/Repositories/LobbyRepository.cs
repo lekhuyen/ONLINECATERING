@@ -18,7 +18,9 @@ namespace RESTAURANT.API.Repositories
 
         public async Task<IEnumerable<Lobby>> GetAllLobbies()
         {
-            return await _dbContext.Lobbies.ToListAsync();
+            return await _dbContext.Lobbies
+                .Include(l => l.LobbyImages) // Eager load LobbyImages
+                .ToListAsync();
         }
 
         public async Task<Lobby> GetLobbyById(int id)
