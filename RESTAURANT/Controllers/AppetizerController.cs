@@ -53,6 +53,7 @@ namespace RESTAURANT.API.Controllers
             {
                 var appet = await _dbContext.Appetizers
                     .Include(x => x.Comments)
+                    .Include(x => x.Rating)
                     .ThenInclude(x => x.User)
                     .ThenInclude(x => x.CommentChildren)
                     .FirstOrDefaultAsync(x => x.Id == id);
@@ -74,6 +75,8 @@ namespace RESTAURANT.API.Controllers
                     Name = appet.AppetizerName,
                     Image = appet.AppetizerImage,
                     Price = appet.Price,
+                    TotalRating = appet.TotalRating,
+                    CountRatings = appet.CountRatings,
                     Comments = appet.Comments.Select(x => new CommentDTO
                     {
                         Id = x.Id,
@@ -91,7 +94,19 @@ namespace RESTAURANT.API.Controllers
                             UserId = cc.UserId,
                             CommentId = cc.CommentId
                         }).ToList()
-                    }).ToList()
+                    }).ToList(),
+                    Ratings = appet.Rating.Select(x => new RatingDTO
+                    {
+                        Id = x.Id,
+                        Point = x.Point,
+                        UserId = x.UserId,
+                        User = new UserDTO
+                        {
+                            Id = x.User.Id,
+                            UserName = x.User.UserName,
+                        }
+                    }).ToList(),
+
                 };
 
                 return Ok(new ApiResponse
@@ -268,7 +283,8 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Appetizer deleted successfully"
+                    Message = "Appetizer deleted successfully",
+                    
                 });
             }
             catch (Exception e)

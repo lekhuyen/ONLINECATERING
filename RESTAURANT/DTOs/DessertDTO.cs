@@ -8,5 +8,8 @@
         public int? Quantity { get; set; }
         public string? Image { get; set; }
         public List<CommentDTO>? Comments { get; set; }
+        public List<RatingDTO>? Ratings { get; set; }
+        public decimal? TotalRating { get; set; }
+        public int? CountRatings { get; set; }
     }
 }
