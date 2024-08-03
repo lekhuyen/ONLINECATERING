@@ -29,7 +29,7 @@ namespace RESTAURANT.API.Controllers
 
         // GET: api/Promotion
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PromotionDTO>>> GetAllPromotions()
+        public async Task<ActionResult<ApiResponse>> GetAllPromotions()
         {
             try
             {
@@ -38,12 +38,12 @@ namespace RESTAURANT.API.Controllers
                 var promotionDTOs = promotions.Select(promotion => new PromotionDTO
                 {
                     Id = promotion.Id,
-                    OrderId = promotion.OrderId,
-                    ComboId = promotion.ComboId,
                     Name = promotion.Name,
                     Description = promotion.Description,
                     ImagePath = promotion.ImagePath,
                     Status = promotion.Status,
+                    QuantityTable = promotion.QuantityTable,
+                    Price = promotion.Price
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -87,12 +87,12 @@ namespace RESTAURANT.API.Controllers
                 var promotionDTO = new PromotionDTO
                 {
                     Id = promotion.Id,
-                    OrderId = promotion.OrderId,
                     Name = promotion.Name,
                     Description = promotion.Description,
                     ImagePath = promotion.ImagePath,
                     Status = promotion.Status,
-
+                    QuantityTable = promotion.QuantityTable,
+                    Price = promotion.Price
                 };
 
                 return Ok(new ApiResponse
@@ -117,21 +117,17 @@ namespace RESTAURANT.API.Controllers
 
         // POST: api/Promotion
         [HttpPost]
-        public async Task<ActionResult<ApiResponse>> CreatePromotion([FromForm] PromotionDTO promotionDTO, IFormFile formFile)
+        public async Task<ActionResult<ApiResponse>> CreatePromotion([FromForm] PromotionDTO promotionDTO, IFormFile? formFile)
         {
             var fileUpload = new FileUpload(_webHostEnvironment);
             try
             {
                 // Save image if exists
                 string imagePath = null;
-                if (promotionDTO.ImageFile != null)
+                if (formFile != null)
                 {
                     imagePath = await fileUpload.SaveImage("images", formFile);
-
                 }
-
-                // Check if the OrderId exists in the Orders table
-                var existingOrder = await _dbContext.Orders.FindAsync(promotionDTO.OrderId);
 
                 // Map DTO to entity
                 var newPromotion = new Promotion
@@ -139,9 +135,9 @@ namespace RESTAURANT.API.Controllers
                     Name = promotionDTO.Name,
                     Description = promotionDTO.Description,
                     ImagePath = imagePath,
-                    ComboId = promotionDTO.ComboId,
                     Status = promotionDTO.Status,
-                    OrderId = promotionDTO.OrderId  // Assign the OrderId
+                    QuantityTable = promotionDTO.QuantityTable,
+                    Price = promotionDTO.Price
                 };
 
                 // Add to DbContext
@@ -152,12 +148,12 @@ namespace RESTAURANT.API.Controllers
                 var createdPromotionDTO = new PromotionDTO
                 {
                     Id = newPromotion.Id,
-                    OrderId = newPromotion.OrderId,
                     Name = newPromotion.Name,
                     Description = newPromotion.Description,
-                    ImagePath = imagePath,
+                    ImagePath = newPromotion.ImagePath,
                     Status = newPromotion.Status,
-              
+                    QuantityTable = newPromotion.QuantityTable,
+                    Price = newPromotion.Price
                 };
 
                 return Created("success", new ApiResponse
@@ -181,8 +177,9 @@ namespace RESTAURANT.API.Controllers
         }
 
         // PUT: api/Promotion/5
+        // PUT: api/Promotion/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse>> UpdatePromotion(int id, [FromForm] PromotionDTO promotionDTO, IFormFile formFile)
+        public async Task<ActionResult<ApiResponse>> UpdatePromotion(int id, [FromForm] PromotionDTO promotionDTO, IFormFile? formFile)
         {
             var fileUpload = new FileUpload(_webHostEnvironment);
 
@@ -215,11 +212,11 @@ namespace RESTAURANT.API.Controllers
                 existingPromotion.Name = promotionDTO.Name;
                 existingPromotion.Description = promotionDTO.Description;
                 existingPromotion.Status = promotionDTO.Status;
-                existingPromotion.ComboId = promotionDTO.ComboId;
-                
+                existingPromotion.QuantityTable = promotionDTO.QuantityTable;
+                existingPromotion.Price = promotionDTO.Price;
 
                 // Handle image update
-                if (promotionDTO.ImageFile != null)
+                if (formFile != null)
                 {
                     // Delete old image if it exists
                     if (!string.IsNullOrEmpty(existingPromotion.ImagePath))
@@ -228,28 +225,9 @@ namespace RESTAURANT.API.Controllers
                     }
 
                     // Save new image and update ImagePath
-                    existingPromotion.ImagePath = await fileUpload.SaveImage("Images", formFile);
+                    existingPromotion.ImagePath = await fileUpload.SaveImage("images", formFile);
                 }
-                // If promotionDTO.ImageFile is null, do nothing, which will keep the existing image
-
-                // Handle OrderId update if necessary (example scenario)
-                if (promotionDTO.OrderId != existingPromotion.OrderId)
-                {
-                    // Check if the new OrderId exists
-                    var existingOrder = await _dbContext.Orders.FindAsync(promotionDTO.OrderId);
-                    if (existingOrder == null)
-                    {
-                        return BadRequest(new ApiResponse
-                        {
-                            Success = false,
-                            Status = 1,
-                            Message = "Invalid OrderId. Order does not exist.",
-                            Data = null
-                        });
-                    }
-
-                    existingPromotion.OrderId = promotionDTO.OrderId; // Update the OrderId
-                }
+                // If formFile is null, do nothing, which will keep the existing image
 
                 // Update entity in DbContext
                 _dbContext.Promotions.Update(existingPromotion);
@@ -259,12 +237,12 @@ namespace RESTAURANT.API.Controllers
                 var updatedPromotionDTO = new PromotionDTO
                 {
                     Id = existingPromotion.Id,
-/*                    OrderId = existingPromotion.OrderId,*/
                     Name = existingPromotion.Name,
                     Description = existingPromotion.Description,
                     ImagePath = existingPromotion.ImagePath,
                     Status = existingPromotion.Status,
-
+                    QuantityTable = existingPromotion.QuantityTable,
+                    Price = existingPromotion.Price
                 };
 
                 return Ok(new ApiResponse
@@ -281,14 +259,14 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service: " + ex.Message,
+                    Message = "Error updating promotion: " + ex.Message,
                     Data = null
                 });
             }
         }
 
 
-        // DELETE: api/Promotion/5
+
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponse>> DeletePromotion(int id)
         {
@@ -343,4 +321,5 @@ namespace RESTAURANT.API.Controllers
             return _dbContext.Promotions.Any(e => e.Id == id);
         }
     }
+        
 }
