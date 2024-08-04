@@ -16,7 +16,7 @@ namespace RESTAURANT.API.Models
         public int? DishId { get; set; }
         public Dish? Dish { get; set; }
         public ICollection<CommentChild>? CommentChildren { get; set; }
-
+        public bool? Status { get; set; } = false;
         public int? AppetizerId { get; set; }
         public Appetizer? Appetizer { get; set; }
         public int? DessertId { get; set; }
