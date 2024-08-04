@@ -31,7 +31,7 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                if(ModelState.IsValid)
+                if (ModelState.IsValid)
                 {
                     var comm = await _comment.AddComment(comment);
                     return Ok(new ApiResponse
@@ -59,7 +59,7 @@ namespace RESTAURANT.API.Controllers
             }
         }
         [HttpDelete("{userId}/{commentId}")]
-        public async Task<IActionResult> DeleteComment(int userId, int commentId) 
+        public async Task<IActionResult> DeleteComment(int userId, int commentId)
         {
             try
             {
@@ -107,5 +107,48 @@ namespace RESTAURANT.API.Controllers
                 });
             }
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCommentStatus(StatusUpdateDTO statusUpdateDTO)
+        {
+            try
+            {
+                var comment = await _databaseContext.Comments.FindAsync(statusUpdateDTO.Id);
+
+                if (comment == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Comment not found",
+                        Data = null
+                    });
+                }
+
+                comment.Status = statusUpdateDTO.Status;
+                _databaseContext.Update(comment);
+                await _databaseContext.SaveChangesAsync();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Successfully updated comment status",
+                    Data = comment
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from service",
+                    Data = null
+                });
+            }
+        }
+
     }
 }
