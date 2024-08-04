@@ -628,7 +628,59 @@ namespace USER.API.Controllers
 			}
 		}
 
-		[HttpPost("update-password")]
+		//[HttpPost("update-password")]
+		//public async Task<IActionResult> UpdatePassword(Login login)
+		//{
+		//	try
+		//	{
+		//		var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
+
+		//		if (user != null)
+		//		{
+		//			if (PasswordBcrypt.VerifyPassword(login.Password, user.Password))
+		//			{
+		//				return Ok(new ApiResponse
+		//				{
+		//					Success = false,
+		//					Status = 1,
+		//					Message = "New password cannot be the same as the old password"
+		//				});
+		//			}
+
+		//			user.Password = PasswordBcrypt.HashPassword(login.Password);
+
+		//			_databaseContext.Users.Update(user);
+		//			await _databaseContext.SaveChangesAsync();
+
+		//			return Ok(new ApiResponse
+		//			{
+		//				Success = true,
+		//				Status = 0,
+		//				Message = "Password has been changed, please login again"
+		//			});
+		//		}
+		//		else
+		//		{
+		//			return Ok(new ApiResponse
+		//			{
+		//				Success = false,
+		//				Status = 1,
+		//				Message = "User not found"
+		//			});
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		return Ok(new ApiResponse
+		//		{
+		//			Success = false,
+		//			Status = 1,
+		//			Message = "Internal server error"
+		//		});
+		//	}
+		//}
+
+		[HttpPost("update-password-otp")]
 		public async Task<IActionResult> UpdatePassword(Login login)
 		{
 			try
@@ -637,26 +689,48 @@ namespace USER.API.Controllers
 
 				if (user != null)
 				{
+                    if (user.Otp == login.Otp)
+                    {
+						if (PasswordBcrypt.VerifyPassword(login.Password, user.Password))
+						{
+							return Ok(new ApiResponse
+							{
+								Success = false,
+								Status = 1,
+								Message = "New password cannot be the same as the old password"
+							});
+						}
 
-					user.Password = PasswordBcrypt.HashPassword(login.Password);
+						user.Password = PasswordBcrypt.HashPassword(login.Password);
 
-					_databaseContext.Users.Update(user);
-					await _databaseContext.SaveChangesAsync();
+						_databaseContext.Users.Update(user);
+						await _databaseContext.SaveChangesAsync();
 
-					return Ok(new ApiResponse
-					{
-						Success = true,
-						Status = 0,
-						Message = "Password has been changed, please login again"
-					});
-				}
+						return Ok(new ApiResponse
+						{
+							Success = true,
+							Status = 0,
+							Message = "Password has been changed, please login again"
+						});
+					}
+                    else
+                    {
+						return Ok(new ApiResponse
+						{
+							Success = false,
+							Status = 1,
+							Message = "Wrong OTP"
+						});
+					}
+
+                }
 				else
 				{
 					return Ok(new ApiResponse
 					{
 						Success = false,
 						Status = 1,
-						Message = "Error from server"
+						Message = "User not found"
 					});
 				}
 			}
@@ -666,9 +740,41 @@ namespace USER.API.Controllers
 				{
 					Success = false,
 					Status = 1,
-					Message = "Error from server"
+					Message = "Internal server error"
 				});
 			}
 		}
-	}
+
+        //Edit User Status for Admin
+        [HttpPut("admin-edit/{id}")]
+        public async Task<IActionResult> AdminEditUserStatus(int id, [FromQuery] int userId, [FromQuery] bool newStatus)
+        {
+            if (id != userId)
+            {
+                return BadRequest("User ID mismatch.");
+            }
+
+            try
+            {
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (user != null)
+                {
+                    user.Status = newStatus;
+                    await _databaseContext.SaveChangesAsync();
+                    return Ok(user); // Return the updated user object
+                }
+
+                return NotFound("User not found.");
+            }
+            catch (Exception ex)
+            {
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from server"
+                });
+            }
+        }
+    }
 }

@@ -122,6 +122,7 @@ namespace RESTAURANT.API.Controllers
                     Success = true,
                     Status = 0,
                     Message = "Successful assessment",
+                    Data = ratingDTO
                 });
             }
             catch (Exception ex)
@@ -232,7 +233,7 @@ namespace RESTAURANT.API.Controllers
                     _databaseContext.Ratings.Update(rating);
                     await _databaseContext.SaveChangesAsync();
                 }
-                var res = await _databaseContext.Dishes
+                var res = await _databaseContext.Desserts
                     .Include(r => r.Rating)
                     .FirstOrDefaultAsync(r => r.Id == ratingDTO.DessertId);
                 if (res != null)
