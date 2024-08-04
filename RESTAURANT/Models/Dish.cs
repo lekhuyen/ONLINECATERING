@@ -27,5 +27,8 @@ namespace RESTAURANT.API.Models
 
         public ICollection<OrderDish>? OrderDishes { get; set; }
         public ICollection<Comment>? Comments { get; set; }
+        public ICollection<Rating>? Rating { get; set; }
+        public decimal? TotalRating { get; set; }
+        public int? CountRatings { get; set; }
     }
 }

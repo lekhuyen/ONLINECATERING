@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RESTAURANT.API.Models;
 
@@ -11,9 +12,11 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20240803160239_m1")]
+    partial class m1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,13 +40,10 @@ namespace RESTAURANT.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("CountRatings")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("Quantity")
+                    b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.Property<decimal?>("TotalRating")
@@ -340,9 +340,6 @@ namespace RESTAURANT.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CountRatings")
-                        .HasColumnType("int");
-
                     b.Property<string>("DessertImage")
                         .HasColumnType("nvarchar(max)");
 
@@ -353,7 +350,7 @@ namespace RESTAURANT.API.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("Quantity")
+                    b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.Property<decimal?>("TotalRating")
@@ -371,9 +368,6 @@ namespace RESTAURANT.API.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("CountRatings")
-                        .HasColumnType("int");
 
                     b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
@@ -670,7 +664,7 @@ namespace RESTAURANT.API.Migrations
                     b.Property<int>("Point")
                         .HasColumnType("int");
 
-                    b.Property<int?>("RestaurantId")
+                    b.Property<int>("RestaurantId")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
@@ -685,8 +679,6 @@ namespace RESTAURANT.API.Migrations
                     b.HasIndex("DishId");
 
                     b.HasIndex("RestaurantId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Ratings");
                 });
@@ -1095,11 +1087,7 @@ namespace RESTAURANT.API.Migrations
 
                     b.HasOne("RESTAURANT.API.Models.Restaurant", "Restaurant")
                         .WithMany("Rating")
-                        .HasForeignKey("RestaurantId");
-
-                    b.HasOne("RESTAURANT.API.Models.User", "User")
-                        .WithMany("Ratings")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RestaurantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1110,8 +1098,6 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("Dish");
 
                     b.Navigation("Restaurant");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Restaurant", b =>
@@ -1237,8 +1223,6 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("CustomCombos");
 
                     b.Navigation("Orders");
-
-                    b.Navigation("Ratings");
                 });
 #pragma warning restore 612, 618
         }
