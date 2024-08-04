@@ -56,8 +56,8 @@ namespace RESTAURANT.API.Controllers
             try
             {
                 var dessert = await _dbContext.Desserts
-                    .Include(x => x.Rating)
                     .Include(x => x.Comments)
+                    .Include(x => x.Rating)
                     .ThenInclude(x => x.User)
                     .ThenInclude(x => x.CommentChildren)
                     .FirstOrDefaultAsync(x => x.Id == id);
