@@ -14,5 +14,6 @@ namespace APIRESPONSE.Models
         public object Data { get; set; }
         public string? AccessToken { get; set; }
         public string? RefreshToken { get; set; }
+        public string? Url { get; set; }
     }
 }
