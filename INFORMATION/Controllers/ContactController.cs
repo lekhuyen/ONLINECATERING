@@ -1,4 +1,5 @@
 ﻿using APIRESPONSE.Models;
+using INFORMATION.API.Models;
 using INFORMATION.API.Services;
 using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
@@ -25,40 +26,44 @@ namespace INFORMATIONAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateContact([FromBody] Contact contact)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "Error from service",
-                        Data = null
-                    });
-                }
-                // Send a confirmation email to the user
-                await _emailService.SendEmailAsync(contact.Email, "Contact Received", "Your contact message has been received. We will get back to you soon.");
-                contact.IsAdminResponse = false;
-                await _contactRepositories.CreateContact(contact);
-
-                
-
-                return Ok(new ApiResponse
-                {
-                    Success = true,
-                    Status = 0,
-                    Message = "A message has been sent Successfully",
-                });
-            }
-            catch (Exception ex)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
+                    Message = "Invalid contact data",
                     Data = null
+                });
+            }
+
+            try
+            {
+                contact.IsAdminResponse = false;
+                await _contactRepositories.CreateContact(contact);
+
+                // Send a confirmation email to the user
+                await _emailService.SendEmailAsync(
+                    contact.Email,
+                    "Contact Received",
+                    "Your contact message has been received. We will get back to you soon.");
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Contact message sent successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (optional)
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "An error occurred while processing your request",
+                    Data = ex.Message
                 });
             }
         }
@@ -67,20 +72,19 @@ namespace INFORMATIONAPI.Controllers
         [HttpPost("respond/{id}")]
         public async Task<IActionResult> RespondToMessage(string id, [FromBody] string response)
         {
+            if (string.IsNullOrWhiteSpace(response))
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Response content cannot be empty",
+                    Data = null
+                });
+            }
+
             try
             {
-                bool result = await _contactRepositories.RespondToMessage(id, response);
-
-                if (!result)
-                {
-                    return NotFound(new ApiResponse
-                    {
-                        Success = false,
-                        Status = 1,
-                        Message = "The message is not found",
-                    });
-                }
-
                 var contact = await _contactRepositories.GetContactById(id);
                 if (contact == null)
                 {
@@ -88,28 +92,45 @@ namespace INFORMATIONAPI.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "The message is not found",
+                        Message = "Contact message not found",
+                        Data = null
+                    });
+                }
+
+                bool result = await _contactRepositories.RespondToMessage(id, response);
+                if (!result)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Failed to update response",
+                        Data = null
                     });
                 }
 
                 // Send the response email to the user
-                await _emailService.SendEmailAsync(contact.Email, "Response to Your Contact", response);
+                await _emailService.SendEmailAsync(
+                    contact.Email,
+                    "Response to Your Contact",
+                    response);
 
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Respond To The Message Successfully",
+                    Message = "Response sent successfully"
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse
+                // Log the exception (optional)
+                return StatusCode(500, new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
-                    Data = null
+                    Message = "An error occurred while processing your request",
+                    Data = ex.Message
                 });
             }
         }
@@ -125,18 +146,19 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Get All Contact Successfully",
+                    Message = "Contacts retrieved successfully",
                     Data = contacts
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse
+                // Log the exception (optional)
+                return StatusCode(500, new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
-                    Data = null
+                    Message = "An error occurred while retrieving contacts",
+                    Data = ex.Message
                 });
             }
         }
@@ -154,7 +176,8 @@ namespace INFORMATIONAPI.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "The contact is not found",
+                        Message = "Contact not found",
+                        Data = null
                     });
                 }
 
@@ -162,68 +185,22 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Get Contact Successfully",
+                    Message = "Contact retrieved successfully",
                     Data = contact
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse
+                // Log the exception (optional)
+                return StatusCode(500, new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
-                    Data = null
+                    Message = "An error occurred while retrieving the contact",
+                    Data = ex.Message
                 });
             }
         }
-
-        // update client's contact
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> UpdateContact(string id, [FromBody] Contact contact)
-        //{
-        //    try
-        //    {
-        //        if (!ModelState.IsValid)
-        //        {
-        //            return BadRequest(new ApiResponse
-        //            {
-        //                Success = false,
-        //                Status = 1,
-        //                Message = "Update Contact failed"
-        //            });
-        //        }
-
-        //        bool result = await _contactRepositories.UpdateContact(id, contact);
-
-        //        if (!result)
-        //        {
-        //            return NotFound(new ApiResponse
-        //            {
-        //                Success = false,
-        //                Status = 1,
-        //                Message = "Contact not found",
-        //            });
-        //        }
-
-        //        return Ok(new ApiResponse
-        //        {
-        //            Success = true,
-        //            Status = 0,
-        //            Message = "Update Contact Successfully",
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new ApiResponse
-        //        {
-        //            Success = false,
-        //            Status = 1,
-        //            Message = "Error from service",
-        //            Data = null
-        //        });
-        //    }
-        //}
 
         // DELETE: api/contact/{id}
         [HttpDelete("{id}")]
@@ -240,6 +217,7 @@ namespace INFORMATIONAPI.Controllers
                         Success = false,
                         Status = 1,
                         Message = "Contact not found",
+                        Data = null
                     });
                 }
 
@@ -247,19 +225,65 @@ namespace INFORMATIONAPI.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Delete Contact Successfully",
+                    Message = "Contact deleted successfully"
                 });
             }
             catch (Exception ex)
+            {
+                // Log the exception (optional)
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "An error occurred while deleting the contact",
+                    Data = ex.Message
+                });
+            }
+        }
+
+        // POST: api/contact/subscribe
+        // POST: api/contact/subscribe
+        [HttpPost("subscribe")]
+        public async Task<IActionResult> SubscribeNewsletter([FromBody] EmailRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Email))
             {
                 return BadRequest(new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from service",
+                    Message = "Email address cannot be empty",
                     Data = null
                 });
             }
+
+            try
+            {
+                // Send a confirmation email to the user
+                await _emailService.SendEmailAsync(
+                    request.Email,
+                    "Thank You for Subscribing",
+                    "Thank you for subscribing! We will be in touch with you shortly and ensure that you receive all the latest updates and news as soon as they're available. We appreciate your interest and look forward to keeping you informed with the most current information and exciting updates. Stay tuned!");
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Subscription successful. A confirmation email has been sent."
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (optional)
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "An error occurred while processing your subscription",
+                    Data = ex.Message
+                });
+            }
         }
+
     }
 }
