@@ -637,15 +637,15 @@ namespace USER.API.Controllers
 
 				if (user != null)
 				{
-					if (PasswordBcrypt.VerifyPassword(login.Password, user.Password))
-					{
-						return Ok(new ApiResponse
-						{
-							Success = false,
-							Status = 1,
-							Message = "New password cannot be the same as the old password"
-						});
-					}
+					//if (PasswordBcrypt.VerifyPassword(login.Password, user.Password))
+					//{
+					//	return Ok(new ApiResponse
+					//	{
+					//		Success = false,
+					//		Status = 1,
+					//		Message = "New password cannot be the same as the old password"
+					//	});
+					//}
 
 					user.Password = PasswordBcrypt.HashPassword(login.Password);
 
