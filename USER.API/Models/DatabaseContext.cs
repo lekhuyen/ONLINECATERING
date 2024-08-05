@@ -45,6 +45,12 @@ namespace USER.API.Models
                 .HasMany(b => b.Restaurant)
                 .WithOne(b => b.Booking)
                 .HasForeignKey(b => b.BookingId);
+
+            //chat
+            modelBuilder.Entity<User>()
+               .HasMany(r => r.Messages)
+               .WithOne(r => r.User)
+               .HasForeignKey(r => r.UserId);
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Grade> Grades { get; set; }
@@ -53,6 +59,7 @@ namespace USER.API.Models
         public DbSet<Menu> Menus { get; set; }
         //public DbSet<MenuBooking> MenuBookings { get; set; }
         public DbSet<Restaurant> Restaurants { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
 
 

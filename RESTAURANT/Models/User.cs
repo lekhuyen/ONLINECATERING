@@ -20,6 +20,7 @@ namespace RESTAURANT.API.Models
         public ICollection<CommentChild>? CommentChildren { get; set; }
 
         public ICollection<Rating>? Ratings { get; set; }
+        public ICollection<Message>? Messages { get; set; }
 
 
     }

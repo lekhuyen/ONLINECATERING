@@ -44,6 +44,8 @@ namespace RESTAURANT
 			builder.Services.AddScoped<ILobbyImagesRepository, LobbyImagesRepository>();
 			builder.Services.AddTransient<FileUpload>();
 
+            builder.Services.AddScoped<IVnPayService, VnPayService>();
+
             builder.Services.AddSingleton<RedisClient>(sp =>
 
 				new RedisClient(builder.Configuration.GetValue<string>("Redis:ConnectionStrings")!)
@@ -56,7 +58,7 @@ namespace RESTAURANT
 				var dbContext = scopeFatory.CreateScope().ServiceProvider.GetRequiredService<DatabaseContext>();
 				return new RedisSubcribeService(redisClient, dbContext);
 			});
-
+            builder.Services.AddSignalR();
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowSpecificOrigin",
@@ -90,14 +92,15 @@ namespace RESTAURANT
 				Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
 				RequestPath = "/Uploads"
 			});
-			app.UseCors();
 
 			app.UseAuthorization();
 
-
 			app.MapControllers();
+            app.UseCors("AllowSpecificOrigin");
+            app.MapHub<ChatHub>("/chat");
 
-			app.Run();
+
+            app.Run();
 		}
 	}
 }
