@@ -17,9 +17,9 @@
         
         public int PromotionId { get; set; }
         public int? LobbyId { get; set; }
-        public ComboDTO? ComboDTO { get; set; }
+        public ComboDTO? Combo { get; set; }
         public bool? Status { get; set; }
-        //public List<ComboDTO>? ComboId { get; set; }
+        public LobbyDTO? Lobby { get; set; }
 
     }
 }

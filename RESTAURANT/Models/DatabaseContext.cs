@@ -159,6 +159,18 @@ namespace RESTAURANT.API.Models
                 .WithMany(c => c.ComboDesserts)
                 .HasForeignKey(c => c.ComboId);
 
+            modelBuilder.Entity<ComboBeverage>()
+              .HasKey(od => new { od.ComboId, od.BeverageId });
+            modelBuilder.Entity<ComboBeverage>()
+                .HasOne(c => c.Combo)
+                .WithMany(c => c.ComboBeverages)
+                .HasForeignKey(c => c.ComboId);
+            modelBuilder.Entity<ComboBeverage>()
+                .HasOne(c => c.Beverage)
+                .WithMany(c => c.ComboBeverages)
+                .HasForeignKey(c => c.BeverageId);
+
+
             modelBuilder.Entity<Order>()
                 .HasOne(c => c.Combo)
                 .WithMany(c => c.Order)
@@ -187,6 +199,11 @@ namespace RESTAURANT.API.Models
                 .HasMany(c => c.Comments)
                 .WithOne(c => c.Dessert)
                 .HasForeignKey(c => c.DessertId);
+
+            modelBuilder.Entity<Beverage>()
+                .HasMany(c => c.Comments)
+                .WithOne(c => c.Beverage)
+                .HasForeignKey(c => c.BeverageId);
 
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.User)
@@ -218,12 +235,17 @@ namespace RESTAURANT.API.Models
                 .WithMany(r => r.Ratings)
                 .HasForeignKey(r => r.UserId);
 
+            modelBuilder.Entity<Beverage>()
+                .HasMany(r => r.Rating)
+                .WithOne(r => r.Beverage)
+                .HasForeignKey(r => r.BeverageId);
 
             //chat
             modelBuilder.Entity<User>()
                .HasMany(r => r.Messages)
                .WithOne(r => r.User)
                .HasForeignKey(r => r.UserId);
+
         }
 
         public DbSet<Restaurant> Restaurants { get; set;}
@@ -259,5 +281,8 @@ namespace RESTAURANT.API.Models
         public DbSet<ComboDessert> ComboDesserts { get; set; }
         public DbSet<Message> Messages { get; set; }
 
+        public DbSet<ComboBeverage> ComboBeverage { get; set; }
+
+        public DbSet<Beverage> Beverages { get; set; }
     }
 }
