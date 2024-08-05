@@ -26,6 +26,7 @@ namespace USER.API.Models
 		public string? ConfirmationToken { get; set; }
 		public DateTime? ConfirmationTokenExpiry { get; set; }
         public bool? EmailConfirmed { get; set; } = false;
-	}
+        public ICollection<Message>? Messages { get; set; }
+    }
     
 }

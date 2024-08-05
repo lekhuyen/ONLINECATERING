@@ -14,7 +14,7 @@ namespace RESTAURANT.API.Models
         public User? User { get; set; }
         public int? CustomComboId { get; set; }
         public CustomCombo? CustomCombo { get; set; }
-
+        public bool? Status { get; set; } = false;
 
         public int? ComboId { get; set; }
         public Combo? Combo { get; set; }
