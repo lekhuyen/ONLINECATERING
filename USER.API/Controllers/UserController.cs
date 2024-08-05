@@ -628,60 +628,60 @@ namespace USER.API.Controllers
 			}
 		}
 
-		//[HttpPost("update-password")]
-		//public async Task<IActionResult> UpdatePassword(Login login)
-		//{
-		//	try
-		//	{
-		//		var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
+		[HttpPost("update-password")]
+		public async Task<IActionResult> UpdatePassword(Login login)
+		{
+			try
+			{
+				var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
 
-		//		if (user != null)
-		//		{
-		//			if (PasswordBcrypt.VerifyPassword(login.Password, user.Password))
-		//			{
-		//				return Ok(new ApiResponse
-		//				{
-		//					Success = false,
-		//					Status = 1,
-		//					Message = "New password cannot be the same as the old password"
-		//				});
-		//			}
+				if (user != null)
+				{
+					if (PasswordBcrypt.VerifyPassword(login.Password, user.Password))
+					{
+						return Ok(new ApiResponse
+						{
+							Success = false,
+							Status = 1,
+							Message = "New password cannot be the same as the old password"
+						});
+					}
 
-		//			user.Password = PasswordBcrypt.HashPassword(login.Password);
+					user.Password = PasswordBcrypt.HashPassword(login.Password);
 
-		//			_databaseContext.Users.Update(user);
-		//			await _databaseContext.SaveChangesAsync();
+					_databaseContext.Users.Update(user);
+					await _databaseContext.SaveChangesAsync();
 
-		//			return Ok(new ApiResponse
-		//			{
-		//				Success = true,
-		//				Status = 0,
-		//				Message = "Password has been changed, please login again"
-		//			});
-		//		}
-		//		else
-		//		{
-		//			return Ok(new ApiResponse
-		//			{
-		//				Success = false,
-		//				Status = 1,
-		//				Message = "User not found"
-		//			});
-		//		}
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		return Ok(new ApiResponse
-		//		{
-		//			Success = false,
-		//			Status = 1,
-		//			Message = "Internal server error"
-		//		});
-		//	}
-		//}
+					return Ok(new ApiResponse
+					{
+						Success = true,
+						Status = 0,
+						Message = "Password has been changed, please login again"
+					});
+				}
+				else
+				{
+					return Ok(new ApiResponse
+					{
+						Success = false,
+						Status = 1,
+						Message = "User not found"
+					});
+				}
+			}
+			catch (Exception ex)
+			{
+				return Ok(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Internal server error"
+				});
+			}
+		}
 
 		[HttpPost("update-password-otp")]
-		public async Task<IActionResult> UpdatePassword(Login login)
+		public async Task<IActionResult> UpdatePasswordUser(Login login)
 		{
 			try
 			{
