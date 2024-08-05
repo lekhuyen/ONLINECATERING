@@ -32,5 +32,7 @@ namespace RESTAURANT.API.Models
 
         public ICollection<Order>? Order { get; set; }
 
+        public ICollection<ComboBeverage>? ComboBeverages { get; set; }
+
     }
 }
