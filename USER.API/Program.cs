@@ -51,6 +51,7 @@ namespace USER
             //repositories
 
             // Configure CORS policy
+            builder.Services.AddSignalR();
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowSpecificOrigin",
@@ -101,7 +102,7 @@ namespace USER
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseCors("AllowSpecificOrigin");
-
+            app.MapHub<ChatHub>("/chat");
 
             app.MapControllers();
 

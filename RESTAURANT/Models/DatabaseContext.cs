@@ -218,6 +218,12 @@ namespace RESTAURANT.API.Models
                 .WithMany(r => r.Ratings)
                 .HasForeignKey(r => r.UserId);
 
+
+            //chat
+            modelBuilder.Entity<User>()
+               .HasMany(r => r.Messages)
+               .WithOne(r => r.User)
+               .HasForeignKey(r => r.UserId);
         }
 
         public DbSet<Restaurant> Restaurants { get; set;}
@@ -251,6 +257,7 @@ namespace RESTAURANT.API.Models
         public DbSet<Appetizer> Appetizers { get; set; }
         public DbSet<ComboAppetizer> ComboAppetizers { get; set; }
         public DbSet<ComboDessert> ComboDesserts { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
     }
 }

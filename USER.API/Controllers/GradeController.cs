@@ -92,5 +92,11 @@ namespace USER.API.Controllers
                 });
             }
         }
+        [HttpGet("chat")]
+        public async Task<IActionResult> GetChat()
+        {
+            var chats = await _databaseContext.Messages.ToListAsync();
+            return Ok(chats);
+        }
     }
 }
