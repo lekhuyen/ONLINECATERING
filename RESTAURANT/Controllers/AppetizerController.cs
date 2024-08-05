@@ -77,7 +77,7 @@ namespace RESTAURANT.API.Controllers
                     Price = appet.Price,
                     TotalRating = appet.TotalRating,
                     CountRatings = appet.CountRatings,
-                    Comments = appet.Comments.Select(x => new CommentDTO
+                    Comments = appet?.Comments?.Select(x => new CommentDTO
                     {
                         Id = x.Id,
                         Content = x.Content,
@@ -93,7 +93,7 @@ namespace RESTAURANT.API.Controllers
                             Content = cc.Content,
                             UserId = cc.UserId,
                             CommentId = cc.CommentId
-                        }).ToList()
+                        }).ToList() ?? new List<CommentChildDTO>()
                     }).ToList(),
                     Ratings = appet.Rating.Select(x => new RatingDTO
                     {
