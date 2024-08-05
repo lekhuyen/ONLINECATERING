@@ -159,6 +159,35 @@ namespace USER.API.Migrations
                     b.ToTable("Menus");
                 });
 
+            modelBuilder.Entity("USER.API.Models.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Roomname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("USER.API.Models.Restaurant", b =>
                 {
                     b.Property<int>("Id")
@@ -294,6 +323,17 @@ namespace USER.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("USER.API.Models.Message", b =>
+                {
+                    b.HasOne("USER.API.Models.User", "User")
+                        .WithMany("Messages")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("USER.API.Models.Restaurant", b =>
                 {
                     b.HasOne("USER.API.Models.Booking", "Booking")
@@ -313,6 +353,8 @@ namespace USER.API.Migrations
                     b.Navigation("FavoriteLists");
 
                     b.Navigation("Grade");
+
+                    b.Navigation("Messages");
 
                     b.Navigation("UserBookings");
                 });

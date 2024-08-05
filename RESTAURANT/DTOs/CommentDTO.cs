@@ -10,6 +10,7 @@ namespace RESTAURANT.API.DTOs
         public int? DessertId { get; set; }
         public string Content { get; set; }
         public int? AppetizerId { get; set; }
+        public int? BeverageId { get; set; }
         public List<CommentChildDTO>? CommentChildren { get; set; }
         public UserDTO? User { get; set; }
     }

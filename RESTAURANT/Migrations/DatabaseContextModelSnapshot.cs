@@ -500,6 +500,35 @@ namespace RESTAURANT.API.Migrations
                     b.ToTable("MenuImages");
                 });
 
+            modelBuilder.Entity("RESTAURANT.API.Models.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Roomname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -529,6 +558,9 @@ namespace RESTAURANT.API.Migrations
 
                     b.Property<int>("QuantityTable")
                         .HasColumnType("int");
+
+                    b.Property<bool?>("Status")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("StatusPayment")
                         .HasColumnType("bit");
@@ -1012,6 +1044,17 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("Restaurant");
                 });
 
+            modelBuilder.Entity("RESTAURANT.API.Models.Message", b =>
+                {
+                    b.HasOne("RESTAURANT.API.Models.User", "User")
+                        .WithMany("Messages")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>
                 {
                     b.HasOne("RESTAURANT.API.Models.Combo", "Combo")
@@ -1235,6 +1278,8 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("CustomCombos");
+
+                    b.Navigation("Messages");
 
                     b.Navigation("Orders");
 

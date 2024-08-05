@@ -41,7 +41,9 @@ namespace RESTAURANT.API.Controllers
                     Deposit = o.Deposit,
                     Oganization = o.Oganization,
                     LobbyId = o.LobbyId,
-                    
+                    ComboId = o.ComboId,
+                    Status = o.Status,
+
                 }).ToList();
 
                 return Ok(new ApiResponse
@@ -93,6 +95,8 @@ namespace RESTAURANT.API.Controllers
                     Deposit = order.Deposit,
                     Oganization = order.Oganization,
                     LobbyId = order.LobbyId,
+                    ComboId = order.ComboId,
+                    Status = order.Status,
                 };
 
                 return Ok(new ApiResponse
@@ -123,8 +127,8 @@ namespace RESTAURANT.API.Controllers
             {
                 // Check if CustomComboId exists
                 var customCombo = await _dbContext.CustomCombos
-                    .Include(cc => cc.User) // Include related User information
-                    .Include(cc => cc.Dish) // Include related Dish information if needed
+                    .Include(cc => cc.Dish)
+                    .Include(cc => cc.User)
                     .FirstOrDefaultAsync(cc => cc.Id == orderDTO.CustomComboId);
 
                 // Create new Order entity and set properties
@@ -137,6 +141,7 @@ namespace RESTAURANT.API.Controllers
                     Deposit = orderDTO.Deposit,
                     Oganization = orderDTO.Oganization,
                     LobbyId = orderDTO.LobbyId,
+                    
                 };
 
                 // Add to database
@@ -154,9 +159,12 @@ namespace RESTAURANT.API.Controllers
                     StatusPayment = order.StatusPayment,
                     Deposit = order.Deposit,
                     Oganization = order.Oganization,
+                    ComboId = order.ComboId,
+                   
+                    
 
-                    // Include other properties as needed
-                };
+                // Include other properties as needed
+            };
 
                 // Return created order DTO
                 return Ok(new ApiResponse
