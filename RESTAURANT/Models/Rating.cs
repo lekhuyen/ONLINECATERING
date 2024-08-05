@@ -21,5 +21,8 @@ namespace RESTAURANT.API.Models
         public int? DessertId { get; set; }
         public Dessert? Dessert { get; set; }
 
+        public int? BeverageId { get; set; }
+        public Beverage? Beverage { get; set; }
+
     }
 }
