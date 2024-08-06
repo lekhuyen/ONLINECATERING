@@ -119,6 +119,72 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
+        [HttpGet("booked/{userId}")]
+        public async Task<IActionResult> GetOrderByUserId(int userId)
+        {
+            try
+            {
+                var orders = await _dbContext.Orders
+                    .Include(c => c.Combo)
+                    .Include(c => c.Lobby)
+                    .Where(o => o.UserId == userId).ToListAsync();
+                if (orders == null || !orders.Any())
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Order not found",
+                    });
+                }
+
+                var orderDTOs = orders.Select(order => new OrderDTO
+                {
+                    Id = order.Id,
+                    UserId = order.UserId,
+                    CustomComboId = order.CustomComboId,
+                    TotalPrice = order.TotalPrice,
+                    QuantityTable = order.QuantityTable,
+                    StatusPayment = order.StatusPayment,
+                    Deposit = order.Deposit,
+                    Oganization = order.Oganization,
+                    LobbyId = order.LobbyId,
+                    ComboId = order.ComboId,
+                    Status = order.Status,
+                    Combo = order.Combo != null ? new ComboDTO
+                    {
+                        Name = order.Combo.Name,
+                        Price = order.Combo.Price
+                    } : null,
+                    Lobby = order.Lobby != null ? new LobbyDTO
+                    {
+                        LobbyName = order.Combo.Name,
+                        Price = order.Combo.Price
+                    } : null
+                }).ToList();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Get orders successfully",
+                    Data = orderDTOs
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from service",
+                    Data = ex.Message
+                });
+            }
+        }
+
+
+
         // POST: api/Order
         [HttpPost]
         public async Task<IActionResult> CreateOrder(OrderDTO orderDTO)
