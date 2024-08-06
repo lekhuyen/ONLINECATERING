@@ -281,7 +281,7 @@ namespace RESTAURANT.API.Models
         public DbSet<ComboDessert> ComboDesserts { get; set; }
         public DbSet<Message> Messages { get; set; }
 
-        public DbSet<ComboBeverage> ComboBeverage { get; set; }
+        public DbSet<ComboBeverage> ComboBeverages { get; set; }
 
         public DbSet<Beverage> Beverages { get; set; }
     }
