@@ -167,7 +167,6 @@ namespace RESTAURANT.API.Controllers
 
                 var comboAppetizer = new ComboAppetizer
                 {
-                    Id = dto.ComboAppetizerId,
                     ComboId = dto.ComboId,
                     AppetizerId = dto.AppetizerId
                 };
@@ -195,7 +194,70 @@ namespace RESTAURANT.API.Controllers
             }
         }
 
+        [HttpPost("order-create-comboApettizer")]
+        public async Task<IActionResult> CreateComboAppetizerOrder(List<AddComboAppetizerDTO> comboAppetizerDTO)
+        {
+            //[FromBody]
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Invalid data",
+                        Data = null
+                    });
+                }
 
+                foreach (var dto in comboAppetizerDTO)
+                {
+                    var existsAppetzer = await _dbContext.ComboAppetizers
+                    .FirstOrDefaultAsync(ca => ca.ComboId == dto.ComboId);
+
+                    if (existsAppetzer == null)
+                    {
+                        var comboAppetizer = new ComboAppetizer
+                        {
+                            ComboId = dto.ComboId,
+                            AppetizerId = dto.AppetizerId,
+                            Quantity = dto.Quantity,
+                        };
+
+                        await _dbContext.ComboAppetizers.AddAsync(comboAppetizer);
+                        
+                    }
+                    else
+                    {
+                        existsAppetzer.Quantity = dto.Quantity;
+                        existsAppetzer.AppetizerId = dto.AppetizerId;
+                        _dbContext.ComboAppetizers.Update(existsAppetzer);
+                    }
+
+                }
+                await _dbContext.SaveChangesAsync();
+
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "ComboAppetizer created successfully",
+                    Data = null
+                });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = $"Error occurred: {e.Message}",
+                    Data = null
+                });
+            }
+        }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComboAppetizer(int id)

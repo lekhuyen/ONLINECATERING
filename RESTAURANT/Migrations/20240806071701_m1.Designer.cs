@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RESTAURANT.API.Models;
 
@@ -11,9 +12,11 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20240806071701_m1")]
+    partial class m1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -599,30 +602,6 @@ namespace RESTAURANT.API.Migrations
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("RESTAURANT.API.Models.OOrderDish", b =>
-                {
-                    b.Property<int>("DishId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("DishId", "OrderId");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("OOrderDishes");
-                });
-
             modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -678,54 +657,6 @@ namespace RESTAURANT.API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("RESTAURANT.API.Models.OrderAppetizer", b =>
-                {
-                    b.Property<int>("AppetizerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("AppetizerId", "OrderId");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("OrderAppetizers");
-                });
-
-            modelBuilder.Entity("RESTAURANT.API.Models.OrderDessert", b =>
-                {
-                    b.Property<int>("DessertId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("DessertId", "OrderId");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("OrderDesserts");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.OrderDish", b =>
@@ -1227,25 +1158,6 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("RESTAURANT.API.Models.OOrderDish", b =>
-                {
-                    b.HasOne("RESTAURANT.API.Models.Dish", "Dish")
-                        .WithMany("OOrderDishes")
-                        .HasForeignKey("DishId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RESTAURANT.API.Models.Order", "Order")
-                        .WithMany("OOrderDishes")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Dish");
-
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>
                 {
                     b.HasOne("RESTAURANT.API.Models.Combo", "Combo")
@@ -1272,44 +1184,6 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("Promotion");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("RESTAURANT.API.Models.OrderAppetizer", b =>
-                {
-                    b.HasOne("RESTAURANT.API.Models.Appetizer", "Appetizer")
-                        .WithMany("OrderAppetizer")
-                        .HasForeignKey("AppetizerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RESTAURANT.API.Models.Order", "Order")
-                        .WithMany("OrderAppetizers")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Appetizer");
-
-                    b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("RESTAURANT.API.Models.OrderDessert", b =>
-                {
-                    b.HasOne("RESTAURANT.API.Models.Dessert", "Dessert")
-                        .WithMany("OrderDesserts")
-                        .HasForeignKey("DessertId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RESTAURANT.API.Models.Order", "Order")
-                        .WithMany("OrderDesserts")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Dessert");
-
-                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.OrderDish", b =>
@@ -1420,8 +1294,6 @@ namespace RESTAURANT.API.Migrations
 
                     b.Navigation("Comments");
 
-                    b.Navigation("OrderAppetizer");
-
                     b.Navigation("Rating");
                 });
 
@@ -1465,8 +1337,6 @@ namespace RESTAURANT.API.Migrations
 
                     b.Navigation("Comments");
 
-                    b.Navigation("OrderDesserts");
-
                     b.Navigation("Rating");
                 });
 
@@ -1477,8 +1347,6 @@ namespace RESTAURANT.API.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("CustomCombos");
-
-                    b.Navigation("OOrderDishes");
 
                     b.Navigation("OrderDishes");
 
@@ -1495,12 +1363,6 @@ namespace RESTAURANT.API.Migrations
             modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>
                 {
                     b.Navigation("CustomCombo");
-
-                    b.Navigation("OOrderDishes");
-
-                    b.Navigation("OrderAppetizers");
-
-                    b.Navigation("OrderDesserts");
 
                     b.Navigation("OrderDishes");
 
