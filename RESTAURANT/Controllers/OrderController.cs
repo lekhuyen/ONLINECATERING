@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTAURANT.API.DTOs;
 using RESTAURANT.API.Models;
+using StackExchange.Redis;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Order = RESTAURANT.API.Models.Order;
 
 namespace RESTAURANT.API.Controllers
 {
@@ -28,7 +30,19 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                var orders = await _dbContext.Orders.ToListAsync();
+                var orders = await _dbContext.Orders
+                    .Include(c => c.Combo)
+                        .ThenInclude(c => c.ComboDesserts)
+                        .ThenInclude(c => c.Dessert)
+                    .Include(c => c.Combo)
+                        .ThenInclude(c => c.ComboAppetizers)
+                        .ThenInclude(c => c.Appetizer)
+                    .Include(c => c.Combo)
+                        .ThenInclude(c => c.ComboDishes)
+                        .ThenInclude(c => c.Dish)
+                    .Include(c => c.User)
+                    .Include(c => c.Lobby)
+                    .ToListAsync();
 
                 var orderDTOs = orders.Select(o => new OrderDTO
                 {
@@ -43,6 +57,41 @@ namespace RESTAURANT.API.Controllers
                     LobbyId = o.LobbyId,
                     ComboId = o.ComboId,
                     Status = o.Status,
+                    User = new UserDTO
+                    {
+                        UserEmail = o.User.UserEmail,
+                        UserName = o.User.UserName,
+                        Phone = o.User.Phone
+                    },
+                    Combo = o.Combo != null ? new ComboDTO
+                    {
+                        Id = o.Combo.Id,
+                        Name = o.Combo.Name,
+                        Price = o.Combo.Price,
+                        ComboDesserts = o.Combo.ComboDesserts.Select(x => new ComboDessertDTO
+                        {
+                            DessertName = x.Dessert?.DessertName,
+                            DessertPrice = x.Dessert.Price,
+                            DessertImage = x.Dessert.DessertImage
+                        }).ToList(),
+                        ComboAppetizers = o.Combo?.ComboAppetizers?.Select(ca => new ComboAppetizerDTO
+                        {
+                            AppetizerName = ca?.Appetizer.AppetizerName,
+                            AppetizerPrice = ca.Appetizer.Price,
+                            AppetizerImage = ca.Appetizer.AppetizerImage
+                        }).ToList(),
+                        ComboDishes = o.Combo.ComboDishes?.Select(x => new ComboDishDTO
+                        {
+                            DishName = x.Dish.Name,
+                            DishPrice = x.Dish.Price,
+                            DishImagePath = x.Dish.ImagePath
+                        }).ToList()
+                    } : null,
+                    Lobby = o.Lobby != null ? new LobbyDTO
+                    {
+                        LobbyName = o.Lobby.LobbyName,
+                        Price = o.Lobby.Price
+                    } : null
 
                 }).ToList();
 
@@ -72,7 +121,19 @@ namespace RESTAURANT.API.Controllers
         {
             try
             {
-                var order = await _dbContext.Orders.FindAsync(id);
+                var order = await _dbContext.Orders
+                    .Include(c => c.Combo)
+                        .ThenInclude(c => c.ComboDesserts)
+                        .ThenInclude(c => c.Dessert)
+                    .Include(c => c.Combo)
+                        .ThenInclude(c => c.ComboAppetizers)
+                        .ThenInclude(c => c.Appetizer)
+                    .Include(c => c.Combo)
+                        .ThenInclude(c => c.ComboDishes)
+                        .ThenInclude(c => c.Dish)
+
+                    .Include(c => c.Lobby)
+                    .FirstOrDefaultAsync(c => c.Id == id);
 
                 if (order == null)
                 {
@@ -97,6 +158,35 @@ namespace RESTAURANT.API.Controllers
                     LobbyId = order.LobbyId,
                     ComboId = order.ComboId,
                     Status = order.Status,
+                    Combo = order.Combo != null ? new ComboDTO
+                    {
+                        Id = order.Combo.Id,
+                        Name = order.Combo.Name,
+                        Price = order.Combo.Price,
+                        ComboDesserts = order.Combo.ComboDesserts.Select(x => new ComboDessertDTO
+                        {
+                            DessertName = x.Dessert?.DessertName,
+                            DessertPrice = x.Dessert.Price,
+                            DessertImage = x.Dessert.DessertImage
+                        }).ToList(),
+                        ComboAppetizers = order.Combo?.ComboAppetizers?.Select(ca => new ComboAppetizerDTO
+                        {
+                            AppetizerName = ca?.Appetizer.AppetizerName,
+                            AppetizerPrice = ca.Appetizer.Price,
+                            AppetizerImage = ca.Appetizer.AppetizerImage
+                        }).ToList(),
+                        ComboDishes = order.Combo.ComboDishes?.Select(x => new ComboDishDTO
+                        {
+                            DishName = x.Dish.Name,
+                            DishPrice = x.Dish.Price,
+                            DishImagePath = x.Dish.ImagePath
+                        }).ToList()
+                    } : null,
+                    Lobby = order.Lobby != null ? new LobbyDTO
+                    {
+                        LobbyName = order.Combo.Name,
+                        Price = order.Combo.Price
+                    } : null
                 };
 
                 return Ok(new ApiResponse
@@ -126,6 +216,14 @@ namespace RESTAURANT.API.Controllers
             {
                 var orders = await _dbContext.Orders
                     .Include(c => c.Combo)
+                        .ThenInclude(c => c.ComboDesserts)
+                        .ThenInclude(c => c.Dessert)
+                    .Include(c => c.Combo)
+                        .ThenInclude(c => c.ComboAppetizers)
+                        .ThenInclude(c => c.Appetizer)
+                    .Include(c => c.Combo)
+                        .ThenInclude(c => c.ComboDishes)
+                        .ThenInclude(c => c.Dish)
                     .Include(c => c.Lobby)
                     .Where(o => o.UserId == userId).ToListAsync();
                 if (orders == null || !orders.Any())
@@ -153,8 +251,27 @@ namespace RESTAURANT.API.Controllers
                     Status = order.Status,
                     Combo = order.Combo != null ? new ComboDTO
                     {
+                        Id = order.Combo.Id,
                         Name = order.Combo.Name,
-                        Price = order.Combo.Price
+                        Price = order.Combo.Price,
+                        ComboDesserts = order.Combo?.ComboDesserts?.Select(x => new ComboDessertDTO
+                        {
+                            DessertName = x.Dessert?.DessertName,
+                            DessertPrice = x.Dessert.Price,
+                            DessertImage = x.Dessert.DessertImage
+                        }).ToList(),
+                        ComboAppetizers = order.Combo?.ComboAppetizers?.Select(ca => new ComboAppetizerDTO
+                        {
+                            AppetizerName = ca?.Appetizer.AppetizerName,
+                            AppetizerPrice = ca.Appetizer.Price,
+                            AppetizerImage = ca.Appetizer.AppetizerImage
+                        }).ToList(),
+                        ComboDishes = order.Combo.ComboDishes?.Select(x => new ComboDishDTO
+                        {
+                            DishName = x.Dish.Name,
+                            DishPrice = x.Dish.Price,
+                            DishImagePath = x.Dish.ImagePath
+                        }).ToList()
                     } : null,
                     Lobby = order.Lobby != null ? new LobbyDTO
                     {
