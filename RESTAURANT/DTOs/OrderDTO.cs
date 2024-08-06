@@ -17,9 +17,12 @@
         
         public int PromotionId { get; set; }
         public int? LobbyId { get; set; }
+        public UserDTO? User { get; set; }
+
         public ComboDTO? Combo { get; set; }
         public bool? Status { get; set; }
         public LobbyDTO? Lobby { get; set; }
+
 
     }
 }
