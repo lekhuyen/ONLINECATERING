@@ -12,6 +12,8 @@
 
         public int? Type { get; set; }
         public List<PromotionDTO>? Promotions { get; set; }
-        /*        public ICollection<ComboDishDTO>? ComboDishes { get; set; }*/
+        public List<ComboAppetizerDTO>? ComboAppetizers { get; set; }
+        public List<ComboDessertDTO>? ComboDesserts { get; set; }
+        public List<ComboDishDTO>? ComboDishes { get; set; }
     }
 }
