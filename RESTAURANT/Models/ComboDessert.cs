@@ -12,5 +12,6 @@ namespace RESTAURANT.API.Models
         public int? DessertId { get; set; }
         public Combo? Combo { get; set; }
         public Dessert? Dessert { get; set; }
+        public int? Quantity { get; set; } = 1;
     }
 }
