@@ -17,5 +17,6 @@ namespace RESTAURANT.API.Models
         public ICollection<Rating>? Rating { get; set; }
         public decimal? TotalRating { get; set; }
         public int? CountRatings { get; set; }
+        public ICollection<OrderAppetizer>? OrderAppetizer { get; set; }
     }
 }

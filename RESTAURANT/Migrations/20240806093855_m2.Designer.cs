@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RESTAURANT.API.Models;
 
@@ -11,9 +12,11 @@ using RESTAURANT.API.Models;
 namespace RESTAURANT.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20240806093855_m2")]
+    partial class m2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -613,14 +616,11 @@ namespace RESTAURANT.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
                     b.HasKey("DishId", "OrderId");
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OOrderDishes");
+                    b.ToTable("OOrderDish");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Order", b =>
@@ -694,9 +694,6 @@ namespace RESTAURANT.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
                     b.HasKey("AppetizerId", "OrderId");
 
                     b.HasIndex("OrderId");
@@ -717,9 +714,6 @@ namespace RESTAURANT.API.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
 
                     b.HasKey("DessertId", "OrderId");
 
@@ -748,7 +742,7 @@ namespace RESTAURANT.API.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderDishes");
+                    b.ToTable("OrderDish");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.Payment", b =>

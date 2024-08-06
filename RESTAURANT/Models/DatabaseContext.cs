@@ -246,6 +246,43 @@ namespace RESTAURANT.API.Models
                .WithOne(r => r.User)
                .HasForeignKey(r => r.UserId);
 
+            //order----------------------------------------------------------
+            modelBuilder.Entity<OOrderDish>()
+                .HasKey(od => new { od.DishId, od.OrderId });
+            modelBuilder.Entity<OOrderDish>()
+               .HasOne(cc => cc.Dish)
+               .WithMany(d => d.OOrderDishes)
+               .HasForeignKey(cc => cc.DishId);
+
+            modelBuilder.Entity<OOrderDish>()
+                .HasOne(cc => cc.Order)
+                .WithMany(u => u.OOrderDishes)
+                .HasForeignKey(cc => cc.OrderId);
+
+            modelBuilder.Entity<OrderAppetizer>()
+                .HasKey(od => new { od.AppetizerId, od.OrderId });
+            modelBuilder.Entity<OrderAppetizer>()
+               .HasOne(cc => cc.Appetizer)
+               .WithMany(d => d.OrderAppetizer)
+               .HasForeignKey(cc => cc.AppetizerId);
+
+            modelBuilder.Entity<OrderAppetizer>()
+                .HasOne(cc => cc.Order)
+                .WithMany(u => u.OrderAppetizers)
+                .HasForeignKey(cc => cc.OrderId);
+
+
+            modelBuilder.Entity<OrderDessert>()
+                .HasKey(od => new { od.DessertId, od.OrderId });
+            modelBuilder.Entity<OrderDessert>()
+               .HasOne(cc => cc.Dessert)
+               .WithMany(d => d.OrderDesserts)
+               .HasForeignKey(cc => cc.DessertId);
+
+            modelBuilder.Entity<OrderDessert>()
+                .HasOne(cc => cc.Order)
+                .WithMany(u => u.OrderDesserts)
+                .HasForeignKey(cc => cc.OrderId);
         }
 
         public DbSet<Restaurant> Restaurants { get; set;}
@@ -284,5 +321,8 @@ namespace RESTAURANT.API.Models
         public DbSet<ComboBeverage> ComboBeverages { get; set; }
 
         public DbSet<Beverage> Beverages { get; set; }
+        public DbSet<OrderAppetizer> OrderAppetizers { get; set; }
+        public DbSet<OrderDessert> OrderDesserts { get; set; }
+        public DbSet<OOrderDish> OOrderDishes { get; set; }
     }
 }
