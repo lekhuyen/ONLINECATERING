@@ -33,9 +33,11 @@ namespace RESTAURANT.API.Models
 
         public ICollection<OrderDish>? OrderDishes { get; set; }
 
-        //public ICollection<Dish>? Dishes { get; set; }
-        //public ICollection<Dessert>? Desserts { get; set; }
-        //public ICollection<Appetizer>? Appetizers { get; set; }
+
+
+        public ICollection<OrderDessert>? OrderDesserts { get; set; }
+        public ICollection<OrderAppetizer>? OrderAppetizers { get; set; }
+        public ICollection<OOrderDish>? OOrderDishes { get; set; }
     }
 
 }

@@ -1,4 +1,6 @@
-﻿namespace RESTAURANT.API.DTOs
+﻿using RESTAURANT.API.Models;
+
+namespace RESTAURANT.API.DTOs
 {
     public class OrderDTO
     {
@@ -23,6 +25,9 @@
         public bool? Status { get; set; }
         public LobbyDTO? Lobby { get; set; }
 
+        public List<GetOrderAppetizerDTO>? GetOrderAppetizers { get; set; }
+        public List<GetOrderDessertDTO>? GetOrderDesserts { get; set; }
+        public List<GetOrderDishDTO>? GetOrderDishes { get; set; }
 
     }
 }
