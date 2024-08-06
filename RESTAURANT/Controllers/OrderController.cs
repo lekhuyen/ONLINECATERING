@@ -69,7 +69,7 @@ namespace RESTAURANT.API.Controllers
                     Status = o.Status,
                     User = new UserDTO
                     {
-                        Id = order.User.Id,
+                        Id = o.User.Id,
                         UserEmail = o.User.UserEmail,
                         UserName = o.User.UserName,
                         Phone = o.User.Phone
@@ -431,6 +431,7 @@ namespace RESTAURANT.API.Controllers
 
 
         // POST: api/Order
+        //k sử dụng CreateOrder nữa, sử dụng CreateOrderCombo
         [HttpPost]
         public async Task<IActionResult> CreateOrder(OrderDTO orderDTO)
         {
@@ -583,7 +584,6 @@ namespace RESTAURANT.API.Controllers
 
 
 
-                    // Include other properties as needed
                 };
 
                 // Return created order DTO
