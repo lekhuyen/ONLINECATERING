@@ -342,56 +342,63 @@ namespace USER.API.Controllers
 			}
 		}
 
-		[HttpPost("login")]
-		public async Task<IActionResult> Login(Login login)
-		{
-			var userLogin = await _authUser.Login(login);
-			if (userLogin == null)
-			{
-				return Ok(new ApiResponse
-				{
-					Success = false,
-					Status = 1,
-					Message = "Wrong Email or Password"
-				});
-			}
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(Login login)
+        {
+            var userLogin = await _authUser.Login(login);
+            if (userLogin == null)
+            {
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Wrong Email or Password"
+                });
+            }
 
+            // Check if the account is banned
+            if (userLogin.Status)  // Assuming Status = false means active and Status = true means banned
+            {
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Your account has been banned"
+                });
+            }
 
-			//token ------------  refeshToken
-			var token = GenerateToken(userLogin);
+            // Token and refresh token generation
+            var token = GenerateToken(userLogin);
 
-			var refeshToken = Guid.NewGuid().ToString();
-			var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
+            var refreshToken = Guid.NewGuid().ToString();
+            var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
 
-
-			userLogin.RefeshToken = refeshToken;
-			userLogin.RefreshTokenExpiryTime = refreshTokenExpiryTime;
-			await _repository.UpdateUserAsync(userLogin);
+            userLogin.RefeshToken = refreshToken;
+            userLogin.RefreshTokenExpiryTime = refreshTokenExpiryTime;
+            await _repository.UpdateUserAsync(userLogin);
 
             var userDTO = new UserDTO
             {
-                Id= userLogin.Id,
+                Id = userLogin.Id,
                 UserEmail = userLogin.UserEmail,
                 UserName = userLogin.UserName,
                 Phone = userLogin.Phone,
                 Role = userLogin.Role,
                 AccessToken = token,
-                RefeshToken = refeshToken
+                RefeshToken = refreshToken
             };
 
-			return Ok(new ApiResponse
-			{
-				Success = true,
-				Status = 0,
-				Message = "Login successfully",
-				//AccessToken = token,
-				//RefreshToken = refeshToken,
-				Data = userDTO
-			});
+            return Ok(new ApiResponse
+            {
+                Success = true,
+                Status = 0,
+                Message = "Login successfully",
+                Data = userDTO
+            });
+        }
 
-		}
 
-		[HttpPost("login-token")]
+        [HttpPost("login-token")]
 		public async Task<IActionResult> LoginToken(Login login)
 		{
 			var userLogin = await _authUser.Login(login);
@@ -748,7 +755,6 @@ namespace USER.API.Controllers
 			}
 		}
 
-        //Edit User Status for Admin
         [HttpPut("admin-edit/{id}")]
         public async Task<IActionResult> AdminEditUserStatus(int id, [FromQuery] int userId, [FromQuery] bool newStatus)
         {
@@ -762,6 +768,23 @@ namespace USER.API.Controllers
                 var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
                 if (user != null)
                 {
+                    bool wasPreviouslyBanned = user.Status;
+                    bool isCurrentlyBanned = newStatus;
+
+                    if (wasPreviouslyBanned != isCurrentlyBanned)
+                    {
+                        if (isCurrentlyBanned)
+                        {
+                            // Send email when user is banned
+                            await _emailServices.SendBanNotificationEmail(user.UserEmail, user.UserName);
+                        }
+                        else
+                        {
+                            // Send email when user is unbanned
+                            await _emailServices.SendUnbanNotificationEmail(user.UserEmail, user.UserName);
+                        }
+                    }
+
                     user.Status = newStatus;
                     await _databaseContext.SaveChangesAsync();
                     return Ok(user); // Return the updated user object
@@ -771,13 +794,14 @@ namespace USER.API.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new ApiResponse
+                return StatusCode(500, new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from server"
+                    Message = "Error from server: " + ex.Message
                 });
             }
         }
+
     }
 }
