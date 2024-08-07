@@ -637,13 +637,13 @@ namespace USER.API.Controllers
 
 				if (user != null)
 				{
-					//if (PasswordBcrypt.VerifyPassword(login.Password, user.Password))
+					//if (!PasswordBcrypt.VerifyPassword(login.Password, user.Password))
 					//{
 					//	return Ok(new ApiResponse
 					//	{
 					//		Success = false,
 					//		Status = 1,
-					//		Message = "New password cannot be the same as the old password"
+					//		Message = "Old password must be matched with login password"
 					//	});
 					//}
 
@@ -689,29 +689,32 @@ namespace USER.API.Controllers
 
 				if (user != null)
 				{
-                    if (user.Otp == login.Otp)
+                    bool veriPass = PasswordBcrypt.VerifyPassword(login.OldPassword, user.Password);
+                    if (veriPass)
                     {
-						if (PasswordBcrypt.VerifyPassword(login.Password, user.Password))
+						if (user.Otp == login.Otp)
 						{
-							return Ok(new ApiResponse
-							{
-								Success = false,
-								Status = 1,
-								Message = "New password cannot be the same as the old password"
-							});
-						}
+                            
+                            user.Password = PasswordBcrypt.HashPassword(login.Password);
 
-						user.Password = PasswordBcrypt.HashPassword(login.Password);
+                            _databaseContext.Users.Update(user);
+                            await _databaseContext.SaveChangesAsync();
 
-						_databaseContext.Users.Update(user);
-						await _databaseContext.SaveChangesAsync();
-
+                            return Ok(new ApiResponse
+                            {
+                                Success = true,
+                                Status = 0,
+                                Message = "Succ"
+                            });
+                        }
 						return Ok(new ApiResponse
 						{
-							Success = true,
-							Status = 0,
-							Message = "Password has been changed, please login again"
+							Success = false,
+							Status = 1,
+							Message = "Wrong OTP"
 						});
+
+
 					}
                     else
                     {
@@ -719,7 +722,7 @@ namespace USER.API.Controllers
 						{
 							Success = false,
 							Status = 1,
-							Message = "Wrong OTP"
+							Message = "Wrong Password"
 						});
 					}
 
