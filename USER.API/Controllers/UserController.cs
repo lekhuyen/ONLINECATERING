@@ -692,7 +692,18 @@ namespace USER.API.Controllers
 		{
 			try
 			{
-				var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
+                // Validate the length of the old and new passwords
+                if (login.OldPassword.Length < 6 || login.Password.Length < 6)
+                {
+                    return Ok(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Passwords must be at least 6 characters long"
+                    });
+                }
+
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
 
 				if (user != null)
 				{
