@@ -81,12 +81,11 @@ namespace RESTAURANT.API.Controllers
                     {
                         Id = x.Id,
                         Content = x.Content,
-                        User = new UserDTO
+                        User = x.User != null ? new UserDTO
                         {
                             Id = x.User.Id,
-                            UserName = x.User.UserName,
-                            
-                        },
+                            UserName = x.User.UserName, 
+                        } : null,
                         AppetizerId = x.AppetizerId,
                         CommentChildren = x?.CommentChildren?.Select(cc => new CommentChildDTO
                         {
