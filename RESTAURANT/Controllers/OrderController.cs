@@ -177,7 +177,7 @@ namespace RESTAURANT.API.Controllers
                         .ThenInclude(c => c.Dessert)
                     .Include(c => c.User)
                     .Include(c => c.Lobby)
-                    .FirstOrDefaultAsync(c => c.Id == id);
+                    .FirstOrDefaultAsync(c => c.Id == id && c.StatusPayment == true);
 
                 if (order == null)
                 {
