@@ -53,6 +53,7 @@ namespace RESTAURANT.API.Controllers
             {
                 var appet = await _dbContext.Appetizers
                     .Include(x => x.Comments)
+                    .ThenInclude(x => x.User)
                     .Include(x => x.Rating)
                     .ThenInclude(x => x.User)
                     .ThenInclude(x => x.CommentChildren)
