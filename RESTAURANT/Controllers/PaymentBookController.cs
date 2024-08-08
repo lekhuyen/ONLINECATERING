@@ -53,8 +53,9 @@ namespace RESTAURANT.API.Controllers
                     _dbContext.Orders.Update(order);
                     await _dbContext.SaveChangesAsync();
                 }
-                var success = "Payment success";
-                var url = $"http://localhost:3000/ordercombo/{success}";
+                //var success = "Payment success";
+                //var url = $"http://localhost:3000/ordercombo/{success}";
+                var url = $"http://localhost:3000/payment-success";
                 return Redirect(url);
                 //return Redirect("http://localhost:3000/");
             }
