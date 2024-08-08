@@ -53,6 +53,7 @@ namespace RESTAURANT.API.Controllers
             {
                 var appet = await _dbContext.Appetizers
                     .Include(x => x.Comments)
+                    .ThenInclude(x => x.User)
                     .Include(x => x.Rating)
                     .ThenInclude(x => x.User)
                     .ThenInclude(x => x.CommentChildren)
@@ -84,8 +85,9 @@ namespace RESTAURANT.API.Controllers
                         User = x.User != null ? new UserDTO
                         {
                             Id = x.User.Id,
-                            UserName = x.User.UserName,
+                            UserName = x.User.UserName, 
                         } : null,
+                            
 
                         AppetizerId = x.AppetizerId,
                         CommentChildren = x?.CommentChildren?.Select(cc => new CommentChildDTO
