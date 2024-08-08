@@ -221,7 +221,7 @@ namespace RESTAURANT.API.Migrations
 
                     b.HasIndex("BeverageId");
 
-                    b.ToTable("ComboBeverage");
+                    b.ToTable("ComboBeverages");
                 });
 
             modelBuilder.Entity("RESTAURANT.API.Models.ComboDessert", b =>
