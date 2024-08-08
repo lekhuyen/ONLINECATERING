@@ -71,12 +71,7 @@ namespace RESTAURANT.API.Controllers
                         Phone = o.User.Phone
                     } : null,
                     Combo = (o.OOrderDishes.Any() || o.OrderDesserts.Any() || o.OrderAppetizers.Any())
-                        ? new ComboDTO
-                        {
-                            Id = o.Combo.Id,
-                            Name = o.Combo.Name,
-                            Price = o.Combo.Price
-                        }
+                        ? null
                         : new ComboDTO
                         {
                             Id = o.Combo.Id,
@@ -182,7 +177,7 @@ namespace RESTAURANT.API.Controllers
                         .ThenInclude(c => c.Dessert)
                     .Include(c => c.User)
                     .Include(c => c.Lobby)
-                    .FirstOrDefaultAsync(c => c.Id == id);
+                    .FirstOrDefaultAsync(c => c.Id == id && c.StatusPayment == true);
 
                 if (order == null)
                 {
@@ -190,7 +185,7 @@ namespace RESTAURANT.API.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "Order not found",
+                        Message = "Order not found"
                     });
                 }
 
@@ -209,36 +204,36 @@ namespace RESTAURANT.API.Controllers
                     LobbyId = order.LobbyId,
                     ComboId = order.ComboId,
                     Status = order.Status,
-                    User = new UserDTO
+                    User = order.User != null ? new UserDTO
                     {
                         Id = order.User.Id,
                         UserEmail = order.User.UserEmail,
                         UserName = order.User.UserName,
                         Phone = order.User.Phone
-                    },
-                    Combo = order.Combo != null ? new ComboDTO
+                    } : null,
+                    Combo = !hasOrderDetails && order.Combo != null ? new ComboDTO
                     {
                         Id = order.Combo.Id,
                         Name = order.Combo.Name,
                         Price = order.Combo.Price,
-                        ComboDesserts = !hasOrderDetails ? order.Combo.ComboDesserts.Select(x => new ComboDessertDTO
+                        ComboDesserts = order.Combo.ComboDesserts.Select(x => new ComboDessertDTO
                         {
                             DessertName = x.Dessert?.DessertName,
                             DessertPrice = x.Dessert.Price,
                             DessertImage = x.Dessert.DessertImage
-                        }).ToList() : null,
-                        ComboAppetizers = !hasOrderDetails ? order.Combo.ComboAppetizers.Select(ca => new ComboAppetizerDTO
+                        }).ToList(),
+                        ComboAppetizers = order.Combo.ComboAppetizers.Select(ca => new ComboAppetizerDTO
                         {
                             AppetizerName = ca.Appetizer?.AppetizerName,
                             AppetizerPrice = ca.Appetizer.Price,
                             AppetizerImage = ca.Appetizer.AppetizerImage
-                        }).ToList() : null,
-                        ComboDishes = !hasOrderDetails ? order.Combo.ComboDishes.Select(x => new ComboDishDTO
+                        }).ToList(),
+                        ComboDishes = order.Combo.ComboDishes.Select(x => new ComboDishDTO
                         {
                             DishName = x.Dish.Name,
                             DishPrice = x.Dish.Price,
                             DishImagePath = x.Dish.ImagePath
-                        }).ToList() : null
+                        }).ToList()
                     } : null,
                     GetOrderDishes = order.OOrderDishes.Any() ? order.OOrderDishes.Select(c => new GetOrderDishDTO
                     {
@@ -329,11 +324,11 @@ namespace RESTAURANT.API.Controllers
                     {
                         Success = false,
                         Status = 1,
-                        Message = "Order not found",
+                        Message = "No orders found for the given user ID"
                     });
                 }
 
-                var orderDTOs = orders.Select(order => new OrderDTO
+                var orderDTOs =  orders.Select(order => new OrderDTO
                 {
                     Id = order.Id,
                     UserId = order.UserId,
@@ -347,12 +342,7 @@ namespace RESTAURANT.API.Controllers
                     ComboId = order.ComboId,
                     Status = order.Status,
                     Combo = (order.OOrderDishes.Any() || order.OrderDesserts.Any() || order.OrderAppetizers.Any())
-                        ? new ComboDTO
-                        {
-                            Id = order.Combo.Id,
-                            Name = order.Combo.Name,
-                            Price = order.Combo.Price
-                        }
+                        ? null
                         : new ComboDTO
                         {
                             Id = order.Combo.Id,
@@ -418,7 +408,7 @@ namespace RESTAURANT.API.Controllers
                 {
                     Success = true,
                     Status = 0,
-                    Message = "Get orders successfully",
+                    Message = "Orders retrieved successfully",
                     Data = orderDTOs
                 });
             }
@@ -699,6 +689,47 @@ namespace RESTAURANT.API.Controllers
                 }
 
                 // Remove order from database
+                _dbContext.Orders.Remove(order);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Order deleted successfully",
+                    Data = null
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error occurred while deleting order",
+                    Data = ex.Message
+                });
+            }
+        }
+
+        [HttpDelete("{userId}/{orderId}")]
+        public async Task<IActionResult> DeleteOrderByUser(int userId, int orderId)
+        {
+            try
+            {
+                var order = await _dbContext.Orders.FirstOrDefaultAsync(c => c.Id == orderId && c.UserId == userId);
+
+                if (order == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Order not found",
+                        Data = null
+                    });
+                }
+
                 _dbContext.Orders.Remove(order);
                 await _dbContext.SaveChangesAsync();
 

@@ -342,56 +342,63 @@ namespace USER.API.Controllers
 			}
 		}
 
-		[HttpPost("login")]
-		public async Task<IActionResult> Login(Login login)
-		{
-			var userLogin = await _authUser.Login(login);
-			if (userLogin == null)
-			{
-				return Ok(new ApiResponse
-				{
-					Success = false,
-					Status = 1,
-					Message = "Wrong Email or Password"
-				});
-			}
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(Login login)
+        {
+            var userLogin = await _authUser.Login(login);
+            if (userLogin == null)
+            {
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Wrong Email or Password"
+                });
+            }
 
+            // Check if the account is banned
+            if (userLogin.Status)  // Assuming Status = false means active and Status = true means banned
+            {
+                return Ok(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Your account has been banned"
+                });
+            }
 
-			//token ------------  refeshToken
-			var token = GenerateToken(userLogin);
+            // Token and refresh token generation
+            var token = GenerateToken(userLogin);
 
-			var refeshToken = Guid.NewGuid().ToString();
-			var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
+            var refreshToken = Guid.NewGuid().ToString();
+            var refreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(2);
 
-
-			userLogin.RefeshToken = refeshToken;
-			userLogin.RefreshTokenExpiryTime = refreshTokenExpiryTime;
-			await _repository.UpdateUserAsync(userLogin);
+            userLogin.RefeshToken = refreshToken;
+            userLogin.RefreshTokenExpiryTime = refreshTokenExpiryTime;
+            await _repository.UpdateUserAsync(userLogin);
 
             var userDTO = new UserDTO
             {
-                Id= userLogin.Id,
+                Id = userLogin.Id,
                 UserEmail = userLogin.UserEmail,
                 UserName = userLogin.UserName,
                 Phone = userLogin.Phone,
                 Role = userLogin.Role,
                 AccessToken = token,
-                RefeshToken = refeshToken
+                RefeshToken = refreshToken
             };
 
-			return Ok(new ApiResponse
-			{
-				Success = true,
-				Status = 0,
-				Message = "Login successfully",
-				//AccessToken = token,
-				//RefreshToken = refeshToken,
-				Data = userDTO
-			});
+            return Ok(new ApiResponse
+            {
+                Success = true,
+                Status = 0,
+                Message = "Login successfully",
+                Data = userDTO
+            });
+        }
 
-		}
 
-		[HttpPost("login-token")]
+        [HttpPost("login-token")]
 		public async Task<IActionResult> LoginToken(Login login)
 		{
 			var userLogin = await _authUser.Login(login);
@@ -637,13 +644,13 @@ namespace USER.API.Controllers
 
 				if (user != null)
 				{
-					//if (PasswordBcrypt.VerifyPassword(login.Password, user.Password))
+					//if (!PasswordBcrypt.VerifyPassword(login.Password, user.Password))
 					//{
 					//	return Ok(new ApiResponse
 					//	{
 					//		Success = false,
 					//		Status = 1,
-					//		Message = "New password cannot be the same as the old password"
+					//		Message = "Old password must be matched with login password"
 					//	});
 					//}
 
@@ -685,33 +692,47 @@ namespace USER.API.Controllers
 		{
 			try
 			{
-				var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
+                // Validate the length of the old and new passwords
+                if (login.OldPassword.Length < 6 || login.Password.Length < 6)
+                {
+                    return Ok(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "Passwords must be at least 6 characters long"
+                    });
+                }
+
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
 
 				if (user != null)
 				{
-                    if (user.Otp == login.Otp)
+                    bool veriPass = PasswordBcrypt.VerifyPassword(login.OldPassword, user.Password);
+                    if (veriPass)
                     {
-						if (PasswordBcrypt.VerifyPassword(login.Password, user.Password))
+						if (user.Otp == login.Otp)
 						{
-							return Ok(new ApiResponse
-							{
-								Success = false,
-								Status = 1,
-								Message = "New password cannot be the same as the old password"
-							});
-						}
+                            
+                            user.Password = PasswordBcrypt.HashPassword(login.Password);
 
-						user.Password = PasswordBcrypt.HashPassword(login.Password);
+                            _databaseContext.Users.Update(user);
+                            await _databaseContext.SaveChangesAsync();
 
-						_databaseContext.Users.Update(user);
-						await _databaseContext.SaveChangesAsync();
-
+                            return Ok(new ApiResponse
+                            {
+                                Success = true,
+                                Status = 0,
+                                Message = "Succ"
+                            });
+                        }
 						return Ok(new ApiResponse
 						{
-							Success = true,
-							Status = 0,
-							Message = "Password has been changed, please login again"
+							Success = false,
+							Status = 1,
+							Message = "Wrong OTP"
 						});
+
+
 					}
                     else
                     {
@@ -719,7 +740,7 @@ namespace USER.API.Controllers
 						{
 							Success = false,
 							Status = 1,
-							Message = "Wrong OTP"
+							Message = "Wrong Password"
 						});
 					}
 
@@ -745,7 +766,6 @@ namespace USER.API.Controllers
 			}
 		}
 
-        //Edit User Status for Admin
         [HttpPut("admin-edit/{id}")]
         public async Task<IActionResult> AdminEditUserStatus(int id, [FromQuery] int userId, [FromQuery] bool newStatus)
         {
@@ -759,6 +779,23 @@ namespace USER.API.Controllers
                 var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
                 if (user != null)
                 {
+                    bool wasPreviouslyBanned = user.Status;
+                    bool isCurrentlyBanned = newStatus;
+
+                    if (wasPreviouslyBanned != isCurrentlyBanned)
+                    {
+                        if (isCurrentlyBanned)
+                        {
+                            // Send email when user is banned
+                            await _emailServices.SendBanNotificationEmail(user.UserEmail, user.UserName);
+                        }
+                        else
+                        {
+                            // Send email when user is unbanned
+                            await _emailServices.SendUnbanNotificationEmail(user.UserEmail, user.UserName);
+                        }
+                    }
+
                     user.Status = newStatus;
                     await _databaseContext.SaveChangesAsync();
                     return Ok(user); // Return the updated user object
@@ -768,13 +805,14 @@ namespace USER.API.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new ApiResponse
+                return StatusCode(500, new ApiResponse
                 {
                     Success = false,
                     Status = 1,
-                    Message = "Error from server"
+                    Message = "Error from server: " + ex.Message
                 });
             }
         }
+
     }
 }
