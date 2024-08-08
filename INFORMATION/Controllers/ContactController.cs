@@ -4,6 +4,7 @@ using INFORMATION.API.Services;
 using INFORMATIONAPI.Models;
 using INFORMATIONAPI.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading.Tasks;
 
@@ -15,11 +16,13 @@ namespace INFORMATIONAPI.Controllers
     {
         private readonly IContactRepositories _contactRepositories;
         private readonly EmailService _emailService;
+        private readonly IConfiguration _configuration;
 
-        public ContactController(IContactRepositories contactRepositories, EmailService emailService)
+        public ContactController(IContactRepositories contactRepositories, EmailService emailService, IConfiguration configuration)
         {
             _contactRepositories = contactRepositories;
             _emailService = emailService;
+            _configuration = configuration;
         }
 
         // POST: api/contact
@@ -241,10 +244,8 @@ namespace INFORMATIONAPI.Controllers
             }
         }
 
-        // POST: api/contact/subscribe
-        // POST: api/contact/subscribe
         [HttpPost("subscribe")]
-        public async Task<IActionResult> SubscribeNewsletter([FromBody] EmailRequest request)
+        public async Task<IActionResult> SubscribeNewsletter([FromBody] SubscriptionRequest request)
         {
             if (string.IsNullOrWhiteSpace(request?.Email))
             {
@@ -259,11 +260,34 @@ namespace INFORMATIONAPI.Controllers
 
             try
             {
-                // Send a confirmation email to the user
+                var dbContext = new DatabaseContext(_configuration); // Use the injected configuration here
+
+                // Check if the email is already subscribed
+                if (await dbContext.IsEmailSubscribedAsync(request.Email))
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "This email address is already subscribed.",
+                        Data = null
+                    });
+                }
+
+                var subscription = new Subscription
+                {
+                    Email = request.Email,
+                    IsActive = true
+                };
+
+                // Save subscription to MongoDB
+                await dbContext.Subscriptions.InsertOneAsync(subscription);
+
+                // Send confirmation email to the user
                 await _emailService.SendEmailAsync(
                     request.Email,
                     "Thank You for Subscribing",
-                    "Thank you for subscribing! We will be in touch with you shortly and ensure that you receive all the latest updates and news as soon as they're available. We appreciate your interest and look forward to keeping you informed with the most current information and exciting updates. Stay tuned!");
+                    "Thank you for subscribing! We will be in touch with you shortly.");
 
                 return Ok(new ApiResponse
                 {

@@ -21,5 +21,14 @@ namespace INFORMATIONAPI.Models
         public IMongoCollection<NewsType> NewsType => _mongoDB.GetCollection<NewsType>("NewsType");
 
         public IMongoCollection<Contact> Contact => _mongoDB.GetCollection<Contact>("Contact");
+        
+        public IMongoCollection<Subscription> Subscriptions => _mongoDB.GetCollection<Subscription>("Subscriptions");
+
+        public async Task<bool> IsEmailSubscribedAsync(string email)
+        {
+            var filter = Builders<Subscription>.Filter.Eq(s => s.Email, email);
+            var count = await Subscriptions.CountDocumentsAsync(filter);
+            return count > 0;
+        }
     }
 }

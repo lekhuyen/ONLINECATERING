@@ -6,5 +6,6 @@
         public string? Password { get; set; }
         public string? Otp { get; set; }
         public string? LoginToken { get; set; }
+        public string? OldPassword { get; set; }
     }
 }
