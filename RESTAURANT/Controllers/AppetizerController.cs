@@ -86,6 +86,8 @@ namespace RESTAURANT.API.Controllers
                             Id = x.User.Id,
                             UserName = x.User.UserName, 
                         } : null,
+                            
+
                         AppetizerId = x.AppetizerId,
                         CommentChildren = x?.CommentChildren?.Select(cc => new CommentChildDTO
                         {
@@ -94,7 +96,7 @@ namespace RESTAURANT.API.Controllers
                             UserId = cc.UserId,
                             CommentId = cc.CommentId
                         }).ToList() ?? new List<CommentChildDTO>()
-                    }).ToList(),
+                    }).ToList() ?? new List<CommentDTO>(),
                     Ratings = appet?.Rating?.Select(x => new RatingDTO
                     {
                         Id = x.Id,
