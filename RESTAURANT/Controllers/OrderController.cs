@@ -425,7 +425,41 @@ namespace RESTAURANT.API.Controllers
         }
 
 
+        [HttpGet("lobby/{lobbyId}")]
+        public async Task<IActionResult> GetLobby(int lobbyId)
+        {
+            try
+            {
+                var lobies = await _dbContext.Orders.Where(c => c.LobbyId == lobbyId && c.StatusPayment == true).ToListAsync();
+                if (lobies != null)
+                {
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Status = 0,
+                        Message = "Get order successfully",
+                        Data = lobies
+                    });
+                }
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Status = 0,
+                    Message = "Order nofound",
+                });
 
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Error from service",
+                    Data = ex.Message
+                });
+            }
+        }
 
 
         // POST: api/Order
