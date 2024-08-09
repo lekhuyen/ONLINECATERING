@@ -222,6 +222,32 @@ namespace USER.API.Controllers
 			});
 		}
 
+		[HttpGet("role/{roleAdmin}")]
+		public async Task<IActionResult> GetByEmail(string roleAdmin)
+		{
+			var user = await _databaseContext.Users.FirstOrDefaultAsync(x => x.Role == roleAdmin);
+
+
+			if (user == null)
+			{
+
+				return NotFound(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Get user failed"
+				});
+			}
+
+			return Ok(new ApiResponse
+			{
+				Success = true,
+				Status = 0,
+				Message = "Get user Successfully",
+				Data = user
+			});
+		}
+
 		[HttpPut("{id}")]
 		public async Task<IActionResult> UpdateUser(int id, User user)
 		{

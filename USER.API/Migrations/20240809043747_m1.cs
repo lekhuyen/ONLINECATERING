@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace USER.API.Migrations
 {
     /// <inheritdoc />
-    public partial class UserTable : Migration
+    public partial class m1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,6 +31,19 @@ namespace USER.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Rooms",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoomCode = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Rooms", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -49,11 +62,17 @@ namespace USER.API.Migrations
                     OtpExpired = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ConfirmationToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ConfirmationTokenExpiry = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: true)
+                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: true),
+                    RoomId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_Rooms_RoomId",
+                        column: x => x.RoomId,
+                        principalTable: "Rooms",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -108,12 +127,19 @@ namespace USER.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     message = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TimeStamp = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Roomname = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    Roomname = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    RoomId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Messages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Messages_Rooms_RoomId",
+                        column: x => x.RoomId,
+                        principalTable: "Rooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Messages_Users_UserId",
                         column: x => x.UserId,
@@ -187,6 +213,11 @@ namespace USER.API.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Messages_RoomId",
+                table: "Messages",
+                column: "RoomId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Messages_UserId",
                 table: "Messages",
                 column: "UserId");
@@ -200,6 +231,11 @@ namespace USER.API.Migrations
                 name: "IX_UserBooking_UserId",
                 table: "UserBooking",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_RoomId",
+                table: "Users",
+                column: "RoomId");
         }
 
         /// <inheritdoc />
@@ -225,6 +261,9 @@ namespace USER.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "Rooms");
         }
     }
 }

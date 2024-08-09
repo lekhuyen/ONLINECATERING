@@ -27,6 +27,9 @@ namespace USER.API.Models
 		public DateTime? ConfirmationTokenExpiry { get; set; }
         public bool? EmailConfirmed { get; set; } = false;
         public ICollection<Message>? Messages { get; set; }
+
+        public int? RoomId { get; set; }
+        public Room? Room { get; set; }
     }
     
 }
