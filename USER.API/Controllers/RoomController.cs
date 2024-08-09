@@ -83,6 +83,7 @@ namespace USER.API.Controllers
                 Success = true,
                 Status = 0,
                 Message = "Add room Successfully",
+                Data = room.RoomCode
             });
         }
         [HttpPost("join")]
