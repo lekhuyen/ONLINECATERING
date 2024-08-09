@@ -114,9 +114,11 @@ namespace USER.API.Controllers
 					//reids
 					var userDTO = new UserDTO
 					{
+						Id = user.Id,
 						UserName = user.UserName,
 						UserEmail = user.UserEmail,
 						Phone = user.Phone,
+						Role = user.Role,
 					};
 					var userJson = JsonConvert.SerializeObject(userDTO);
 					_redisClient.Publish("user_created", userJson);
@@ -137,7 +139,8 @@ namespace USER.API.Controllers
 					{
 						Success = true,
 						Status = 0,
-						Message = "Create user successfully, please confirm your email to continue login"
+						Message = "Create user successfully, please confirm your email to continue login",
+						Data = userDTO
 					});
 				}
 				return Ok(new ApiResponse
