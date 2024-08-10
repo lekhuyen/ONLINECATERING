@@ -77,9 +77,11 @@ namespace RESTAURANT.API.Controllers
             {
                 var dish = await _dbContext.Dishes
                     .Include(x => x.Comments)
+                    .ThenInclude(x => x.CommentChildren)
+                    .ThenInclude(x => x.User)
                     .Include(x => x.Rating)
                     .ThenInclude(x => x.User)
-                    .ThenInclude(x => x.CommentChildren)
+                    
                     .FirstOrDefaultAsync(d => d.Id == id);
 
                 if (dish == null)
@@ -115,7 +117,12 @@ namespace RESTAURANT.API.Controllers
                             Id = cc.Id,
                             Content = cc.Content,
                             UserId = cc.UserId,
-                            CommentId = cc.CommentId
+                            CommentId = cc.CommentId,
+                            User = cc.User != null ? new UserDTO
+                            {
+                                Id = cc.User.Id,
+                                UserName =cc.User.UserName
+                            } : null,
                         }).ToList() ?? new List<CommentChildDTO>()
                     }).ToList(),
                     Ratings = dish.Rating.Select(x => new RatingDTO
