@@ -8,5 +8,6 @@ namespace RESTAURANT.API.DTOs
         public int? CommentId { get; set; }
         public int UserId { get; set; }
         public string Content { get; set; }
+        public UserDTO? User { get; set; }
     }
 }

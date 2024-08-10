@@ -95,7 +95,12 @@ namespace RESTAURANT.API.Controllers
                             Id = cc.Id,
                             Content = cc.Content,
                             UserId = cc.UserId,
-                            CommentId = cc.CommentId
+                            CommentId = cc.CommentId,
+                            User = cc?.User != null ? new UserDTO
+                            {
+                                Id = cc.User.Id,
+                                UserName = cc.User.UserName,
+                            } : null,
                         }).ToList() ?? new List<CommentChildDTO>()
                     }).ToList() ?? new List<CommentDTO>(),
                     Ratings = appet?.Rating?.Select(x => new RatingDTO

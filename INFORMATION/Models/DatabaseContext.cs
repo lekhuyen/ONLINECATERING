@@ -9,7 +9,7 @@ namespace INFORMATIONAPI.Models
         public DatabaseContext(IConfiguration config)
         {
             var client = new MongoClient(config.GetConnectionString("MongoDB"));
-            _mongoDB = client.GetDatabase("InformationTB");
+            _mongoDB = client.GetDatabase("INFORMATIONMODULE");
         }
         public IMongoCollection<About> About => _mongoDB.GetCollection<About>("About");
 
