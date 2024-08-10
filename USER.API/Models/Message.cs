@@ -10,8 +10,10 @@ namespace USER.API.Models
         public int Id { get; set; }
         public string message { get; set; }
         public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
-        public string Roomname { get; set; }
+        public string? Roomname { get; set; }
         public int UserId { get; set; }
         public User? User { get; set; }
+        public int RoomId { get; set; }
+        public Room? Room { get; set; }
     }
 }

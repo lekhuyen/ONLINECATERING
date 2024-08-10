@@ -12,8 +12,8 @@ using USER.API.Models;
 namespace USER.API.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240807150503_UserTable")]
-    partial class UserTable
+    [Migration("20240809043751_1")]
+    partial class _1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -170,8 +170,10 @@ namespace USER.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Roomname")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("TimeStamp")
@@ -185,6 +187,8 @@ namespace USER.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
 
                     b.HasIndex("UserId");
 
@@ -233,6 +237,23 @@ namespace USER.API.Migrations
                     b.ToTable("Restaurants");
                 });
 
+            modelBuilder.Entity("USER.API.Models.Room", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("RoomCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Rooms");
+                });
+
             modelBuilder.Entity("USER.API.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -277,6 +298,9 @@ namespace USER.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("RoomId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
@@ -289,6 +313,8 @@ namespace USER.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
 
                     b.ToTable("Users");
                 });
@@ -328,11 +354,19 @@ namespace USER.API.Migrations
 
             modelBuilder.Entity("USER.API.Models.Message", b =>
                 {
+                    b.HasOne("USER.API.Models.Room", "Room")
+                        .WithMany("Messages")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("USER.API.Models.User", "User")
                         .WithMany("Messages")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Room");
 
                     b.Navigation("User");
                 });
@@ -346,9 +380,25 @@ namespace USER.API.Migrations
                     b.Navigation("Booking");
                 });
 
+            modelBuilder.Entity("USER.API.Models.User", b =>
+                {
+                    b.HasOne("USER.API.Models.Room", "Room")
+                        .WithMany("Users")
+                        .HasForeignKey("RoomId");
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("USER.API.Models.Booking", b =>
                 {
                     b.Navigation("Restaurant");
+                });
+
+            modelBuilder.Entity("USER.API.Models.Room", b =>
+                {
+                    b.Navigation("Messages");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("USER.API.Models.User", b =>

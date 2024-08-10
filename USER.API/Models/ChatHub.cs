@@ -11,27 +11,63 @@ namespace USER.API.Models
         {
             _databaseContext = dbcontext;
         }
-        public async Task JoinRoom(string userEmail, string adminEmail)
+        public async Task JoinRoom(string userEmail,string roomCode)
         {
             try
             {
-                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
-                var admin = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == adminEmail);
+                var room = await _databaseContext.Rooms
+                .FirstOrDefaultAsync(r => r.RoomCode == roomCode);
+                if (room == null)
+                {
+                    await Clients.Caller.SendAsync("InvalidRoom");
+                    return;
+                }
 
-                if (user == null || admin == null)
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
+
+                if (user == null)
                 {
                     await Clients.Caller.SendAsync("Not found");
                     return;
                 }
 
-                var roomName = GetPrivateRoomName(user.Id, admin.Id);
-                await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
+                var userRoom = await _databaseContext.Rooms
+                  .FirstOrDefaultAsync(u => u.Users.Any(u => u.Id == user.Id));
 
+                if (userRoom == null)
+                {
+                    userRoom = new Room
+                    {
+                        RoomCode = roomCode, 
+                        Users = new List<User> { user }
+                    };
+                    _databaseContext.Rooms.Add(userRoom);
+                    await _databaseContext.SaveChangesAsync();
+                }
+                else
+                {
+                    if (!userRoom.Users.Contains(user))
+                    {
+                        userRoom.Users.Add(user);
+                    }
 
-                await Clients.Group(roomName).SendAsync("Userjoin", user.UserName, user.Id);
-                var messageHistory = await GetMessageHistory(user.Id, admin.Id);
+                    
+                }
 
-                await Clients.Caller.SendAsync("ReceviceMessageHistory", messageHistory);
+                await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
+                await Clients.Group(roomCode).SendAsync("UserJoined", user.UserName, roomCode);
+                var messageHistory = await _databaseContext.Messages.Include(m => m.User)
+               .Where(m => m.Room.RoomCode == roomCode)
+               .OrderBy(m => m.TimeStamp)
+               .Select(m => new
+               {
+                   UserId = m.User.Id,
+                   User = m.User.UserName,
+                   Message = m.message,
+                   RoomCode = roomCode,
+                   Timestamp = m.TimeStamp
+               }).ToListAsync();
+                await Clients.Caller.SendAsync("ReceiveMessageHistory", messageHistory);
             }
             catch (Exception ex)
             {
@@ -39,69 +75,37 @@ namespace USER.API.Models
                 throw;
             }
         }
+      
 
-        public async Task Sendmessage(string senderEmail, string message, string receiverEmail)
+        public async Task SendMessage(string email, string message, string roomCode)
         {
-            try
+            var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == email);
+            if (user == null)
             {
-                var sender = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == senderEmail);
-                var receiver = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == receiverEmail);
-
-                if (sender == null || receiver == null)
-                {
-                    await Clients.Caller.SendAsync("Not found");
-                    return;
-                }
-
-                var chatMessage = new Message
-                {
-                    message = message,
-                    UserId = sender.Id,
-                    TimeStamp = DateTime.UtcNow,
-                    Roomname = GetPrivateRoomName(sender.Id, receiver.Id)
-                };
-
-                await _databaseContext.Messages.AddAsync(chatMessage);
-                await _databaseContext.SaveChangesAsync();
-                var roomname = GetPrivateRoomName(sender.Id, receiver.Id);
-
-                await Clients.Group(roomname).SendAsync("ReceiveMessage", sender.UserName, sender.Id, message);
+                return;
             }
-            catch (Exception ex)
+            var room = await _databaseContext.Rooms
+                .FirstOrDefaultAsync(r => r.RoomCode == roomCode);
+            if (room == null)
             {
-                Console.WriteLine($"Error in Sendmessage: {ex.Message}");
-                throw;
+                return;
             }
-        }
-
-        private async Task<List<MessageDTO>> GetMessageHistory(int userId, int adminId)
-        {
-            var sortedIds = new List<int> { userId, adminId }.OrderBy(id => id).ToArray();
-            var roomName = $"PrivateRoom_{sortedIds[0]}_{sortedIds[1]}";
-
-            var messages = await _databaseContext.Messages
-                .Where(m => m.Roomname == roomName)
-                .OrderBy(m => m.TimeStamp).ToListAsync();
-
-            var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            var admin = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Id == adminId);
-
-            var messageDTOs = messages.Select(m => new MessageDTO
+            
+            var chatMessage = new Message
             {
-                Id = m.Id,
-                message = m.message,
-                UserId = m.UserId,
-                TimeStamp = m.TimeStamp,
-                Roomname = m.Roomname,
-                Username = m.UserId == userId ? user.UserName : admin.UserName
-            }).ToList();
-            return messageDTOs;
+                UserId = user.Id,
+                RoomId = room.Id,
+                message = message,
+                TimeStamp = DateTime.UtcNow,
+
+            };
+            await _databaseContext.Messages.AddAsync(chatMessage);
+            await _databaseContext.SaveChangesAsync();
+
+            await Clients.Group(roomCode)
+                   .SendAsync("ReceiMessage", user.UserName,user.Id, message, chatMessage.TimeStamp, roomCode);
+            
         }
 
-        private string GetPrivateRoomName(int userId, int adminId)
-        {
-            var sortedIds = new List<int> { userId, adminId }.OrderBy(id => id).ToArray();
-            return $"PrivateRoom_{sortedIds[0]}_{sortedIds[1]}";
-        }
     }
 }

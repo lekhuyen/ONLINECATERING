@@ -114,9 +114,11 @@ namespace USER.API.Controllers
 					//reids
 					var userDTO = new UserDTO
 					{
+						Id = user.Id,
 						UserName = user.UserName,
 						UserEmail = user.UserEmail,
 						Phone = user.Phone,
+						Role = user.Role,
 					};
 					var userJson = JsonConvert.SerializeObject(userDTO);
 					_redisClient.Publish("user_created", userJson);
@@ -137,7 +139,8 @@ namespace USER.API.Controllers
 					{
 						Success = true,
 						Status = 0,
-						Message = "Create user successfully, please confirm your email to continue login"
+						Message = "Create user successfully, please confirm your email to continue login",
+						Data = userDTO
 					});
 				}
 				return Ok(new ApiResponse
@@ -201,6 +204,32 @@ namespace USER.API.Controllers
 		public async Task<IActionResult> GetById(int id)
 		{
 			var user = await _repository.GetByIdAsync(id);
+
+			if (user == null)
+			{
+
+				return NotFound(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Get user failed"
+				});
+			}
+
+			return Ok(new ApiResponse
+			{
+				Success = true,
+				Status = 0,
+				Message = "Get user Successfully",
+				Data = user
+			});
+		}
+
+		[HttpGet("role/{roleAdmin}")]
+		public async Task<IActionResult> GetByEmail(string roleAdmin)
+		{
+			var user = await _databaseContext.Users.FirstOrDefaultAsync(x => x.Role == roleAdmin);
+
 
 			if (user == null)
 			{
