@@ -51,6 +51,15 @@ namespace USER.API.Models
                .HasMany(r => r.Messages)
                .WithOne(r => r.User)
                .HasForeignKey(r => r.UserId);
+
+            modelBuilder.Entity<Room>()
+                .HasMany(c => c.Users)
+                .WithOne(c => c.Room)
+                .HasForeignKey(c => c.RoomId);
+            modelBuilder.Entity<Message>()
+                .HasOne(c => c.Room)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(c => c.RoomId);
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Grade> Grades { get; set; }
@@ -60,6 +69,7 @@ namespace USER.API.Models
         //public DbSet<MenuBooking> MenuBookings { get; set; }
         public DbSet<Restaurant> Restaurants { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Room> Rooms { get; set; }
 
 
 

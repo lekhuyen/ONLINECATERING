@@ -114,9 +114,11 @@ namespace USER.API.Controllers
 					//reids
 					var userDTO = new UserDTO
 					{
+						Id = user.Id,
 						UserName = user.UserName,
 						UserEmail = user.UserEmail,
 						Phone = user.Phone,
+						Role = user.Role,
 					};
 					var userJson = JsonConvert.SerializeObject(userDTO);
 					_redisClient.Publish("user_created", userJson);
@@ -137,7 +139,8 @@ namespace USER.API.Controllers
 					{
 						Success = true,
 						Status = 0,
-						Message = "Create user successfully, please confirm your email to continue login"
+						Message = "Create user successfully, please confirm your email to continue login",
+						Data = userDTO
 					});
 				}
 				return Ok(new ApiResponse
@@ -201,6 +204,32 @@ namespace USER.API.Controllers
 		public async Task<IActionResult> GetById(int id)
 		{
 			var user = await _repository.GetByIdAsync(id);
+
+			if (user == null)
+			{
+
+				return NotFound(new ApiResponse
+				{
+					Success = false,
+					Status = 1,
+					Message = "Get user failed"
+				});
+			}
+
+			return Ok(new ApiResponse
+			{
+				Success = true,
+				Status = 0,
+				Message = "Get user Successfully",
+				Data = user
+			});
+		}
+
+		[HttpGet("role/{roleAdmin}")]
+		public async Task<IActionResult> GetByEmail(string roleAdmin)
+		{
+			var user = await _databaseContext.Users.FirstOrDefaultAsync(x => x.Role == roleAdmin);
+
 
 			if (user == null)
 			{
@@ -687,84 +716,132 @@ namespace USER.API.Controllers
 			}
 		}
 
-		[HttpPost("update-password-otp")]
-		public async Task<IActionResult> UpdatePasswordUser(Login login)
-		{
-			try
-			{
-                // Validate the length of the old and new passwords
-                if (login.OldPassword.Length < 6 || login.Password.Length < 6)
+        [HttpPost("update-password-change")]
+        public async Task<IActionResult> UpdatePasswordUser(Login login)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(login.OldPassword) || string.IsNullOrEmpty(login.NewPassword) || string.IsNullOrEmpty(login.UserEmail))
                 {
-                    return Ok(new ApiResponse
+                    return BadRequest(new ApiResponse
                     {
                         Success = false,
                         Status = 1,
-                        Message = "Passwords must be at least 6 characters long"
+                        Message = "Invalid input data"
+                    });
+                }
+
+                // Validate the length of the new password
+                if (login.NewPassword.Length < 6)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "New password must be at least 6 characters long"
+                    });
+                }
+
+                // Check if old and new passwords are the same
+                if (login.OldPassword == login.NewPassword)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "New password cannot be the same as the old password"
                     });
                 }
 
                 var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == login.UserEmail);
 
-				if (user != null)
-				{
+                if (user != null)
+                {
+                    // Verify the old password
                     bool veriPass = PasswordBcrypt.VerifyPassword(login.OldPassword, user.Password);
                     if (veriPass)
                     {
-						if (user.Otp == login.Otp)
-						{
-                            
-                            user.Password = PasswordBcrypt.HashPassword(login.Password);
+                        // Update the password
+                        user.Password = PasswordBcrypt.HashPassword(login.NewPassword);
 
-                            _databaseContext.Users.Update(user);
-                            await _databaseContext.SaveChangesAsync();
+                        _databaseContext.Users.Update(user);
+                        await _databaseContext.SaveChangesAsync();
 
-                            return Ok(new ApiResponse
-                            {
-                                Success = true,
-                                Status = 0,
-                                Message = "Succ"
-                            });
-                        }
-						return Ok(new ApiResponse
-						{
-							Success = false,
-							Status = 1,
-							Message = "Wrong OTP"
-						});
-
-
-					}
+                        return Ok(new ApiResponse
+                        {
+                            Success = true,
+                            Status = 0,
+                            Message = "Password updated successfully"
+                        });
+                    }
                     else
                     {
-						return Ok(new ApiResponse
-						{
-							Success = false,
-							Status = 1,
-							Message = "Wrong Password"
-						});
-					}
-
+                        return BadRequest(new ApiResponse
+                        {
+                            Success = false,
+                            Status = 1,
+                            Message = "Wrong Password"
+                        });
+                    }
                 }
-				else
-				{
-					return Ok(new ApiResponse
-					{
-						Success = false,
-						Status = 1,
-						Message = "User not found"
-					});
-				}
-			}
-			catch (Exception ex)
-			{
-				return Ok(new ApiResponse
-				{
-					Success = false,
-					Status = 1,
-					Message = "Internal server error"
-				});
-			}
-		}
+                else
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "User not found"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+
+
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Internal server error"
+                });
+            }
+        }
+
+
+        [HttpPost("validate-password")]
+        public async Task<IActionResult> ValidatePassword([FromBody] Login Login)
+        {
+            try
+            {
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.UserEmail == Login.UserEmail);
+
+                if (user != null)
+                {
+                    bool isValidPassword = PasswordBcrypt.VerifyPassword(Login.OldPassword, user.Password);
+                    return Ok(new { isValid = isValidPassword });
+                }
+                else
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Status = 1,
+                        Message = "User not found"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details if needed
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Status = 1,
+                    Message = "Internal server error"
+                });
+            }
+        }
+
 
         [HttpPut("admin-edit/{id}")]
         public async Task<IActionResult> AdminEditUserStatus(int id, [FromQuery] int userId, [FromQuery] bool newStatus)
